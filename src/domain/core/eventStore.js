@@ -27,3 +27,5 @@ export const quotationEventStore = new EventStore();
 export const quoteApprovalEventStore = new EventStore();
 export const jobCreationEventStore = new EventStore(); 
 export const startJobEventStore = new EventStore(); 
+export const jobCompletionEventStore = new EventStore();
+export const invoiceEventStore = new EventStore(); 

@@ -7,7 +7,9 @@ import {
   quotationEventStore, 
   quoteApprovalEventStore,
   jobCreationEventStore, // Import for JobCreatedEvent
-  startJobEventStore    // Import for JobStartedEvent
+  startJobEventStore,    // Import for JobStartedEvent
+  jobCompletionEventStore, // New event store import for JobCompletedEvent
+  invoiceEventStore        // New event store import for InvoiceCreatedEvent
 } from './domain/core/eventStore'; 
 import { organizationCommandHandler } from './domain/features/organization/commandHandler';
 import { customerCommandHandler } from './domain/features/customer/commandHandler';
@@ -19,6 +21,9 @@ import { ApproveQuoteCommand } from './domain/features/approval/commands';
 import { initializeCreateJobEventHandler } from './domain/features/createJob/eventHandler'; // Initialize the create job event handler
 import { startJobCommandHandler } from './domain/features/startJob/commandHandler'; // Import startJobCommandHandler
 import { StartJobCommand } from './domain/features/startJob/commands'; // Import StartJobCommand
+import { completeJobCommandHandler } from './domain/features/completeJob/commandHandler'; // New command handler import
+import { CompleteJobCommand } from './domain/features/completeJob/commands'; // New command import
+import { initializeCompleteJobEventHandler } from './domain/features/completeJob/eventHandler'; // New event handler for complete job to invoicing
 
 import ReadModelDisplay from './components/ReadModelDisplay';
 import EventLogDisplay from './components/EventLogDisplay';
@@ -56,6 +61,10 @@ function App() {
 
   // State for selected team for job start
   const [selectedTeam, setSelectedTeam] = useState('Team_A'); // Default team
+
+  // State for Invoices (new)
+  const [invoices, setInvoices] = useState([]);
+  const [invoiceEvents, setInvoiceEvents] = useState([]);
 
   // Load initial state for all aggregates
   useEffect(() => {
@@ -95,26 +104,30 @@ function App() {
     setApprovalEvents(approvalEventsLoaded);
 
     // Repair Jobs - Load initial jobs from event stores and reconstruct state
-    const jobCreatedEventsLoaded = jobCreationEventStore.getEvents(); // Get JobCreated events
-    const jobStartedEventsLoaded = startJobEventStore.getEvents(); // Get JobStarted events
+    const jobCreatedEventsLoaded = jobCreationEventStore.getEvents(); 
+    const jobStartedEventsLoaded = startJobEventStore.getEvents(); 
+    const jobCompletedEventsLoaded = jobCompletionEventStore.getEvents(); // Get JobCompleted events
     
-    // Combine all relevant job events for display
-    const allJobEventsCombined = [...jobCreatedEventsLoaded, ...jobStartedEventsLoaded]
-                                   .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); // Sort by timestamp
+    // Combine all relevant job events for display and chronological sorting
+    const allJobEventsCombined = [
+                                   ...jobCreatedEventsLoaded, 
+                                   ...jobStartedEventsLoaded,
+                                   ...jobCompletedEventsLoaded 
+                                 ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()); 
 
-    // Reconstruct job state: Start with created jobs, then apply any 'started' events
+    // Reconstruct job state: Start with created jobs, then apply any 'started' and 'completed' events
     let reconstructedJobs = jobCreatedEventsLoaded
       .filter(e => e.type === 'JobCreated')
-      .map(e => ({ ...e.data })); // Shallow copy to avoid direct mutation
+      .map(e => ({ ...e.data })); 
 
-    jobStartedEventsLoaded.forEach(event => {
+    allJobEventsCombined.forEach(event => { 
       if (event.type === 'JobStarted') {
         reconstructedJobs = reconstructedJobs.map(job => {
           if (job.jobId === event.data.jobId) {
             return {
               ...job,
-              status: 'Started', // Update status
-              jobDetails: { // Update jobDetails to include assigned team
+              status: 'Started', 
+              jobDetails: { 
                 ...job.jobDetails,
                 assignedTeam: event.data.assignedTeam
               }
@@ -122,17 +135,35 @@ function App() {
           }
           return job;
         });
+      } else if (event.type === 'JobCompleted') { 
+        reconstructedJobs = reconstructedJobs.map(job => {
+          if (job.jobId === event.data.jobId) {
+            return {
+              ...job,
+              status: 'Completed',
+              completionDetails: event.data.completionDetails 
+            };
+          }
+          return job;
+        });
       }
-      // Add other job-related event types here (e.g., JobCompleted, JobCanceled)
     });
 
     setJobs(reconstructedJobs);
     setJobEvents(allJobEventsCombined); // Store all combined raw events
 
+    // Invoices (new)
+    const invoiceEventsLoaded = invoiceEventStore.getEvents();
+    setInvoices(
+      invoiceEventsLoaded.filter(e => e.type === 'InvoiceCreated').map(e => e.data)
+    );
+    setInvoiceEvents(invoiceEventsLoaded);
+
+
     // Initialize all relevant event handlers
     initializeQuotationEventHandler();
     initializeCreateJobEventHandler(); 
-    // No specific initialize for startJob, as its handler is directly called by UI command
+    initializeCompleteJobEventHandler(); // Initialize the new complete job event handler for invoicing
   }, []);
 
   // Subscribe to events for all aggregates
@@ -172,29 +203,46 @@ function App() {
     // Subscribe to JobCreated event (from createJob slice)
     const unsubJobCreated = eventBus.subscribe('JobCreated', (event) => {
       setJobs(prev => {
-        // Ensure no duplicates if strict mode causes double-dispatch during init
         if (!prev.some(job => job.jobId === event.data.jobId)) {
           return [...prev, event.data];
         }
         return prev;
       });
-      setJobEvents(prev => [...prev, event]); // Add raw event to combined list
+      setJobEvents(prev => [...prev, event]); 
     });
 
     // Subscribe to JobStarted event (from startJob slice)
     const unsubJobStarted = eventBus.subscribe('JobStarted', (event) => {
-      setJobEvents(prev => [...prev, event]); // Add raw event to combined list
+      setJobEvents(prev => [...prev, event]); 
       // Update the status of the relevant job in the 'jobs' read model
       setJobs(prev => prev.map(job => 
         job.jobId === event.data.jobId ? { 
           ...job, 
-          status: 'Started', // Change status to Started
-          jobDetails: { // Update jobDetails to include assigned team
+          status: 'Started', 
+          jobDetails: { 
             ...job.jobDetails,
             assignedTeam: event.data.assignedTeam
           }
         } : job
       ));
+    });
+
+    // Subscribe to JobCompleted event (new, from completeJob slice)
+    const unsubJobCompleted = eventBus.subscribe('JobCompleted', (event) => {
+      setJobEvents(prev => [...prev, event]); // Add raw event
+      setJobs(prev => prev.map(job =>
+        job.jobId === event.data.jobId ? {
+          ...job,
+          status: 'Completed', 
+          completionDetails: event.data.completionDetails 
+        } : job
+      ));
+    });
+
+    // Subscribe to InvoiceCreated event (new, from invoicing slice)
+    const unsubInvoiceCreated = eventBus.subscribe('InvoiceCreated', (event) => {
+      setInvoices(prev => [...prev, event.data]);
+      setInvoiceEvents(prev => [...prev, event]);
     });
 
 
@@ -206,6 +254,8 @@ function App() {
       unsubApproval();
       unsubJobCreated();
       unsubJobStarted(); 
+      unsubJobCompleted(); // Clean up job completed subscription
+      unsubInvoiceCreated(); // Clean up invoice created subscription
     };
   }, []);
 
@@ -277,7 +327,7 @@ function App() {
     );
   };
 
-  // Handler for starting a Job (new) - uses the new startJobCommandHandler
+  // Handler for starting a Job (existing)
   const handleStartJob = (jobId) => {
     if (!jobId || !selectedTeam) {
         console.warn("Please select a team before starting the job.");
@@ -290,11 +340,30 @@ function App() {
       return;
     }
 
-    startJobCommandHandler.handle( // Call the new startJobCommandHandler
+    startJobCommandHandler.handle( 
       StartJobCommand(
         jobId,
         selectedTeam,
         currentUserId 
+      )
+    );
+  };
+
+  // Handler for completing a Job (new)
+  const handleCompleteJob = (jobId) => {
+    if (!jobId) return;
+
+    const jobToComplete = jobs.find(job => job.jobId === jobId);
+    if (jobToComplete && jobToComplete.status !== 'Started') {
+      console.warn(`Job ${jobId} cannot be completed as its status is ${jobToComplete.status}. Only 'Started' jobs can be completed.`);
+      return;
+    }
+
+    completeJobCommandHandler.handle(
+      CompleteJobCommand(
+        jobId,
+        currentUserId, 
+        { notes: `Job completed by ${currentUserId} at ${new Date().toLocaleString()}` } 
       )
     );
   };
@@ -516,9 +585,9 @@ function App() {
           </div>
         </div>
 
-        {/* Repair Job Block (now explicitly handling 'createJob' and 'startJob' events) */}
+        {/* Repair Job Block (Create & Start & Complete) */}
         <div className="aggregate-block">
-          <h2>Repair Job Aggregate (Create & Start)</h2>
+          <h2>Repair Job Aggregate</h2>
           <div className="aggregate-columns">
             <div className="aggregate-column">
                 <h3>Actions</h3>
@@ -533,17 +602,31 @@ function App() {
                 </div>
                 <ul className="action-list">
                     {jobs
-                        .filter(job => job.status === 'Pending') // Only show "Start" button for pending jobs
+                        .filter(job => job.status === 'Pending' || job.status === 'Started') 
                         .map(job => (
                         <li key={job.jobId}>
-                            <button 
-                                onClick={() => handleStartJob(job.jobId)}
-                                disabled={job.status !== 'Pending'}
-                            >
-                                Start Job {job.jobDetails.title.slice(0, 20)}...
-                            </button>
+                            {job.status === 'Pending' && (
+                                <button 
+                                    onClick={() => handleStartJob(job.jobId)}
+                                    className="start-button"
+                                >
+                                    Start Job {job.jobDetails.title.slice(0, 20)}...
+                                </button>
+                            )}
+                            {job.status === 'Started' && (
+                                <button 
+                                    onClick={() => handleCompleteJob(job.jobId)} 
+                                    className="complete-button"
+                                >
+                                    Complete Job {job.jobDetails.title.slice(0, 20)}...
+                                </button>
+                            )}
+                            <small>Current Status: {job.status}</small>
                         </li>
                     ))}
+                    {jobs.filter(job => job.status === 'Pending' || job.status === 'Started').length === 0 &&
+                        <p>No jobs pending or started for actions.</p>
+                    }
                 </ul>
             </div>
             <ReadModelDisplay
@@ -567,6 +650,37 @@ function App() {
               }}
             />
             <EventLogDisplay events={jobEvents} />
+          </div>
+        </div>
+
+        {/* Invoicing Block */}
+        <div className="aggregate-block">
+          <h2>Invoicing Aggregate</h2>
+          <div className="aggregate-columns">
+            <div className="aggregate-column">
+                <h3>Process Trigger</h3>
+                <p>Invoices are automatically created when a Job is Completed.</p>
+            </div>
+            <ReadModelDisplay
+              items={invoices}
+              idKey="invoiceId"
+              renderDetails={(invoice) => {
+                const customer = customers.find(c => c.customerId === invoice.customerId);
+                const relatedJob = jobs.find(j => j.jobId === invoice.jobId);
+                return (
+                  <>
+                    <strong>Invoice for: {invoice.description}</strong>
+                    <small>
+                      Customer: {customer?.name || 'Unknown'} <br />
+                      Job: {relatedJob?.jobDetails.title.slice(0, 20)}... <br />
+                      Amount: {invoice.amount} {invoice.currency} <br />
+                      Status: {invoice.status}
+                    </small>
+                  </>
+                );
+              }}
+            />
+            <EventLogDisplay events={invoiceEvents} />
           </div>
         </div>
 

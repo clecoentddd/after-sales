@@ -6,7 +6,8 @@ import {
   requestEventStore, 
   quotationEventStore, 
   quoteApprovalEventStore,
-  jobEventStore // Import jobEventStore for the repair slice
+  jobCreationEventStore, // Import for JobCreatedEvent
+  startJobEventStore    // Import for JobStartedEvent
 } from './domain/core/eventStore'; 
 import { organizationCommandHandler } from './domain/features/organization/commandHandler';
 import { customerCommandHandler } from './domain/features/customer/commandHandler';
@@ -15,7 +16,10 @@ import { CreateRequestCommand } from './domain/features/request/commands';
 import { initializeQuotationEventHandler } from './domain/features/quotation/eventHandler';
 import { quoteApprovalCommandHandler } from './domain/features/approval/commandHandler';
 import { ApproveQuoteCommand } from './domain/features/approval/commands';
-import { initializeRepairEventHandler } from './domain/features/createJob/eventHandler.js'; // Import the repair event handler
+import { initializeCreateJobEventHandler } from './domain/features/createJob/eventHandler'; // Initialize the create job event handler
+import { startJobCommandHandler } from './domain/features/startJob/commandHandler'; // Import startJobCommandHandler
+import { StartJobCommand } from './domain/features/startJob/commands'; // Import StartJobCommand
+
 import ReadModelDisplay from './components/ReadModelDisplay';
 import EventLogDisplay from './components/EventLogDisplay';
 import './App.css';
@@ -46,9 +50,12 @@ function App() {
   const [approvalEvents, setApprovalEvents] = useState([]);
   const currentUserId = 'user-alice-123'; 
 
-  // State for Repair Jobs (new)
+  // State for Repair Jobs (existing)
   const [jobs, setJobs] = useState([]); // State to hold repair job read model data
   const [jobEvents, setJobEvents] = useState([]); // State to hold raw repair job events
+
+  // State for selected team for job start
+  const [selectedTeam, setSelectedTeam] = useState('Team_A'); // Default team
 
   // Load initial state for all aggregates
   useEffect(() => {
@@ -87,17 +94,45 @@ function App() {
     );
     setApprovalEvents(approvalEventsLoaded);
 
-    // Repair Jobs (new) - Load initial jobs from event store
-    const jobEventsLoaded = jobEventStore.getEvents();
-    setJobs(
-      jobEventsLoaded.filter(e => e.type === 'JobCreated').map(e => e.data)
-    );
-    setJobEvents(jobEventsLoaded);
+    // Repair Jobs - Load initial jobs from event stores and reconstruct state
+    const jobCreatedEventsLoaded = jobCreationEventStore.getEvents(); // Get JobCreated events
+    const jobStartedEventsLoaded = startJobEventStore.getEvents(); // Get JobStarted events
+    
+    // Combine all relevant job events for display
+    const allJobEventsCombined = [...jobCreatedEventsLoaded, ...jobStartedEventsLoaded]
+                                   .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); // Sort by timestamp
+
+    // Reconstruct job state: Start with created jobs, then apply any 'started' events
+    let reconstructedJobs = jobCreatedEventsLoaded
+      .filter(e => e.type === 'JobCreated')
+      .map(e => ({ ...e.data })); // Shallow copy to avoid direct mutation
+
+    jobStartedEventsLoaded.forEach(event => {
+      if (event.type === 'JobStarted') {
+        reconstructedJobs = reconstructedJobs.map(job => {
+          if (job.jobId === event.data.jobId) {
+            return {
+              ...job,
+              status: 'Started', // Update status
+              jobDetails: { // Update jobDetails to include assigned team
+                ...job.jobDetails,
+                assignedTeam: event.data.assignedTeam
+              }
+            };
+          }
+          return job;
+        });
+      }
+      // Add other job-related event types here (e.g., JobCompleted, JobCanceled)
+    });
+
+    setJobs(reconstructedJobs);
+    setJobEvents(allJobEventsCombined); // Store all combined raw events
 
     // Initialize all relevant event handlers
     initializeQuotationEventHandler();
-    initializeRepairEventHandler(); // Initialize the new repair event handler
-
+    initializeCreateJobEventHandler(); 
+    // No specific initialize for startJob, as its handler is directly called by UI command
   }, []);
 
   // Subscribe to events for all aggregates
@@ -128,16 +163,38 @@ function App() {
     const unsubApproval = eventBus.subscribe('QuoteApproved', (event) => {
       setApprovedQuotes(prev => [...prev, event.data]);
       setApprovalEvents(prev => [...prev, event]);
-      // Optional: Update the status of the approved quotation in the 'quotations' read model
+      // Update the status of the approved quotation in the 'quotations' read model
       setQuotations(prev => prev.map(q => 
         q.quotationId === event.data.quoteId ? { ...q, status: 'Approved' } : q
       ));
     });
 
-    // Subscribe to JobCreated event (new) - Update jobs state when a new job is created
-    const unsubJob = eventBus.subscribe('JobCreated', (event) => {
-      setJobs(prev => [...prev, event.data]);
-      setJobEvents(prev => [...prev, event]);
+    // Subscribe to JobCreated event (from createJob slice)
+    const unsubJobCreated = eventBus.subscribe('JobCreated', (event) => {
+      setJobs(prev => {
+        // Ensure no duplicates if strict mode causes double-dispatch during init
+        if (!prev.some(job => job.jobId === event.data.jobId)) {
+          return [...prev, event.data];
+        }
+        return prev;
+      });
+      setJobEvents(prev => [...prev, event]); // Add raw event to combined list
+    });
+
+    // Subscribe to JobStarted event (from startJob slice)
+    const unsubJobStarted = eventBus.subscribe('JobStarted', (event) => {
+      setJobEvents(prev => [...prev, event]); // Add raw event to combined list
+      // Update the status of the relevant job in the 'jobs' read model
+      setJobs(prev => prev.map(job => 
+        job.jobId === event.data.jobId ? { 
+          ...job, 
+          status: 'Started', // Change status to Started
+          jobDetails: { // Update jobDetails to include assigned team
+            ...job.jobDetails,
+            assignedTeam: event.data.assignedTeam
+          }
+        } : job
+      ));
     });
 
 
@@ -147,7 +204,8 @@ function App() {
       unsubRequest();
       unsubQuotation();
       unsubApproval();
-      unsubJob(); // Clean up job subscription
+      unsubJobCreated();
+      unsubJobStarted(); 
     };
   }, []);
 
@@ -214,6 +272,28 @@ function App() {
     quoteApprovalCommandHandler.handle(
       ApproveQuoteCommand(
         quoteId,
+        currentUserId 
+      )
+    );
+  };
+
+  // Handler for starting a Job (new) - uses the new startJobCommandHandler
+  const handleStartJob = (jobId) => {
+    if (!jobId || !selectedTeam) {
+        console.warn("Please select a team before starting the job.");
+        return;
+    }
+
+    const jobToStart = jobs.find(job => job.jobId === jobId);
+    if (jobToStart && jobToStart.status !== 'Pending') {
+      console.warn(`Job ${jobId} is already ${jobToStart.status}.`);
+      return;
+    }
+
+    startJobCommandHandler.handle( // Call the new startJobCommandHandler
+      StartJobCommand(
+        jobId,
+        selectedTeam,
         currentUserId 
       )
     );
@@ -362,9 +442,8 @@ function App() {
         <div className="aggregate-block">
           <h2>Quotation Aggregate</h2>
           <div className="aggregate-columns">
-            <div className="aggregate-column"> {/* Added a column for commands/actions related to quotation */}
+            <div className="aggregate-column"> 
               <h3>Actions</h3>
-              {/* No direct commands to create quotation, but actions like "Approve" can be here */}
               {quotations.length === 0 ? (
                 <p>Create a Request to generate a Quote.</p>
               ) : (
@@ -407,18 +486,17 @@ function App() {
           </div>
         </div>
 
-        {/* Quote Approval Block (existing) */}
+        {/* Quote Approval Block */}
         <div className="aggregate-block">
           <h2>Quote Approval Aggregate</h2>
           <div className="aggregate-columns">
-            {/* No direct commands to create an approval, it's triggered by action on Quote */}
             <div className="aggregate-column">
                 <h3>Commands (via Quote Actions)</h3>
                 <p>Approve quotes by clicking the 'Approve Quote' button in the Quotation block above.</p>
             </div>
             <ReadModelDisplay
               items={approvedQuotes}
-              idKey="quoteId" // The ID of the approved quote
+              idKey="quoteId" 
               renderDetails={(approval) => {
                 const approvedQuotation = quotations.find(q => q.quotationId === approval.quoteId);
                 const customer = approvedQuotation ? customers.find(c => c.customerId === approvedQuotation.customerId) : null;
@@ -438,13 +516,35 @@ function App() {
           </div>
         </div>
 
-        {/* Repair Job Block (new) - This block was added in the previous update */}
+        {/* Repair Job Block (now explicitly handling 'createJob' and 'startJob' events) */}
         <div className="aggregate-block">
-          <h2>Repair Job Aggregate</h2>
+          <h2>Repair Job Aggregate (Create & Start)</h2>
           <div className="aggregate-columns">
             <div className="aggregate-column">
-                <h3>Process Trigger</h3>
+                <h3>Actions</h3>
                 <p>Jobs are automatically created when a Quote is Approved.</p>
+                <div className="team-selection">
+                    <label htmlFor="team-select">Assign Team:</label>
+                    <select id="team-select" value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)}>
+                        <option value="Team_A">Team A</option>
+                        <option value="Team_B">Team B</option>
+                        <option value="Team_C">Team C</option>
+                    </select>
+                </div>
+                <ul className="action-list">
+                    {jobs
+                        .filter(job => job.status === 'Pending') // Only show "Start" button for pending jobs
+                        .map(job => (
+                        <li key={job.jobId}>
+                            <button 
+                                onClick={() => handleStartJob(job.jobId)}
+                                disabled={job.status !== 'Pending'}
+                            >
+                                Start Job {job.jobDetails.title.slice(0, 20)}...
+                            </button>
+                        </li>
+                    ))}
+                </ul>
             </div>
             <ReadModelDisplay
               items={jobs}
@@ -460,7 +560,7 @@ function App() {
                       For: {customer?.name || 'Unknown Customer'} <br />
                       From Request: {request?.requestDetails.title.slice(0, 20)}... <br />
                       From Quote: {quote?.quotationDetails.title.slice(0, 20)}... <br />
-                      Status: {job.status}
+                      Status: {job.status} {job.jobDetails.assignedTeam && `(${job.jobDetails.assignedTeam})`}
                     </small>
                   </>
                 );

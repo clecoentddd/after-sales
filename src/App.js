@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react';
 import { eventBus } from './domain/core/eventBus';
-import { organizationEventStore, customerEventStore, requestEventStore, quotationEventStore, quoteApprovalEventStore } from './domain/core/eventStore'; // Import new event store
+import { 
+  organizationEventStore, 
+  customerEventStore, 
+  requestEventStore, 
+  quotationEventStore, 
+  quoteApprovalEventStore,
+  jobEventStore // Import jobEventStore for the repair slice
+} from './domain/core/eventStore'; 
 import { organizationCommandHandler } from './domain/features/organization/commandHandler';
 import { customerCommandHandler } from './domain/features/customer/commandHandler';
 import { requestCommandHandler } from './domain/features/request/commandHandler';
 import { CreateRequestCommand } from './domain/features/request/commands';
 import { initializeQuotationEventHandler } from './domain/features/quotation/eventHandler';
-import { quoteApprovalCommandHandler } from './domain/features/approval/commandHandler'; // Import new command handler
-import { ApproveQuoteCommand } from './domain/features/approval/commands'; // Import new command
+import { quoteApprovalCommandHandler } from './domain/features/approval/commandHandler';
+import { ApproveQuoteCommand } from './domain/features/approval/commands';
+import { initializeRepairEventHandler } from './domain/features/repair/eventHandler'; // Import the repair event handler
 import ReadModelDisplay from './components/ReadModelDisplay';
 import EventLogDisplay from './components/EventLogDisplay';
 import './App.css';
@@ -33,11 +41,14 @@ function App() {
   const [quotations, setQuotations] = useState([]);
   const [quotationEvents, setQuotationEvents] = useState([]);
 
-  // State for Quote Approvals (new)
+  // State for Quote Approvals (existing)
   const [approvedQuotes, setApprovedQuotes] = useState([]);
   const [approvalEvents, setApprovalEvents] = useState([]);
-  // For demonstration, let's assume a static user ID for approvals
   const currentUserId = 'user-alice-123'; 
+
+  // State for Repair Jobs (new)
+  const [jobs, setJobs] = useState([]); // State to hold repair job read model data
+  const [jobEvents, setJobEvents] = useState([]); // State to hold raw repair job events
 
   // Load initial state for all aggregates
   useEffect(() => {
@@ -69,15 +80,23 @@ function App() {
     );
     setQuotationEvents(quotationEventsLoaded);
 
-    // Quote Approvals (new)
+    // Quote Approvals
     const approvalEventsLoaded = quoteApprovalEventStore.getEvents();
     setApprovedQuotes(
       approvalEventsLoaded.filter(e => e.type === 'QuoteApproved').map(e => e.data)
     );
     setApprovalEvents(approvalEventsLoaded);
 
-    // Initialize the quotation event handler when the app starts
+    // Repair Jobs (new) - Load initial jobs from event store
+    const jobEventsLoaded = jobEventStore.getEvents();
+    setJobs(
+      jobEventsLoaded.filter(e => e.type === 'JobCreated').map(e => e.data)
+    );
+    setJobEvents(jobEventsLoaded);
+
+    // Initialize all relevant event handlers
     initializeQuotationEventHandler();
+    initializeRepairEventHandler(); // Initialize the new repair event handler
 
   }, []);
 
@@ -105,7 +124,7 @@ function App() {
       setQuotationEvents(prev => [...prev, event]);
     });
 
-    // Subscribe to QuoteApproved event (new)
+    // Subscribe to QuoteApproved event (existing)
     const unsubApproval = eventBus.subscribe('QuoteApproved', (event) => {
       setApprovedQuotes(prev => [...prev, event.data]);
       setApprovalEvents(prev => [...prev, event]);
@@ -115,13 +134,20 @@ function App() {
       ));
     });
 
+    // Subscribe to JobCreated event (new) - Update jobs state when a new job is created
+    const unsubJob = eventBus.subscribe('JobCreated', (event) => {
+      setJobs(prev => [...prev, event.data]);
+      setJobEvents(prev => [...prev, event]);
+    });
+
 
     return () => {
       unsubOrg();
       unsubCustomer();
       unsubRequest();
       unsubQuotation();
-      unsubApproval(); // Clean up approval subscription
+      unsubApproval();
+      unsubJob(); // Clean up job subscription
     };
   }, []);
 
@@ -175,11 +201,10 @@ function App() {
     setSelectedCustomerId('');
   };
 
-  // Handler for approving a Quote (new)
+  // Handler for approving a Quote (existing)
   const handleApproveQuote = (quoteId) => {
     if (!quoteId) return;
 
-    // Optional: Check if the quote is already approved to prevent re-approvals
     const isAlreadyApproved = approvedQuotes.some(approval => approval.quoteId === quoteId);
     if (isAlreadyApproved) {
       console.warn(`Quote ${quoteId} is already approved.`);
@@ -189,7 +214,7 @@ function App() {
     quoteApprovalCommandHandler.handle(
       ApproveQuoteCommand(
         quoteId,
-        currentUserId // Pass the user who approves the quote
+        currentUserId 
       )
     );
   };
@@ -382,7 +407,7 @@ function App() {
           </div>
         </div>
 
-        {/* Quote Approval Block (new) */}
+        {/* Quote Approval Block (existing) */}
         <div className="aggregate-block">
           <h2>Quote Approval Aggregate</h2>
           <div className="aggregate-columns">
@@ -410,6 +435,38 @@ function App() {
               }}
             />
             <EventLogDisplay events={approvalEvents} />
+          </div>
+        </div>
+
+        {/* Repair Job Block (new) - This block was added in the previous update */}
+        <div className="aggregate-block">
+          <h2>Repair Job Aggregate</h2>
+          <div className="aggregate-columns">
+            <div className="aggregate-column">
+                <h3>Process Trigger</h3>
+                <p>Jobs are automatically created when a Quote is Approved.</p>
+            </div>
+            <ReadModelDisplay
+              items={jobs}
+              idKey="jobId"
+              renderDetails={(job) => {
+                const customer = customers.find(c => c.customerId === job.customerId);
+                const request = requests.find(r => r.requestId === job.requestId);
+                const quote = quotations.find(q => q.quotationId === job.quoteId);
+                return (
+                  <>
+                    <strong>{job.jobDetails.title}</strong>
+                    <small>
+                      For: {customer?.name || 'Unknown Customer'} <br />
+                      From Request: {request?.requestDetails.title.slice(0, 20)}... <br />
+                      From Quote: {quote?.quotationDetails.title.slice(0, 20)}... <br />
+                      Status: {job.status}
+                    </small>
+                  </>
+                );
+              }}
+            />
+            <EventLogDisplay events={jobEvents} />
           </div>
         </div>
 

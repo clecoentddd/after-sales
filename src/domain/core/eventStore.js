@@ -29,3 +29,5 @@ export const jobCreationEventStore = new EventStore();
 export const startJobEventStore = new EventStore(); 
 export const jobCompletionEventStore = new EventStore();
 export const invoiceEventStore = new EventStore(); 
+export const changeRequestEventStore = new EventStore();
+export const onHoldJobEventStore = new EventStore();

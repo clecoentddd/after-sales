@@ -9,13 +9,16 @@ import {
   jobCreationEventStore,
   startJobEventStore,
   jobCompletionEventStore,
-  invoiceEventStore
+  invoiceEventStore,
+  changeRequestEventStore,
+  onHoldJobEventStore 
 } from './domain/core/eventStore'; 
 import { initializeQuotationEventHandler } from './domain/features/quotation/eventHandler';
 import { initializeCreateJobEventHandler } from './domain/features/createJob/eventHandler';
 import { initializeCompleteJobEventHandler } from './domain/features/completeJob/eventHandler';
+import { initializeChangeRequestEventHandler } from './domain/features/changeRequested/eventHandler'; // New: Import change request event handler
 
-// Import new UI slice components
+// Import UI slice components
 import OrganizationSlice from './components/OrganizationSlice';
 import CustomerSlice from './components/CustomerSlice';
 import RequestSlice from './components/RequestSlice';
@@ -23,6 +26,7 @@ import QuotationSlice from './components/QuotationSlice';
 import QuoteApprovalSlice from './components/QuoteApprovalSlice';
 import RepairJobSlice from './components/RepairJobSlice';
 import InvoicingSlice from './components/InvoicingSlice';
+import ChangeRequestSlice from './components/ChangeRequestSlice'; 
 
 import './App.css';
 
@@ -35,6 +39,7 @@ function App() {
   const [approvedQuotes, setApprovedQuotes] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [invoices, setInvoices] = useState([]);
+  const [changeRequests, setChangeRequests] = useState([]); 
 
   // Event Log States (for display in EventLogDisplay component)
   const [orgEvents, setOrgEvents] = useState([]);
@@ -44,6 +49,7 @@ function App() {
   const [approvalEvents, setApprovalEvents] = useState([]);
   const [jobEvents, setJobEvents] = useState([]);
   const [invoiceEvents, setInvoiceEvents] = useState([]);
+  const [changeRequestEvents, setChangeRequestEvents] = useState([]); 
 
   const currentUserId = 'user-alice-123'; 
 
@@ -88,11 +94,13 @@ function App() {
     const jobCreatedEventsLoaded = jobCreationEventStore.getEvents(); 
     const jobStartedEventsLoaded = startJobEventStore.getEvents(); 
     const jobCompletedEventsLoaded = jobCompletionEventStore.getEvents();
+    const jobOnHoldEventsLoaded = onHoldJobEventStore.getEvents(); 
     
     const allJobEventsCombined = [
       ...jobCreatedEventsLoaded, 
       ...jobStartedEventsLoaded,
-      ...jobCompletedEventsLoaded 
+      ...jobCompletedEventsLoaded,
+      ...jobOnHoldEventsLoaded 
     ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()); 
 
     let reconstructedJobs = jobCreatedEventsLoaded
@@ -125,6 +133,17 @@ function App() {
           }
           return job;
         });
+      } else if (event.type === 'JobOnHold') { 
+        reconstructedJobs = reconstructedJobs.map(job => {
+          if (job.jobId === event.data.jobId) {
+            return {
+              ...job,
+              status: 'On Hold',
+              onHoldReason: event.data.reason 
+            };
+          }
+          return job;
+        });
       }
     });
 
@@ -138,10 +157,18 @@ function App() {
     );
     setInvoiceEvents(invoiceEventsLoaded);
 
+    // Change Requests
+    const changeRequestEventsLoaded = changeRequestEventStore.getEvents();
+    setChangeRequests(
+      changeRequestEventsLoaded.filter(e => e.type === 'ChangeRequestRaised').map(e => e.data)
+    );
+    setChangeRequestEvents(changeRequestEventsLoaded);
+
     // Initialize all relevant event handlers
     initializeQuotationEventHandler();
     initializeCreateJobEventHandler(); 
     initializeCompleteJobEventHandler();
+    initializeChangeRequestEventHandler(); 
   }, []);
 
   // Subscribe to events for all aggregates (update global read models)
@@ -169,7 +196,6 @@ function App() {
     const unsubApproval = eventBus.subscribe('QuoteApproved', (event) => {
       setApprovedQuotes(prev => [...prev, event.data]);
       setApprovalEvents(prev => [...prev, event]);
-      // Update the status of the approved quotation in the 'quotations' read model
       setQuotations(prev => prev.map(q => 
         q.quotationId === event.data.quoteId ? { ...q, status: 'Approved' } : q
       ));
@@ -215,6 +241,22 @@ function App() {
       setInvoiceEvents(prev => [...prev, event]);
     });
 
+    const unsubChangeRequestRaised = eventBus.subscribe('ChangeRequestRaised', (event) => {
+      setChangeRequests(prev => [...prev, event.data]);
+      setChangeRequestEvents(prev => [...prev, event]);
+    });
+
+    const unsubJobOnHold = eventBus.subscribe('JobOnHold', (event) => {
+      setJobEvents(prev => [...prev, event]); 
+      setJobs(prev => prev.map(job =>
+        job.jobId === event.data.jobId ? {
+          ...job,
+          status: 'On Hold', 
+          onHoldReason: event.data.reason 
+        } : job
+      ));
+    });
+
 
     return () => {
       unsubOrg();
@@ -226,6 +268,8 @@ function App() {
       unsubJobStarted(); 
       unsubJobCompleted();
       unsubInvoiceCreated();
+      unsubChangeRequestRaised();
+      unsubJobOnHold(); 
     };
   }, []);
 
@@ -277,6 +321,12 @@ function App() {
           invoiceEvents={invoiceEvents} 
           customers={customers} 
           jobs={jobs} 
+        />
+        <ChangeRequestSlice
+          changeRequests={changeRequests}
+          changeRequestEvents={changeRequestEvents}
+          requests={requests} 
+          currentUserId={currentUserId}
         />
       </div>
     </div>

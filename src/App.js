@@ -15,7 +15,7 @@ import { CreateRequestCommand } from './domain/features/request/commands';
 import { initializeQuotationEventHandler } from './domain/features/quotation/eventHandler';
 import { quoteApprovalCommandHandler } from './domain/features/approval/commandHandler';
 import { ApproveQuoteCommand } from './domain/features/approval/commands';
-import { initializeRepairEventHandler } from './domain/features/repair/eventHandler'; // Import the repair event handler
+import { initializeRepairEventHandler } from './domain/features/createJob/eventHandler.js'; // Import the repair event handler
 import ReadModelDisplay from './components/ReadModelDisplay';
 import EventLogDisplay from './components/EventLogDisplay';
 import './App.css';

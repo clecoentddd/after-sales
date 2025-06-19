@@ -53,7 +53,7 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
       <h2>Repair Job Aggregate</h2>
       <div className="aggregate-columns">
         <div className="aggregate-column">
-            <h3>Actions</h3>
+            <h3>Assign a team to start a job</h3>
             <p>Jobs are automatically created when a Quote is Approved.</p>
             <div className="team-selection">
                 <label htmlFor="team-select">Assign Team:</label>

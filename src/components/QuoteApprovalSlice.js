@@ -8,7 +8,7 @@ function QuoteApprovalSlice({ approvedQuotes, approvalEvents, quotations, custom
       <h2>Quote Approval Aggregate</h2>
       <div className="aggregate-columns">
         <div className="aggregate-column">
-            <h3>Commands (via Quote Actions)</h3>
+            <h3>Approved Quote (via Quote Actions)</h3>
             <p>Approve quotes by clicking the 'Approve Quote' button in the Quotation block above.</p>
         </div>
         <ReadModelDisplay

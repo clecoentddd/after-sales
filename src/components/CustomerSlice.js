@@ -26,7 +26,7 @@ function CustomerSlice({ customers, customerEvents, organizations }) {
       <h2>Customer Aggregate</h2>
       <div className="aggregate-columns">
         <div className="aggregate-column">
-          <h3>Commands</h3>
+          <h3>Create a customer for an organization</h3>
           <form onSubmit={handleCreateCustomer} className="command-form">
             <input
               type="text"

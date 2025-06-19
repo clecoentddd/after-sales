@@ -22,7 +22,7 @@ function OrganizationSlice({ organizations, orgEvents }) {
       <h2>Organization Aggregate</h2>
       <div className="aggregate-columns">
         <div className="aggregate-column">
-          <h3>Commands</h3>
+          <h3>Create a new organisation</h3>
           <form onSubmit={handleCreateOrg} className="command-form">
             <input
               type="text"

@@ -27,7 +27,7 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
       <h2>Quotation Aggregate</h2>
       <div className="aggregate-columns">
         <div className="aggregate-column"> 
-          <h3>Actions</h3>
+          <h3>Actions: approve quotes</h3>
           {quotations.length === 0 ? (
             <p>Create a Request to generate a Quote.</p>
           ) : (

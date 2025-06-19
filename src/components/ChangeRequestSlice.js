@@ -32,7 +32,7 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
       <h2>Change Request Aggregate</h2>
       <div className="aggregate-columns">
         <div className="aggregate-column">
-          <h3>Commands</h3>
+          <h3>Select a request</h3>
           <form onSubmit={handleRaiseChangeRequest} className="command-form">
             <select
               value={selectedRequestId}

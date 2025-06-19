@@ -36,7 +36,7 @@ function RequestSlice({ requests, requestEvents, customers }) {
       <h2>Request Aggregate</h2>
       <div className="aggregate-columns">
         <div className="aggregate-column">
-          <h3>Commands</h3>
+          <h3>Raise a request</h3>
           <form onSubmit={handleCreateRequest} className="command-form">
             <input
               type="text"

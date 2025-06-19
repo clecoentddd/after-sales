@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { eventBus } from './domain/core/eventBus';
-import { organizationEventStore, customerEventStore, requestEventStore, quotationEventStore } from './domain/core/eventStore'; // Import requestEventStore and quotationEventStore
+import { organizationEventStore, customerEventStore, requestEventStore, quotationEventStore, quoteApprovalEventStore } from './domain/core/eventStore'; // Import new event store
 import { organizationCommandHandler } from './domain/features/organization/commandHandler';
 import { customerCommandHandler } from './domain/features/customer/commandHandler';
-import { requestCommandHandler } from './domain/features/request/commandHandler'; // Import requestCommandHandler
-import { CreateRequestCommand } from './domain/features/request/commands'; // Import CreateRequestCommand
-import { initializeQuotationEventHandler } from './domain/features/quotation/eventHandler'; // Import the quotation event handler
+import { requestCommandHandler } from './domain/features/request/commandHandler';
+import { CreateRequestCommand } from './domain/features/request/commands';
+import { initializeQuotationEventHandler } from './domain/features/quotation/eventHandler';
+import { quoteApprovalCommandHandler } from './domain/features/approval/commandHandler'; // Import new command handler
+import { ApproveQuoteCommand } from './domain/features/approval/commands'; // Import new command
+import ReadModelDisplay from './components/ReadModelDisplay';
+import EventLogDisplay from './components/EventLogDisplay';
 import './App.css';
 
 function App() {
@@ -23,11 +27,17 @@ function App() {
   const [requestEvents, setRequestEvents] = useState([]);
   const [requestTitle, setRequestTitle] = useState('');
   const [requestDescription, setRequestDescription] = useState('');
-  const [selectedCustomerId, setSelectedCustomerId] = useState(''); // To link request to customer
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
 
-  // State for Quotation (new)
+  // State for Quotation (existing)
   const [quotations, setQuotations] = useState([]);
   const [quotationEvents, setQuotationEvents] = useState([]);
+
+  // State for Quote Approvals (new)
+  const [approvedQuotes, setApprovedQuotes] = useState([]);
+  const [approvalEvents, setApprovalEvents] = useState([]);
+  // For demonstration, let's assume a static user ID for approvals
+  const currentUserId = 'user-alice-123'; 
 
   // Load initial state for all aggregates
   useEffect(() => {
@@ -52,12 +62,19 @@ function App() {
     );
     setRequestEvents(requestEventsLoaded);
 
-    // Quotations (new)
+    // Quotations
     const quotationEventsLoaded = quotationEventStore.getEvents();
     setQuotations(
       quotationEventsLoaded.filter(e => e.type === 'QuotationCreated').map(e => e.data)
     );
     setQuotationEvents(quotationEventsLoaded);
+
+    // Quote Approvals (new)
+    const approvalEventsLoaded = quoteApprovalEventStore.getEvents();
+    setApprovedQuotes(
+      approvalEventsLoaded.filter(e => e.type === 'QuoteApproved').map(e => e.data)
+    );
+    setApprovalEvents(approvalEventsLoaded);
 
     // Initialize the quotation event handler when the app starts
     initializeQuotationEventHandler();
@@ -82,17 +99,29 @@ function App() {
       setRequestEvents(prev => [...prev, event]);
     });
 
-    // Subscribe to QuotationCreated event (new)
+    // Subscribe to QuotationCreated event (existing)
     const unsubQuotation = eventBus.subscribe('QuotationCreated', (event) => {
       setQuotations(prev => [...prev, event.data]);
       setQuotationEvents(prev => [...prev, event]);
     });
 
+    // Subscribe to QuoteApproved event (new)
+    const unsubApproval = eventBus.subscribe('QuoteApproved', (event) => {
+      setApprovedQuotes(prev => [...prev, event.data]);
+      setApprovalEvents(prev => [...prev, event]);
+      // Optional: Update the status of the approved quotation in the 'quotations' read model
+      setQuotations(prev => prev.map(q => 
+        q.quotationId === event.data.quoteId ? { ...q, status: 'Approved' } : q
+      ));
+    });
+
+
     return () => {
       unsubOrg();
       unsubCustomer();
       unsubRequest();
-      unsubQuotation(); // Clean up quotation subscription
+      unsubQuotation();
+      unsubApproval(); // Clean up approval subscription
     };
   }, []);
 
@@ -127,7 +156,6 @@ function App() {
   const handleCreateRequest = (e) => {
     e.preventDefault();
     if (!requestTitle.trim() || !selectedCustomerId) {
-      // In a production app, use a custom modal instead of alert
       console.warn("Please enter a request title and select a customer.");
       return;
     }
@@ -138,7 +166,6 @@ function App() {
         {
           title: requestTitle.trim(),
           description: requestDescription.trim(),
-          // Add other request details as needed
         }
       )
     );
@@ -146,6 +173,25 @@ function App() {
     setRequestTitle('');
     setRequestDescription('');
     setSelectedCustomerId('');
+  };
+
+  // Handler for approving a Quote (new)
+  const handleApproveQuote = (quoteId) => {
+    if (!quoteId) return;
+
+    // Optional: Check if the quote is already approved to prevent re-approvals
+    const isAlreadyApproved = approvedQuotes.some(approval => approval.quoteId === quoteId);
+    if (isAlreadyApproved) {
+      console.warn(`Quote ${quoteId} is already approved.`);
+      return;
+    }
+
+    quoteApprovalCommandHandler.handle(
+      ApproveQuoteCommand(
+        quoteId,
+        currentUserId // Pass the user who approves the quote
+      )
+    );
   };
 
   return (
@@ -158,9 +204,7 @@ function App() {
         {/* Organization Block */}
         <div className="aggregate-block">
           <h2>Organization Aggregate</h2>
-          
           <div className="aggregate-columns">
-            {/* Command UI */}
             <div className="aggregate-column">
               <h3>Commands</h3>
               <form onSubmit={handleCreateOrg} className="command-form">
@@ -174,52 +218,24 @@ function App() {
                 <button type="submit">Create Organization</button>
               </form>
             </div>
-
-            {/* Read Model */}
-            <div className="aggregate-column">
-              <h3>Read Model</h3>
-              {organizations.length === 0 ? (
-                <p>No organizations yet</p>
-              ) : (
-                <ul className="model-list">
-                  {organizations.map(org => (
-                    <li key={org.organizationId}>
-                      <strong>{org.name}</strong>
-                      <small>ID: {org.organizationId.slice(0, 8)}...</small>
-                    </li>
-                  ))}
-                </ul>
+            <ReadModelDisplay
+              items={organizations}
+              idKey="organizationId"
+              renderDetails={(org) => (
+                <>
+                  <strong>{org.name}</strong>
+                  <small>ID: {org.organizationId.slice(0, 8)}...</small>
+                </>
               )}
-            </div>
-
-            {/* Events */}
-            <div className="aggregate-column">
-              <h3>Events</h3>
-              {orgEvents.length === 0 ? (
-                <p>No events yet</p>
-              ) : (
-                <ul className="event-list">
-                  {orgEvents.map((event, i) => (
-                    <li key={i}>
-                      <div className="event-type">{event.type}</div>
-                      <pre>{JSON.stringify(event.data, null, 2)}</pre>
-                      <div className="event-meta">
-                        {new Date(event.timestamp).toLocaleString()}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            />
+            <EventLogDisplay events={orgEvents} />
           </div>
         </div>
 
         {/* Customer Block */}
         <div className="aggregate-block">
           <h2>Customer Aggregate</h2>
-          
           <div className="aggregate-columns">
-            {/* Command UI */}
             <div className="aggregate-column">
               <h3>Commands</h3>
               <form onSubmit={handleCreateCustomer} className="command-form">
@@ -245,55 +261,27 @@ function App() {
                 <button type="submit">Create Customer</button>
               </form>
             </div>
-
-            {/* Read Model */}
-            <div className="aggregate-column">
-              <h3>Read Model</h3>
-              {customers.length === 0 ? (
-                <p>No customers yet</p>
-              ) : (
-                <ul className="model-list">
-                  {customers.map(customer => {
-                    const org = organizations.find(o => o.organizationId === customer.organizationId);
-                    return (
-                      <li key={customer.customerId}>
-                        <strong>{customer.name}</strong>
-                        <small>Org: {org?.name || 'Unknown'}</small>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-
-            {/* Events */}
-            <div className="aggregate-column">
-              <h3>Events</h3>
-              {customerEvents.length === 0 ? (
-                <p>No events yet</p>
-              ) : (
-                <ul className="event-list">
-                  {customerEvents.map((event, i) => (
-                    <li key={i}>
-                      <div className="event-type">{event.type}</div>
-                      <pre>{JSON.stringify(event.data, null, 2)}</pre>
-                      <div className="event-meta">
-                        {new Date(event.timestamp).toLocaleString()}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <ReadModelDisplay
+              items={customers}
+              idKey="customerId"
+              renderDetails={(customer) => {
+                const org = organizations.find(o => o.organizationId === customer.organizationId);
+                return (
+                  <>
+                    <strong>{customer.name}</strong>
+                    <small>Org: {org?.name || 'Unknown'}</small>
+                  </>
+                );
+              }}
+            />
+            <EventLogDisplay events={customerEvents} />
           </div>
         </div>
 
         {/* Request Block */}
         <div className="aggregate-block">
           <h2>Request Aggregate</h2>
-          
           <div className="aggregate-columns">
-            {/* Command UI */}
             <div className="aggregate-column">
               <h3>Commands</h3>
               <form onSubmit={handleCreateRequest} className="command-form">
@@ -325,102 +313,103 @@ function App() {
                 <button type="submit">Create Request</button>
               </form>
             </div>
-
-            {/* Read Model */}
-            <div className="aggregate-column">
-              <h3>Read Model</h3>
-              {requests.length === 0 ? (
-                <p>No requests yet</p>
-              ) : (
-                <ul className="model-list">
-                  {requests.map(request => {
-                    const customer = customers.find(c => c.customerId === request.customerId);
-                    return (
-                      <li key={request.requestId}>
-                        <strong>{request.requestDetails.title}</strong>
-                        <small>
-                          For: {customer?.name || 'Unknown Customer'} <br />
-                          Status: {request.status}
-                        </small>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-
-            {/* Events */}
-            <div className="aggregate-column">
-              <h3>Events</h3>
-              {requestEvents.length === 0 ? (
-                <p>No events yet</p>
-              ) : (
-                <ul className="event-list">
-                  {requestEvents.map((event, i) => (
-                    <li key={i}>
-                      <div className="event-type">{event.type}</div>
-                      <pre>{JSON.stringify(event.data, null, 2)}</pre>
-                      <div className="event-meta">
-                        {new Date(event.timestamp).toLocaleString()}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <ReadModelDisplay
+              items={requests}
+              idKey="requestId"
+              renderDetails={(request) => {
+                const customer = customers.find(c => c.customerId === request.customerId);
+                return (
+                  <>
+                    <strong>{request.requestDetails.title}</strong>
+                    <small>
+                      For: {customer?.name || 'Unknown Customer'} <br />
+                      Status: {request.status}
+                    </small>
+                  </>
+                );
+              }}
+            />
+            <EventLogDisplay events={requestEvents} />
           </div>
         </div>
 
-        {/* Quotation Block (new) */}
+        {/* Quotation Block */}
         <div className="aggregate-block">
           <h2>Quotation Aggregate</h2>
-          
           <div className="aggregate-columns">
-            {/* Read Model */}
-            <div className="aggregate-column full-width-column"> {/* Adjusted for simpler display as no direct command for now */}
-              <h3>Read Model (Generated from Requests)</h3>
+            <div className="aggregate-column"> {/* Added a column for commands/actions related to quotation */}
+              <h3>Actions</h3>
+              {/* No direct commands to create quotation, but actions like "Approve" can be here */}
               {quotations.length === 0 ? (
-                <p>No quotations yet</p>
+                <p>Create a Request to generate a Quote.</p>
               ) : (
-                <ul className="model-list">
-                  {quotations.map(quotation => {
-                    const customer = customers.find(c => c.customerId === quotation.customerId);
-                    const request = requests.find(r => r.requestId === quotation.requestId);
-                    return (
-                      <li key={quotation.quotationId}>
-                        <strong>{quotation.quotationDetails.title}</strong>
-                        <small>
-                          For: {customer?.name || 'Unknown Customer'} <br />
-                          Related Request: {request?.requestDetails.title.slice(0, 20)}... <br />
-                          Amount: {quotation.quotationDetails.estimatedAmount} {quotation.quotationDetails.currency} <br />
-                          Status: {quotation.status}
-                        </small>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-
-            {/* Events */}
-            <div className="aggregate-column full-width-column"> {/* Adjusted for simpler display */}
-              <h3>Events</h3>
-              {quotationEvents.length === 0 ? (
-                <p>No events yet</p>
-              ) : (
-                <ul className="event-list">
-                  {quotationEvents.map((event, i) => (
-                    <li key={i}>
-                      <div className="event-type">{event.type}</div>
-                      <pre>{JSON.stringify(event.data, null, 2)}</pre>
-                      <div className="event-meta">
-                        {new Date(event.timestamp).toLocaleString()}
-                      </div>
+                <ul className="action-list">
+                  {quotations.map(quote => (
+                    <li key={quote.quotationId}>
+                      <button 
+                        onClick={() => handleApproveQuote(quote.quotationId)}
+                        disabled={approvedQuotes.some(app => app.quoteId === quote.quotationId) || quote.status === 'Approved'}
+                        className={quote.status === 'Approved' ? 'approved-button' : ''}
+                      >
+                        {quote.status === 'Approved' ? 'Approved' : 'Approve Quote'}
+                      </button>
+                      <small>{quote.quotationDetails.title.slice(0, 30)}...</small>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
+            <ReadModelDisplay
+              items={quotations}
+              idKey="quotationId"
+              renderDetails={(quotation) => {
+                const customer = customers.find(c => c.customerId === quotation.customerId);
+                const request = requests.find(r => r.requestId === quotation.requestId);
+                return (
+                  <>
+                    <strong>{quotation.quotationDetails.title}</strong>
+                    <small>
+                      For: {customer?.name || 'Unknown Customer'} <br />
+                      Related Request: {request?.requestDetails.title.slice(0, 20)}... <br />
+                      Amount: {quotation.quotationDetails.estimatedAmount} {quotation.quotationDetails.currency} <br />
+                      Status: {quotation.status}
+                    </small>
+                  </>
+                );
+              }}
+            />
+            <EventLogDisplay events={quotationEvents} />
+          </div>
+        </div>
+
+        {/* Quote Approval Block (new) */}
+        <div className="aggregate-block">
+          <h2>Quote Approval Aggregate</h2>
+          <div className="aggregate-columns">
+            {/* No direct commands to create an approval, it's triggered by action on Quote */}
+            <div className="aggregate-column">
+                <h3>Commands (via Quote Actions)</h3>
+                <p>Approve quotes by clicking the 'Approve Quote' button in the Quotation block above.</p>
+            </div>
+            <ReadModelDisplay
+              items={approvedQuotes}
+              idKey="quoteId" // The ID of the approved quote
+              renderDetails={(approval) => {
+                const approvedQuotation = quotations.find(q => q.quotationId === approval.quoteId);
+                const customer = approvedQuotation ? customers.find(c => c.customerId === approvedQuotation.customerId) : null;
+                return (
+                  <>
+                    <strong>Quote Approved: {approvedQuotation?.quotationDetails.title.slice(0, 20)}...</strong>
+                    <small>
+                      Quote ID: {approval.quoteId.slice(0, 8)}... <br />
+                      Approved by: {approval.approvedByUserId} <br />
+                      For: {customer?.name || 'Unknown Customer'}
+                    </small>
+                  </>
+                );
+              }}
+            />
+            <EventLogDisplay events={approvalEvents} />
           </div>
         </div>
 

@@ -24,3 +24,4 @@ export const organizationEventStore = new EventStore();
 export const customerEventStore = new EventStore();
 export const requestEventStore = new EventStore();
 export const quotationEventStore = new EventStore(); 
+export const quoteApprovalEventStore = new EventStore();

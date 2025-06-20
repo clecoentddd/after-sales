@@ -31,3 +31,4 @@ export const jobCompletionEventStore = new EventStore();
 export const invoiceEventStore = new EventStore(); 
 export const changeRequestEventStore = new EventStore();
 export const onHoldJobEventStore = new EventStore();
+export const onHoldQuotationEventStore = new EventStore();

@@ -1,29 +1,38 @@
 // src/domain/features/quotationHoldingAutomation/automation.js
-// This module provides automation logic to attempt to put a quotation on hold.
-// The actual business rule validation (e.g., if it's already approved)
-// is now enforced by the OnHoldQuotationAggregate.
+// This module provides automation logic to put a pending quotation on hold.
 
 import { onHoldQuotationCommandHandler } from '../onHoldQuotation/commandHandler';
 import { PutQuotationOnHoldCommand } from '../onHoldQuotation/commands';
 
 /**
- * Attempts to dispatch a command to put a quotation on hold.
- * The responsibility for checking the quotation's eligibility (e.g., if it's pending approval)
- * now resides within the OnHoldQuotationAggregate itself.
- * This function simply reflects the intent to put a quotation on hold.
+ * Automatically attempts to put a quotation on hold if it is in 'Draft' or 'Pending' status.
+ * This function is typically called by an event subscriber (e.g., QuotationApprovalMonitor)
+ * when a 'QuotationCreated' event occurs.
  *
- * @param {string} quotationId - The ID of the quotation to put on hold.
- * @param {string} userId - The user ID who initiated this action (or a system user ID).
+ * @param {string} quotationId - The ID of the quotation to potentially put on hold.
+ * @param {string} heldByUserId - The ID of the user (or system) initiating the hold.
+ * @param {Array<object>} allCurrentQuotations - The current read model array of all quotations, used to check quotation status.
  */
-export const putQuotationOnHoldAutomaticallyIfPendingApproval = (quotationId, userId) => {
-  console.log(`[QuotationHoldingAutomation] Dispatching command to put quotation ${quotationId} on hold.`);
+export const putQuotationOnHoldAutomaticallyIfPendingApproval = (quotationId, heldByUserId, allCurrentQuotations) => {
+  console.log(`[QuotationHoldingAutomation] Attempting to put quotation ${quotationId} on hold if pending approval.`);
 
-  // Dispatch the command. The aggregate will handle the status validation.
-  onHoldQuotationCommandHandler.handle(
-    PutQuotationOnHoldCommand(
-      quotationId,
-      userId, // User who triggered the automation (e.g., system user)
-      `Automatic hold: Quotation not approved within expected timeframe (or other automation reason).`
-    )
-  );
+  // Find the specific quotation from the provided read model
+  const quotationToConsider = allCurrentQuotations.find(q => q.quotationId === quotationId);
+
+  // Business rule: Only 'Draft' or 'Pending' quotations should be automatically put on hold.
+  // This check is performed *before* dispatching the command to avoid unnecessary command handling.
+  if (quotationToConsider && (quotationToConsider.status === 'Draft' || quotationToConsider.status === 'Pending')) {
+    console.log(`[QuotationHoldingAutomation] Quotation ${quotationId} is in status '${quotationToConsider.status}'. Dispatching PutQuotationOnHoldCommand.`);
+    
+    // Dispatch the command to put the quotation on hold
+    onHoldQuotationCommandHandler.handle(
+      PutQuotationOnHoldCommand(
+        quotationId,
+        heldByUserId,
+        'Automatic hold: Quotation not approved within expected timeframe (or other automation reason).'
+      )
+    );
+  } else {
+    console.log(`[QuotationHoldingAutomation] Quotation ${quotationId} not found or not in 'Draft'/'Pending' status (Current: ${quotationToConsider?.status || 'Not Found'}). Skipping automatic hold.`);
+  }
 };

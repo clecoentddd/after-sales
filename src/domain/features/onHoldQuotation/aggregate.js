@@ -6,26 +6,28 @@ import { QuotationOnHoldEvent } from './events';
 export class OnHoldQuotationAggregate {
   /**
    * Static method to process a PutQuotationOnHoldCommand, emitting a QuotationOnHoldEvent.
-   * This aggregate now includes logic to validate the current state of the quotation
+   * This aggregate includes logic to validate the current state of the quotation
    * before allowing it to be put on hold.
    *
    * @param {object} command - The command object (e.g., PutQuotationOnHoldCommand).
-   * @param {object} currentQuotationState - The current reconstructed state of the quotation.
+   * @param {object} currentQuotationState - The current reconstructed state of the quotation (from `commandHandler.js`).
    * @returns {object|null} A QuotationOnHoldEvent if valid, otherwise null.
    */
   static putOnHold(command, currentQuotationState) {
     console.log(`[OnHoldQuotationAggregate] Attempting to put quotation ${command.quotationId} on hold.`);
 
-    // Business rule: Only 'Draft' or 'Pending' quotations can be put on hold.
     if (!currentQuotationState) {
-      console.warn(`[OnHoldQuotationAggregate] Cannot put quotation ${command.quotationId} on hold: Quotation not found.`);
+      console.warn(`[OnHoldQuotationAggregate] Cannot put quotation ${command.quotationId} on hold: Quotation state not found.`);
       return null;
     }
 
+    // Business rule: Only 'Draft' or 'Pending' quotations can be put on hold.
     if (currentQuotationState.status === 'Draft' || currentQuotationState.status === 'Pending') {
       console.log(`[OnHoldQuotationAggregate] Quotation ${command.quotationId} is in status '${currentQuotationState.status}'. Emitting QuotationOnHoldEvent.`);
       return QuotationOnHoldEvent(
         command.quotationId,
+        currentQuotationState.requestId, // Get requestId from the reconstructed state
+        null, // For now, changeRequestId is null as this is manual
         command.heldByUserId,
         command.reason
       );

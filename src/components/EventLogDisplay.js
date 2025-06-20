@@ -1,32 +1,33 @@
-// src/components/EventLogDisplay.js
 import React from 'react';
 
 /**
- * Reusable component to display a log of events.
- * @param {object} props - Component properties.
- * @param {Array<object>} props.events - The array of event objects to display.
+ * EventLogDisplay component.
+ * Displays a list of events with their type and the full raw event object.
+ *
+ * @param {Array<object>} events - An array of event objects to display.
  */
-const EventLogDisplay = ({ events }) => {
+function EventLogDisplay({ events }) {
+  // Reverse the events array to show the most recent events at the top
+  const reversedEvents = [...events].reverse();
+
   return (
     <div className="aggregate-column">
-      <h3>Events</h3>
-      {events.length === 0 ? (
-        <p>No events yet</p>
-      ) : (
-        <ul className="event-list">
-          {events.map((event, i) => (
-            <li key={event.eventId || i}> {/* Use event.eventId if available, otherwise index */}
+      <h3>Event Log</h3>
+      <ul className="event-list">
+        {reversedEvents.length === 0 ? (
+          <li>No events recorded yet.</li>
+        ) : (
+          reversedEvents.map((event, index) => (
+            <li key={event.eventId || index}> {/* Use eventId if available, fallback to index */}
               <div className="event-type">{event.type}</div>
-              <pre>{JSON.stringify(event.data, null, 2)}</pre>
-              <div className="event-meta">
-                {new Date(event.timestamp).toLocaleString()}
-              </div>
+              {/* Display the entire raw event object as a single JSON block */}
+              <pre>{JSON.stringify(event, null, 2)}</pre>
             </li>
-          ))}
-        </ul>
-      )}
+          ))
+        )}
+      </ul>
     </div>
   );
-};
+}
 
 export default EventLogDisplay;

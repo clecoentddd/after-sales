@@ -12,12 +12,12 @@ import {
   invoiceEventStore,
   changeRequestEventStore,
   onHoldJobEventStore,
-  onHoldQuotationEventStore // NEW: Import onHoldQuotationEventStore
+  onHoldQuotationEventStore // Import the on-hold quotation event store
 } from './domain/core/eventStore'; 
 import { initializeQuotationEventHandler } from './domain/features/quotation/eventHandler';
 import { initializeCreateJobEventHandler } from './domain/features/createJob/eventHandler';
 import { initializeCompleteJobEventHandler } from './domain/features/completeJob/eventHandler';
-import { initializeChangeRequestEventHandler } from './domain/features/changeRequested/eventHandler'; // Keeping this as per your base code
+import { initializeChangeRequestEventHandler } from './domain/features/changeRequested/eventHandler'; 
 
 // Import UI slice components
 import OrganizationSlice from './components/OrganizationSlice';
@@ -28,8 +28,10 @@ import QuoteApprovalSlice from './components/QuoteApprovalSlice';
 import RepairJobSlice from './components/RepairJobSlice';
 import InvoicingSlice from './components/InvoicingSlice';
 import ChangeRequestSlice from './components/ChangeRequestSlice'; 
+import QuotationSubscriberToChangeRequest from './components/QuotationSubscriberToChangeRequest';
+// NEW: Import QuotationApprovalMonitor
+import QuotationApprovalMonitor from './components/QuotationApprovalMonitor'; 
 
-import QuotationApprovalMonitor from './components/QuotationApprovalMonitor'; // NEW: Import QuotationApprovalMonitor
 
 import './App.css';
 
@@ -38,7 +40,7 @@ function App() {
   const [organizations, setOrganizations] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [quotations, setQuotations] = useState([]); 
+  const [quotations, setQuotations] = useState([]);
   const [approvedQuotes, setApprovedQuotes] = useState([]);
   const [jobs, setJobs] = useState([]); 
   const [invoices, setInvoices] = useState([]);
@@ -79,43 +81,43 @@ function App() {
     );
     setRequestEvents(requestEventsLoaded);
 
-    // Quotations - MODIFIED: Include onHoldQuotationEventsLoaded for reconstruction
-    const quotationEventsLoaded = quotationEventStore.getEvents();
-    const quotationOnHoldEventsLoaded = onHoldQuotationEventStore.getEvents(); // NEW: Get on-hold events
+    // Quotations - Reconstruct state including 'On Hold' events
+    const quotationCreatedEvents = quotationEventStore.getEvents().filter(e => e.type === 'QuotationCreated');
+    const quotationApprovedEvents = quoteApprovalEventStore.getEvents().filter(e => e.type === 'QuoteApproved');
+    const quotationOnHoldEvents = onHoldQuotationEventStore.getEvents().filter(e => e.type === 'QuotationOnHold'); 
 
     const allQuotationEventsCombined = [
-      ...quotationEventsLoaded,
-      ...quotationOnHoldEventsLoaded // NEW: Include on-hold events in combined list
-    ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      ...quotationCreatedEvents,
+      ...quotationApprovedEvents,
+      ...quotationOnHoldEvents 
+    ].sort((a, b) => new Date(a.metadata.timestamp).getTime() - new Date(b.metadata.timestamp).getTime());
 
-    let reconstructedQuotations = quotationEventsLoaded
-      .filter(e => e.type === 'QuotationCreated')
-      .map(e => ({ ...e.data }));
+    let reconstructedQuotationsMap = new Map();
 
     allQuotationEventsCombined.forEach(event => {
-      if (event.type === 'QuotationOnHold') { // NEW: Handle QuotationOnHold event during reconstruction
-        reconstructedQuotations = reconstructedQuotations.map(q => {
-          if (q.quotationId === event.data.quotationId) {
-            return {
-              ...q,
-              status: 'On Hold',
-              onHoldReason: event.data.reason
-            };
-          }
-          return q;
-        });
-      } else if (event.type === 'QuoteApproved') { 
-         reconstructedQuotations = reconstructedQuotations.map(q => {
-          if (q.quotationId === event.data.quoteId) {
-            return { ...q, status: 'Approved' };
-          }
-          return q;
-        });
+      const quotationId = event.data.quotationId || event.data.quoteId;
+
+      let currentQuotation = reconstructedQuotationsMap.get(quotationId) || { quotationId: quotationId };
+
+      if (event.type === 'QuotationCreated') {
+        const existingStatus = currentQuotation.status;
+        currentQuotation = { ...currentQuotation, ...event.data, status: event.data.status || 'Draft' };
+        if (existingStatus && existingStatus !== 'Draft' && existingStatus !== 'Pending') {
+          currentQuotation.status = existingStatus; 
+        }
+      } else if (event.type === 'QuoteApproved') {
+        currentQuotation.status = 'Approved';
+      } else if (event.type === 'QuotationOnHold') { 
+        currentQuotation.status = 'On Hold';
+        currentQuotation.onHoldReason = event.data.reason;
+        currentQuotation.requestId = event.data.requestId; 
+        currentQuotation.changeRequestId = event.data.changeRequestId;
       }
+      reconstructedQuotationsMap.set(quotationId, currentQuotation);
     });
 
-    setQuotations(reconstructedQuotations);
-    setQuotationEvents(allQuotationEventsCombined);
+    setQuotations(Array.from(reconstructedQuotationsMap.values()));
+    setQuotationEvents(allQuotationEventsCombined); 
 
     // Quote Approvals
     const approvalEventsLoaded = quoteApprovalEventStore.getEvents();
@@ -124,7 +126,7 @@ function App() {
     );
     setApprovalEvents(approvalEventsLoaded);
 
-    // Repair Jobs - Load initial jobs from event stores and reconstruct state (NO CHANGES HERE)
+    // Repair Jobs - Load initial jobs from event stores and reconstruct state
     const jobCreatedEventsLoaded = jobCreationEventStore.getEvents(); 
     const jobStartedEventsLoaded = startJobEventStore.getEvents(); 
     const jobCompletedEventsLoaded = jobCompletionEventStore.getEvents();
@@ -184,25 +186,25 @@ function App() {
     setJobs(reconstructedJobs);
     setJobEvents(allJobEventsCombined);
 
-    // Invoices (NO CHANGES HERE)
+    // Invoices
     const invoiceEventsLoaded = invoiceEventStore.getEvents();
     setInvoices(
       invoiceEventsLoaded.filter(e => e.type === 'InvoiceCreated').map(e => e.data)
     );
     setInvoiceEvents(invoiceEventsLoaded);
 
-    // Change Requests (NO CHANGES HERE)
+    // Change Requests
     const changeRequestEventsLoaded = changeRequestEventStore.getEvents();
     setChangeRequests(
       changeRequestEventsLoaded.filter(e => e.type === 'ChangeRequestRaised').map(e => e.data)
     );
     setChangeRequestEvents(changeRequestEventsLoaded);
 
-    // Initialize all relevant event handlers (NO CHANGES HERE)
+    // Initialize all relevant event handlers
     initializeQuotationEventHandler();
     initializeCreateJobEventHandler(); 
     initializeCompleteJobEventHandler();
-    initializeChangeRequestEventHandler(); // Keeping this as per your base code
+    initializeChangeRequestEventHandler(); 
   }, []);
 
   // Subscribe to events for all aggregates (update global read models)
@@ -223,7 +225,32 @@ function App() {
     });
 
     const unsubQuotation = eventBus.subscribe('QuotationCreated', (event) => {
-      setQuotations(prev => [...prev, event.data]);
+      setQuotations(prev => {
+        const newQuotations = [...prev];
+        const existingIndex = newQuotations.findIndex(q => q.quotationId === event.data.quotationId);
+        
+        const quotationData = { 
+            quotationId: event.data.quotationId,
+            requestId: event.data.requestId,
+            customerId: event.data.customerId,
+            quotationDetails: event.data.quotationDetails,
+            status: event.data.status || 'Draft'
+        };
+
+        if (existingIndex > -1) {
+          const updatedQuotation = { 
+            ...newQuotations[existingIndex], 
+            ...quotationData, 
+            status: (newQuotations[existingIndex].status && newQuotations[existingIndex].status !== 'Draft' && newQuotations[existingIndex].status !== 'Pending') 
+                      ? newQuotations[existingIndex].status 
+                      : quotationData.status 
+          };
+          newQuotations[existingIndex] = updatedQuotation;
+        } else {
+          newQuotations.push(quotationData);
+        }
+        return newQuotations;
+      });
       setQuotationEvents(prev => [...prev, event]);
     });
 
@@ -235,19 +262,38 @@ function App() {
       ));
     });
 
-    // NEW: Subscribe to QuotationOnHold event for real-time updates
+    // Subscribe to QuotationOnHold event for real-time updates
     const unsubQuotationOnHold = eventBus.subscribe('QuotationOnHold', (event) => {
       setQuotationEvents(prev => [...prev, event]); 
-      setQuotations(prev => prev.map(q =>
-        q.quotationId === event.data.quotationId ? {
-          ...q,
-          status: 'On Hold', 
-          onHoldReason: event.data.reason 
-        } : q
-      ));
+      setQuotations(prev => {
+        const newQuotations = [...prev]; 
+        const existingIndex = newQuotations.findIndex(q => q.quotationId === event.data.quotationId);
+
+        const onHoldData = {
+          quotationId: event.data.quotationId,
+          status: event.data.status, 
+          onHoldReason: event.data.reason,
+          requestId: event.data.requestId || null, 
+          changeRequestId: event.data.changeRequestId || null
+        };
+
+        if (existingIndex > -1) {
+          newQuotations[existingIndex] = { 
+            ...newQuotations[existingIndex], 
+            ...onHoldData
+          };
+        } else {
+          const placeholderQuotation = {
+              customerId: null, 
+              quotationDetails: {}, 
+              ...onHoldData
+          };
+          newQuotations.push(placeholderQuotation);
+        }
+        return newQuotations;
+      });
     });
 
-    // Job related subscriptions (NO CHANGES HERE)
     const unsubJobCreated = eventBus.subscribe('JobCreated', (event) => {
       setJobs(prev => {
         if (!prev.some(job => job.jobId === event.data.jobId)) {
@@ -317,9 +363,10 @@ function App() {
       unsubInvoiceCreated();
       unsubChangeRequestRaised();
       unsubJobOnHold(); 
-      unsubQuotationOnHold(); // NEW: Add cleanup for QuotationOnHold subscription
+      unsubQuotationOnHold();
     };
-  }, []); // Dependencies remain empty as requested for App.js subscriptions
+  }, []); 
+
 
   return (
     <div className="app">
@@ -376,9 +423,12 @@ function App() {
           requests={requests} 
           currentUserId={currentUserId}
         />
-        {/* Quotation Holding Automation Slice - NO JOB LOGIC HERE */}
-        <QuotationApprovalMonitor
-          currentUserId={currentUserId} // Passing currentUserId as required by the monitor
+        {/* Component to subscribe to ChangeRequestRaised events and log them */}
+        <QuotationSubscriberToChangeRequest />
+        {/* NEW: Component to monitor QuotationCreated events and automatically put on hold */}
+        <QuotationApprovalMonitor 
+          currentUserId={currentUserId} 
+          quotations={quotations} // Pass quotations read model
         />
       </div>
     </div>

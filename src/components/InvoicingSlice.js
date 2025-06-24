@@ -4,13 +4,16 @@ import EventLogDisplay from './EventLogDisplay';
 
 function InvoicingSlice({ invoices, invoiceEvents, customers, jobs }) {
   return (
-    <div className="aggregate-block">
-      <h2>Invoicing Aggregate</h2>
-      <div className="aggregate-columns">
-        <div className="aggregate-column">
-            <h3>Process Trigger</h3>
-            <p>Invoices are automatically created when a Job is Completed.</p>
-        </div>
+  <div className="aggregate-block">
+    <h2>Invoicing Aggregate</h2>
+    <div className="aggregate-columns">
+
+      <div className="aggregate-column first-column">
+        <h3>Process Trigger</h3>
+        <p>Invoices are automatically created when a Job is Completed.</p>
+      </div>
+
+      <div className="aggregate-column second-column">
         <ReadModelDisplay
           items={invoices}
           idKey="invoiceId"
@@ -30,10 +33,16 @@ function InvoicingSlice({ invoices, invoiceEvents, customers, jobs }) {
             );
           }}
         />
+      </div>
+
+      <div className="aggregate-column third-column">
         <EventLogDisplay events={invoiceEvents} />
       </div>
+
     </div>
-  );
+  </div>
+);
+
 }
 
 export default InvoicingSlice;

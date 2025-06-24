@@ -17,23 +17,25 @@ function OrganizationSlice({ organizations, orgEvents }) {
     setOrgName('');
   };
 
-  return (
-    <div className="aggregate-block">
-      <h2>Organization Aggregate</h2>
-      <div className="aggregate-columns">
-        <div className="aggregate-column">
-          <h3>Create a new organisation</h3>
-          <form onSubmit={handleCreateOrg} className="command-form">
-            <input
-              type="text"
-              value={orgName}
-              onChange={(e) => setOrgName(e.target.value)}
-              placeholder="Organization name"
-              required
-            />
-            <button type="submit">Create Organization</button>
-          </form>
-        </div>
+return (
+  <div className="aggregate-block">
+    <h2>Organization Aggregate</h2>
+    <div className="aggregate-columns">
+      <div className="aggregate-column first-column">
+        <h3>Create a new organisation</h3>
+        <form onSubmit={handleCreateOrg} className="command-form">
+          <input
+            type="text"
+            value={orgName}
+            onChange={(e) => setOrgName(e.target.value)}
+            placeholder="Organization name"
+            required
+          />
+          <button type="submit">Create Organization</button>
+        </form>
+      </div>
+
+      <div className="aggregate-column second-column">
         <ReadModelDisplay
           items={organizations}
           idKey="organizationId"
@@ -44,10 +46,15 @@ function OrganizationSlice({ organizations, orgEvents }) {
             </>
           )}
         />
+      </div>
+
+      <div className="aggregate-column third-column">
         <EventLogDisplay events={orgEvents} />
       </div>
     </div>
-  );
+  </div>
+);
+
 }
 
 export default OrganizationSlice;

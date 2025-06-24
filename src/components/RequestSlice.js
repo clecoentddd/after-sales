@@ -31,41 +31,44 @@ function RequestSlice({ requests, requestEvents, customers }) {
     setSelectedCustomerId('');
   };
 
-  return (
-    <div className="aggregate-block">
-      <h2>Request Aggregate</h2>
-      <div className="aggregate-columns">
-        <div className="aggregate-column">
-          <h3>Raise a request</h3>
-          <form onSubmit={handleCreateRequest} className="command-form">
-            <input
-              type="text"
-              value={requestTitle}
-              onChange={(e) => setRequestTitle(e.target.value)}
-              placeholder="Request title"
-              required
-            />
-            <textarea
-              value={requestDescription}
-              onChange={(e) => setRequestDescription(e.target.value)}
-              placeholder="Request description (optional)"
-              rows="3"
-            ></textarea>
-            <select
-              value={selectedCustomerId}
-              onChange={(e) => setSelectedCustomerId(e.target.value)}
-              required
-            >
-              <option value="">Select Customer</option>
-              {customers.map(customer => (
-                <option key={customer.customerId} value={customer.customerId}>
-                  {customer.name}
-                </option>
-              ))}
-            </select>
-            <button type="submit">Create Request</button>
-          </form>
-        </div>
+return (
+  <div className="aggregate-block">
+    <h2>Request Aggregate</h2>
+    <div className="aggregate-columns">
+      
+      <div className="aggregate-column first-column">
+        <h3>Raise a request</h3>
+        <form onSubmit={handleCreateRequest} className="command-form">
+          <input
+            type="text"
+            value={requestTitle}
+            onChange={(e) => setRequestTitle(e.target.value)}
+            placeholder="Request title"
+            required
+          />
+          <textarea
+            value={requestDescription}
+            onChange={(e) => setRequestDescription(e.target.value)}
+            placeholder="Request description (optional)"
+            rows="3"
+          ></textarea>
+          <select
+            value={selectedCustomerId}
+            onChange={(e) => setSelectedCustomerId(e.target.value)}
+            required
+          >
+            <option value="">Select Customer</option>
+            {customers.map(customer => (
+              <option key={customer.customerId} value={customer.customerId}>
+                {customer.name}
+              </option>
+            ))}
+          </select>
+          <button type="submit">Create Request</button>
+        </form>
+      </div>
+
+      <div className="aggregate-column second-column">
         <ReadModelDisplay
           items={requests}
           idKey="requestId"
@@ -82,10 +85,16 @@ function RequestSlice({ requests, requestEvents, customers }) {
             );
           }}
         />
+      </div>
+
+      <div className="aggregate-column third-column">
         <EventLogDisplay events={requestEvents} />
       </div>
+
     </div>
-  );
+  </div>
+);
+
 }
 
 export default RequestSlice;

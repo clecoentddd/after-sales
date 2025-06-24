@@ -27,35 +27,38 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
     setChangeDescription('');
   };
 
-  return (
-    <div className="aggregate-block">
-      <h2>Change Request Aggregate</h2>
-      <div className="aggregate-columns">
-        <div className="aggregate-column">
-          <h3>Select a request</h3>
-          <form onSubmit={handleRaiseChangeRequest} className="command-form">
-            <select
-              value={selectedRequestId}
-              onChange={(e) => setSelectedRequestId(e.target.value)}
-              required
-            >
-              <option value="">Select Request to Change</option>
-              {requests.map(request => (
-                <option key={request.requestId} value={request.requestId}>
-                  {request.requestDetails.title} (ID: {request.requestId.slice(0, 8)}...)
-                </option>
-              ))}
-            </select>
-            <textarea
-              value={changeDescription}
-              onChange={(e) => setChangeDescription(e.target.value)}
-              placeholder="Describe the requested change"
-              rows="3"
-              required
-            ></textarea>
-            <button type="submit">Raise Change Request</button>
-          </form>
-        </div>
+return (
+  <div className="aggregate-block">
+    <h2>Change Request Aggregate</h2>
+    <div className="aggregate-columns">
+
+      <div className="aggregate-column first-column">
+        <h3>Select a request</h3>
+        <form onSubmit={handleRaiseChangeRequest} className="command-form">
+          <select
+            value={selectedRequestId}
+            onChange={(e) => setSelectedRequestId(e.target.value)}
+            required
+          >
+            <option value="">Select Request to Change</option>
+            {requests.map(request => (
+              <option key={request.requestId} value={request.requestId}>
+                {request.requestDetails.title} (ID: {request.requestId.slice(0, 8)}...)
+              </option>
+            ))}
+          </select>
+          <textarea
+            value={changeDescription}
+            onChange={(e) => setChangeDescription(e.target.value)}
+            placeholder="Describe the requested change"
+            rows="3"
+            required
+          ></textarea>
+          <button type="submit">Raise Change Request</button>
+        </form>
+      </div>
+
+      <div className="aggregate-column second-column">
         <ReadModelDisplay
           items={changeRequests}
           idKey="changeRequestId"
@@ -74,10 +77,16 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
             );
           }}
         />
+      </div>
+
+      <div className="aggregate-column third-column">
         <EventLogDisplay events={changeRequestEvents} />
       </div>
+
     </div>
-  );
+  </div>
+);
+
 }
 
 export default ChangeRequestSlice;

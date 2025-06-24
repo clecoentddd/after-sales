@@ -35,34 +35,34 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
 
   // Removed: handlePutQuotationOnHold function and its related logic
 
-  return (
-    <div className="aggregate-block">
-      <h2>Quotation Aggregate</h2>
-      <div className="aggregate-columns">
-        <div className="aggregate-column"> 
-          <h3>Actions</h3>
-          {quotations.length === 0 ? (
-            <p>Create a Request to generate a Quote.</p>
-          ) : (
-            <ul className="action-list">
-              {quotations.map(quote => (
-                <li key={quote.quotationId}>
-                  <button 
-                    onClick={() => handleApproveQuote(quote.quotationId)}
-                    // Disable if already approved or on hold
-                    disabled={quote.status === 'Approved' || quote.status === 'On Hold'}
-                    className={quote.status === 'Approved' ? 'approved-button' : ''}
-                  >
-                    {quote.status === 'Approved' ? 'Approved' : 'Approve Quote'}
-                  </button>
-                  
-                  {/* Removed: Put On Hold Button and Input logic */}
-                  <small>{quote.quotationDetails.title.slice(0, 30)}...</small>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+ return (
+  <div className="aggregate-block">
+    <h2>Quotation Aggregate</h2>
+    <div className="aggregate-columns">
+      
+      <div className="aggregate-column first-column">
+        <h3>Actions</h3>
+        {quotations.length === 0 ? (
+          <p>Create a Request to generate a Quote.</p>
+        ) : (
+          <ul className="action-list">
+            {quotations.map(quote => (
+              <li key={quote.quotationId}>
+                <button 
+                  onClick={() => handleApproveQuote(quote.quotationId)}
+                  disabled={quote.status === 'Approved' || quote.status === 'On Hold'}
+                  className={quote.status === 'Approved' ? 'approved-button' : ''}
+                >
+                  {quote.status === 'Approved' ? 'Approved' : 'Approve Quote'}
+                </button>
+                <small>{quote.quotationDetails.title.slice(0, 30)}...</small>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="aggregate-column second-column">
         <ReadModelDisplay
           items={quotations}
           idKey="quotationId"
@@ -77,16 +77,22 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
                   Related Request: {request?.requestDetails.title.slice(0, 20)}... <br />
                   Amount: {quotation.quotationDetails.estimatedAmount} {quotation.quotationDetails.currency} <br />
                   Status: {quotation.status} 
-                  {quotation.status === 'On Hold' && ` (Reason: ${quotation.onHoldReason || 'N/A'})`} {/* Display reason */}
+                  {quotation.status === 'On Hold' && ` (Reason: ${quotation.onHoldReason || 'N/A'})`}
                 </small>
               </>
             );
           }}
         />
+      </div>
+
+      <div className="aggregate-column third-column">
         <EventLogDisplay events={quotationEvents} />
       </div>
+
     </div>
-  );
+  </div>
+);
+
 }
 
 export default QuotationSlice;

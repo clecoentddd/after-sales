@@ -49,49 +49,56 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
   };
 
   return (
-    <div className="aggregate-block">
-      <h2>Repair Job Aggregate</h2>
-      <div className="aggregate-columns">
-        <div className="aggregate-column">
-            <h3>Assign a team to start a job</h3>
-            <p>Jobs are automatically created when a Quote is Approved.</p>
-            <div className="team-selection">
-                <label htmlFor="team-select">Assign Team:</label>
-                <select id="team-select" value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)}>
-                    <option value="Team_A">Team A</option>
-                    <option value="Team_B">Team B</option>
-                    <option value="Team_C">Team C</option>
-                </select>
-            </div>
-            <ul className="action-list">
-                {jobs
-                    .filter(job => job.status === 'Pending' || job.status === 'Started') 
-                    .map(job => (
-                    <li key={job.jobId}>
-                        {job.status === 'Pending' && (
-                            <button 
-                                onClick={() => handleStartJob(job.jobId)}
-                                className="start-button"
-                            >
-                                Start Job {job.jobDetails.title.slice(0, 20)}...
-                            </button>
-                        )}
-                        {job.status === 'Started' && (
-                            <button 
-                                onClick={() => handleCompleteJob(job.jobId)} 
-                                className="complete-button"
-                            >
-                                Complete Job {job.jobDetails.title.slice(0, 20)}...
-                            </button>
-                        )}
-                        <small>Current Status: {job.status}</small>
-                    </li>
-                ))}
-                {jobs.filter(job => job.status === 'Pending' || job.status === 'Started').length === 0 &&
-                    <p>No jobs pending or started for actions.</p>
-                }
-            </ul>
+  <div className="aggregate-block">
+    <h2>Repair Job Aggregate</h2>
+    <div className="aggregate-columns">
+
+      <div className="aggregate-column first-column">
+        <h3>Assign a team to start a job</h3>
+        <p>Jobs are automatically created when a Quote is Approved.</p>
+        <div className="team-selection">
+          <label htmlFor="team-select">Assign Team:</label>
+          <select
+            id="team-select"
+            value={selectedTeam}
+            onChange={(e) => setSelectedTeam(e.target.value)}
+          >
+            <option value="Team_A">Team A</option>
+            <option value="Team_B">Team B</option>
+            <option value="Team_C">Team C</option>
+          </select>
         </div>
+        <ul className="action-list">
+          {jobs
+            .filter(job => job.status === 'Pending' || job.status === 'Started')
+            .map(job => (
+              <li key={job.jobId}>
+                {job.status === 'Pending' && (
+                  <button
+                    onClick={() => handleStartJob(job.jobId)}
+                    className="start-button"
+                  >
+                    Start Job {job.jobDetails.title.slice(0, 30)}...
+                  </button>
+                )}
+                {job.status === 'Started' && (
+                  <button
+                    onClick={() => handleCompleteJob(job.jobId)}
+                    className="complete-button"
+                  >
+                    Complete Job {job.jobDetails.title.slice(0, 30)}...
+                  </button>
+                )}
+                <small>Current Status: {job.status}</small>
+              </li>
+            ))}
+          {jobs.filter(job => job.status === 'Pending' || job.status === 'Started').length === 0 && (
+            <p>No jobs pending or started for actions.</p>
+          )}
+        </ul>
+      </div>
+
+      <div className="aggregate-column second-column">
         <ReadModelDisplay
           items={jobs}
           idKey="jobId"
@@ -112,10 +119,16 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
             );
           }}
         />
+      </div>
+
+      <div className="aggregate-column third-column">
         <EventLogDisplay events={jobEvents} />
       </div>
+
     </div>
-  );
+  </div>
+);
+
 }
 
 export default RepairJobSlice;

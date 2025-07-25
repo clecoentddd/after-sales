@@ -1,8 +1,8 @@
 // src/domain/features/quotationHoldingAutomation/automation.js
 // This module provides automation logic to put a pending quotation on hold.
 
-import { onHoldQuotationCommandHandler } from '../onHoldQuotation/commandHandler';
-import { PutQuotationOnHoldCommand } from '../onHoldQuotation/commands';
+import { onHoldQuotationCommandHandler } from '../21_PutQuotationOnHold/commandHandler';
+import { PutQuotationOnHoldCommand } from '../21_PutQuotationOnHold/commands';
 
 /**
  * Automatically attempts to put a quotation on hold if it is in 'Draft' or 'Pending' status.

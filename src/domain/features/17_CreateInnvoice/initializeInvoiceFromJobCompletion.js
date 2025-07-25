@@ -4,7 +4,7 @@
 
 import { eventBus } from '../../core/eventBus';
 import { jobCreationEventStore, startJobEventStore, quotationEventStore, customerEventStore } from '../../core/eventStore';
-import { InvoiceAggregate } from '../invoicing/aggregate'; // Import InvoiceAggregate
+import { InvoiceAggregate } from './aggregate'; // Import InvoiceAggregate
 import { invoiceEventStore } from '../../core/eventStore'; // Import invoiceEventStore
 
 let isCompleteJobEventHandlerInitialized = false;
@@ -13,7 +13,7 @@ let isCompleteJobEventHandlerInitialized = false;
  * Initializes the complete job event handler by subscribing to relevant events.
  * This function is designed to be idempotent.
  */
-export const initializeCompleteJobEventHandler = () => {
+export const initializeInvoiceFromJobCompletionHandler = () => {
   if (isCompleteJobEventHandlerInitialized) {
     console.warn('[CompleteJobEventHandler] Already initialized. Skipping re-subscription.');
     return;

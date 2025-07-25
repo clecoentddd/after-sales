@@ -1,8 +1,8 @@
 import React, { useState } from 'react'; // Keep useState for other potential uses if needed, otherwise remove
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { quoteApprovalCommandHandler } from '../domain/features/approval/commandHandler';
-import { ApproveQuoteCommand } from '../domain/features/approval/commands';
+import { quoteApprovalCommandHandler } from '../domain/features/09_ApproveQuote/commandHandler';
+import { ApproveQuoteCommand } from '../domain/features/09_ApproveQuote/commands';
 // Removed: import { onHoldQuotationCommandHandler } from '../domain/features/onHoldQuotation/commandHandler';
 // Removed: import { PutQuotationOnHoldCommand } from '../domain/features/onHoldQuotation/commands';
 

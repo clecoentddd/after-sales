@@ -15,7 +15,8 @@ export const JobStartedEvent = (jobId, assignedTeam, startedByUserId) => ({
     jobId,
     assignedTeam,
     startedByUserId,
-    startedAt: new Date().toISOString() // Timestamp of when the job was started
+    startedAt: new Date().toISOString(), // Timestamp of when the job was started
+    status: 'Started', // Initial status of the job
   },
   metadata: {
     timestamp: new Date().toISOString()

@@ -4,8 +4,8 @@
 
 import { eventBus } from '../../core/eventBus';
 import { jobCreationEventStore, startJobEventStore, jobCompletionEventStore, onHoldJobEventStore } from '../../core/eventStore';
-import { onHoldJobCommandHandler } from '../onHoldJob/commandHandler';
-import { PutJobOnHoldCommand } from '../onHoldJob/commands';
+import { onHoldJobCommandHandler } from '../23_PutJobOnHold/commandHandler';
+import { PutJobOnHoldCommand } from '../23_PutJobOnHold/commands';
 
 let isChangeRequestEventHandlerInitialized = false;
 
@@ -69,7 +69,7 @@ export const initializeChangeRequestEventHandler = () => {
       const jobId = jobCreated.jobId;
       const currentJobState = reconstructJobState(jobId);
 
-      if (currentJobState && currentJobState.status === 'Pending') {
+      if (currentJobState && currentJobState.status !== 'Completed') {
         console.log(`[ChangeRequestEventHandler] Job ${jobId} is Pending and related to Change Request. Putting on Hold.`);
         onHoldJobCommandHandler.handle(
           PutJobOnHoldCommand(

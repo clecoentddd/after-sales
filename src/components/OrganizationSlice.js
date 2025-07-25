@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { organizationCommandHandler } from '../domain/features/organization/commandHandler';
+import { organizationCommandHandler } from '../domain/features/01_CreateOrganization/commandHandler';
 
 function OrganizationSlice({ organizations, orgEvents }) {
   const [orgName, setOrgName] = useState('');

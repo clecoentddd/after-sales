@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { eventBus } from '../domain/core/eventBus';
 // Import the command handler and command for putting quotations on hold
-import { onHoldQuotationCommandHandler } from '../domain/features/onHoldQuotation/commandHandler';
-import { PutQuotationOnHoldCommand } from '../domain/features/onHoldQuotation/commands';
+import { onHoldQuotationCommandHandler } from '../domain/features/21_PutQuotationOnHold/commandHandler';
+import { PutQuotationOnHoldCommand } from '../domain/features/21_PutQuotationOnHold/commands';
 // NEW: Import necessary event stores to reconstruct quotation state
 import { quotationEventStore, quoteApprovalEventStore, onHoldQuotationEventStore } from '../domain/core/eventStore';
 

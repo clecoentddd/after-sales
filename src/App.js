@@ -26,7 +26,7 @@ import EventsPage from './EventsPage';  // import your new EventsPage
 import { initializeQuotationEventHandler } from './domain/features/07_CreateQuotation/eventHandler';
 import { initializeCreateJobEventHandler } from './domain/features/11_CreateJobAutomation/eventHandler';
 import { initializeInvoiceFromJobCompletionHandler } from './domain/features/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
-import { initializeChangeRequestEventHandler } from './domain/features/19_ChangeRequested/eventHandler';
+import { initializeChangeRequestEventHandler } from './domain/features/23_PutJobOnHold/eventHandler';
 
 import { useEffect } from 'react';
 

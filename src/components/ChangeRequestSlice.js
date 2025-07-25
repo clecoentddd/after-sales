@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
 import { changeRequestCommandHandler } from '../domain/features/19_ChangeRequested/commandHandler';
-import { RaiseChangeRequestCommand } from '../domain/features/19_ChangeRequested/commands';
+import { ChangeRequestRaisedCommand } from '../domain/features/19_ChangeRequested/commands';
 
 function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, currentUserId }) {
   const [selectedRequestId, setSelectedRequestId] = useState('');
   const [changeDescription, setChangeDescription] = useState('');
 
-  const handleRaiseChangeRequest = (e) => {
+  const handleChangeRequestRaised = (e) => {
     e.preventDefault();
     if (!selectedRequestId || !changeDescription.trim()) {
       console.warn("Please select a request and provide a description for the change.");
@@ -16,7 +16,7 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
     }
 
     changeRequestCommandHandler.handle(
-      RaiseChangeRequestCommand(
+      ChangeRequestRaisedCommand(
         selectedRequestId,
         currentUserId,
         changeDescription.trim()
@@ -34,7 +34,7 @@ return (
 
       <div className="aggregate-column first-column">
         <h3>Select a request</h3>
-        <form onSubmit={handleRaiseChangeRequest} className="command-form">
+        <form onSubmit={handleChangeRequestRaised} className="command-form">
           <select
             value={selectedRequestId}
             onChange={(e) => setSelectedRequestId(e.target.value)}

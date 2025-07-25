@@ -2,7 +2,7 @@
 // Handles commands related to putting a quotation on hold.
 
 import { eventBus } from '../../core/eventBus';
-import { quotationEventStore, quoteApprovalEventStore, onHoldQuotationEventStore } from '../../core/eventStore'; 
+import { quotationEventStore } from '../../core/eventStore'; 
 import { OnHoldQuotationAggregate } from './aggregate';
 
 /**
@@ -16,8 +16,6 @@ const reconstructQuotationState = (quotationId) => {
   // Combine all relevant event types for the quotation and sort them chronologically
   const allQuotationEvents = [
     ...quotationEventStore.getEvents(), 
-    ...quoteApprovalEventStore.getEvents(), 
-    ...onHoldQuotationEventStore.getEvents() 
   ].sort((a, b) => new Date(a.metadata.timestamp).getTime() - new Date(b.metadata.timestamp).getTime());
 
   let quotation = null;
@@ -61,7 +59,7 @@ export const onHoldQuotationCommandHandler = {
         const event = OnHoldQuotationAggregate.putOnHold(command, currentQuotationState);
         
         if (event) { 
-          onHoldQuotationEventStore.append(event); // Persist the event
+          quotationEventStore.append(event); // Persist the event
           eventBus.publish(event); // Publish the event for read models to react
           return { success: true, event };
         } else {
@@ -69,7 +67,22 @@ export const onHoldQuotationCommandHandler = {
           console.warn(`[OnHoldQuotationCommandHandler] Command '${command.type}' failed for quotation ${command.quotationId}. Reason: Not applicable based on current state.`);
           // In a UI context, you might want to show a user-friendly message here.
           // For now, we return success: false and a message.
-          return { success: false, message: "Quotation cannot be put on hold based on its current status or because it wasn't found." };
+          const errorResponse = {
+              success: false,
+              message: currentQuotationState
+                ? (currentQuotationState.status === 'Approved'
+                  ? "Quotation is already approved and cannot be put on hold."
+                  : "Quotation cannot be put on hold based on its current status.")
+                : "Quotation not found or invalid.", // this should rarely happen given your aggregate logic
+              code: currentQuotationState
+                ? (currentQuotationState.status === 'Approved' 
+                  ? 'QUOTE_ALREADY_APPROVED' 
+                  : 'QUOTE_INVALID_STATUS')
+                : 'QUOTE_NOT_FOUND_OR_INVALID',
+              quotationId: command.quotationId,
+              changeRequestId: command.changeRequestId,
+            };
+            return errorResponse;
         }
 
       default:

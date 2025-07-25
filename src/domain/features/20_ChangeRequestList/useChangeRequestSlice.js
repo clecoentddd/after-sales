@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { changeRequestEventStore } from '../../core/eventStore';
+import { requestEventStore } from '../../core/eventStore';
 import { eventBus } from '../../core/eventBus';
 
 export function useChangeRequestSlice() {
@@ -8,7 +8,7 @@ export function useChangeRequestSlice() {
 
   // Load initial ChangeRequestRaised events and reconstruct state
   useEffect(() => {
-    const events = changeRequestEventStore.getEvents();
+    const events = requestEventStore.getEvents();
     setChangeRequests(events.filter(e => e.type === 'ChangeRequestRaised').map(e => e.data));
     setChangeRequestEvents(events);
   }, []);

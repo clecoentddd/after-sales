@@ -27,7 +27,7 @@ export class OnHoldQuotationAggregate {
       return QuotationOnHoldEvent(
         command.quotationId,
         currentQuotationState.requestId, // Get requestId from the reconstructed state
-        null, // For now, changeRequestId is null as this is manual
+        command.changeRequestId,
         command.heldByUserId,
         command.reason
       );

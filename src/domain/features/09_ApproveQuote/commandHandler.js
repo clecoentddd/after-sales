@@ -2,7 +2,7 @@
 // Handles commands related to the Quote Approval domain.
 
 import { eventBus } from '../../core/eventBus';
-import { quoteApprovalEventStore } from '../../core/eventStore'; // Import the new event store
+import { quotationEventStore } from '../../core/eventStore'; // Import the new event store
 import { QuoteApprovalAggregate } from './aggregate';
 
 export const quoteApprovalCommandHandler = {
@@ -19,7 +19,7 @@ export const quoteApprovalCommandHandler = {
         // Delegate to the QuoteApprovalAggregate to create the event.
         const event = QuoteApprovalAggregate.approve(command);
         // Append the event to the quote approval event store for persistence.
-        quoteApprovalEventStore.append(event);
+        quotationEventStore.append(event);
         // Publish the event to the event bus so other parts of the system can react.
         eventBus.publish(event);
         return { success: true, event };

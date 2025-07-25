@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { quoteApprovalEventStore } from '../../core/eventStore';
+import { quotationEventStore } from '../../core/eventStore';
 import { eventBus } from '../../core/eventBus';
 
 export function useQuoteApprovalSlice() {
@@ -8,7 +8,7 @@ export function useQuoteApprovalSlice() {
 
   // Load initial approved quotes from event store
   useEffect(() => {
-    const approvalEventsLoaded = quoteApprovalEventStore.getEvents();
+    const approvalEventsLoaded = quotationEventStore.getEvents();
     setApprovedQuotes(
       approvalEventsLoaded.filter(e => e.type === 'QuoteApproved').map(e => e.data)
     );

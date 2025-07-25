@@ -4,8 +4,8 @@
 
 import { eventBus } from '../../core/eventBus';
 import { jobEventStore } from '../../core/eventStore';
-import { onHoldJobCommandHandler } from '../23_PutJobOnHold/commandHandler';
-import { PutJobOnHoldCommand } from '../23_PutJobOnHold/commands';
+import { onHoldJobCommandHandler } from './commandHandler';
+import { PutJobOnHoldCommand } from './commands';
 
 let isChangeRequestEventHandlerInitialized = false;
 

@@ -9,7 +9,7 @@ function InvoicingSlice({ invoices, invoiceEvents, customers, jobs }) {
     <div className="aggregate-columns">
 
       <div className="aggregate-column first-column">
-        <h3>Process Trigger</h3>
+        <h3>Invoices Created</h3>
         <p>Invoices are automatically created when a Job is Completed.</p>
       </div>
 

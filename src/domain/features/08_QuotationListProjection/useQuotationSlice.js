@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
   quotationEventStore,
-  quoteApprovalEventStore,
-  onHoldQuotationEventStore
 } from '../../core/eventStore';
 import { eventBus } from '../../core/eventBus';
 
@@ -13,8 +11,8 @@ export function useQuotationSlice() {
 
   useEffect(() => {
     const quotationCreatedEvents = quotationEventStore.getEvents().filter(e => e.type === 'QuotationCreated');
-    const quoteApprovedEvents = quoteApprovalEventStore.getEvents().filter(e => e.type === 'QuoteApproved');
-    const quotationOnHoldEvents = onHoldQuotationEventStore.getEvents().filter(e => e.type === 'QuotationOnHold');
+    const quoteApprovedEvents = quotationEventStore.getEvents().filter(e => e.type === 'QuoteApproved');
+    const quotationOnHoldEvents = quotationEventStore.getEvents().filter(e => e.type === 'QuotationOnHold');
 
     const allEvents = [
       ...quotationCreatedEvents,

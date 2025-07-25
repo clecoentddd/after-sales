@@ -3,13 +3,9 @@ import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
 import { quoteApprovalCommandHandler } from '../domain/features/09_ApproveQuote/commandHandler';
 import { ApproveQuoteCommand } from '../domain/features/09_ApproveQuote/commands';
-// Removed: import { onHoldQuotationCommandHandler } from '../domain/features/onHoldQuotation/commandHandler';
-// Removed: import { PutQuotationOnHoldCommand } from '../domain/features/onHoldQuotation/commands';
 
 function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers, requests, currentUserId }) {
-  // Removed: const [onHoldReason, setOnHoldReason] = useState('');
-  // Removed: const [showHoldReasonInput, setShowHoldReasonInput] = useState(null);
-
+ 
   const handleApproveQuote = (quoteId) => {
     if (!quoteId) return;
 

@@ -28,6 +28,7 @@ export const putQuotationOnHoldAutomaticallyIfPendingApproval = (quotationId, he
     onHoldQuotationCommandHandler.handle(
       PutQuotationOnHoldCommand(
         quotationId,
+        changeRequestId,
         heldByUserId,
         'Automatic hold: Quotation not approved within expected timeframe (or other automation reason).'
       )

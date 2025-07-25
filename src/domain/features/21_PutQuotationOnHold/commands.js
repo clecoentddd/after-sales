@@ -9,9 +9,11 @@
  * @param {string} reason - The reason for putting the quotation on hold.
  * @returns {object} The PutQuotationOnHoldCommand object.
  */
-export const PutQuotationOnHoldCommand = (quotationId, heldByUserId, reason) => ({
+export const PutQuotationOnHoldCommand = (quotationId, requestId, changeRequestId, heldByUserId, reason) => ({
   type: 'PutQuotationOnHold', // Command type identifier
   quotationId,
+  requestId,
+  changeRequestId,
   heldByUserId,
   reason,
 });

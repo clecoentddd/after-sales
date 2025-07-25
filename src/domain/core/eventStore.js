@@ -18,6 +18,10 @@ class EventStore {
   getEvents() {
     return [...this.events];
   }
+
+    clear() {
+    this.events = [];
+  }
 }
 
 export const organizationEventStore = new EventStore();

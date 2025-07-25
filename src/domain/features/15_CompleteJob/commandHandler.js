@@ -2,7 +2,7 @@
 // Handles commands related to completing a repair job.
 
 import { eventBus } from '../../core/eventBus';
-import { jobCompletionEventStore } from '../../core/eventStore'; // Event for job completion goes here
+import { jobEventStore } from '../../core/eventStore'; // Event for job completion goes here
 import { CompleteJobAggregate } from './aggregate';
 
 export const completeJobCommandHandler = {
@@ -17,7 +17,7 @@ export const completeJobCommandHandler = {
     switch (command.type) {
       case 'CompleteJob':
         const event = CompleteJobAggregate.complete(command);
-        jobCompletionEventStore.append(event); // Append JobCompletedEvent to its dedicated store
+        jobEventStore.append(event); // Append JobCompletedEvent to its dedicated store
         eventBus.publish(event); // Publish JobCompletedEvent
         return { success: true, event };
 

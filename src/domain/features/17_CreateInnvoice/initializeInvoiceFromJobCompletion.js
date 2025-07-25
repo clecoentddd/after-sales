@@ -3,7 +3,7 @@
 // It acts as a process manager connecting job completion to invoicing.
 
 import { eventBus } from '../../core/eventBus';
-import { jobCreationEventStore, startJobEventStore, quotationEventStore, customerEventStore } from '../../core/eventStore';
+import { jobEventStore, quotationEventStore, customerEventStore } from '../../core/eventStore';
 import { InvoiceAggregate } from './aggregate'; // Import InvoiceAggregate
 import { invoiceEventStore } from '../../core/eventStore'; // Import invoiceEventStore
 
@@ -25,7 +25,7 @@ export const initializeInvoiceFromJobCompletionHandler = () => {
     const { jobId, completedByUserId, completionDetails } = event.data;
 
     // To create an invoice, we need to gather information from various sources (read models/event stores)
-    const allJobCreationEvents = jobCreationEventStore.getEvents();
+    const allJobCreationEvents = jobEventStore.getEvents();
     const jobCreated = allJobCreationEvents
       .filter(e => e.type === 'JobCreated' && e.data.jobId === jobId)
       .map(e => e.data)

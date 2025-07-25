@@ -2,7 +2,7 @@
 // Handles commands related to putting a job on hold.
 
 import { eventBus } from '../../core/eventBus';
-import { onHoldJobEventStore } from '../../core/eventStore'; // Event for job on hold goes here
+import { jobEventStore } from '../../core/eventStore'; // Event for job on hold goes here
 import { OnHoldJobAggregate } from './aggregate';
 
 export const onHoldJobCommandHandler = {
@@ -17,7 +17,7 @@ export const onHoldJobCommandHandler = {
     switch (command.type) {
       case 'PutJobOnHold':
         const event = OnHoldJobAggregate.putOnHold(command);
-        onHoldJobEventStore.append(event); // Append JobOnHoldEvent to its dedicated store
+        jobEventStore.append(event); // Append JobOnHoldEvent to its dedicated store
         eventBus.publish(event); // Publish JobOnHoldEvent
         return { success: true, event };
 

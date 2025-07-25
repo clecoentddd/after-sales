@@ -2,7 +2,7 @@
 // This handler subscribes to the 'QuoteApproved' event and emits a 'JobCreated' event.
 
 import { eventBus } from '../../core/eventBus';
-import { jobCreationEventStore, quotationEventStore, customerEventStore, requestEventStore } from '../../core/eventStore'; // Import necessary event stores
+import { jobEventStore, quotationEventStore, customerEventStore, requestEventStore } from '../../core/eventStore'; // Import necessary event stores
 import { JobAggregate } from './aggregate';
 
 let isCreateJobEventHandlerInitialized = false;
@@ -67,7 +67,7 @@ export const initializeCreateJobEventHandler = () => {
       requestDetails
     );
 
-    jobCreationEventStore.append(jobCreatedEvent);
+    jobEventStore.append(jobCreatedEvent);
     eventBus.publish(jobCreatedEvent);
     console.log(`[CreateJobEventHandler] Published JobCreated event for job ID: ${jobCreatedEvent.data.jobId}`);
   });

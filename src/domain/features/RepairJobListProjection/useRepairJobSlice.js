@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
-import {
-  jobCreationEventStore,
-  startJobEventStore,
-  jobCompletionEventStore,
-  onHoldJobEventStore
-} from '../../core/eventStore';
+import { jobEventStore } from '../../core/eventStore';
+
 import { eventBus } from '../../core/eventBus';
 
 export function useRepairJobSlice() {
@@ -13,10 +9,7 @@ export function useRepairJobSlice() {
 
   useEffect(() => {
     const events = [
-      ...(jobCreationEventStore.getEvents() || []),
-      ...(startJobEventStore.getEvents() || []),
-      ...(jobCompletionEventStore.getEvents() || []),
-      ...(onHoldJobEventStore.getEvents() || [])
+      ...(jobEventStore.getEvents() || []),
     ];
 
     const jobMap = new Map();

@@ -3,7 +3,7 @@
 // If an associated job is pending, it dispatches a 'PutJobOnHold' command.
 
 import { eventBus } from '../../core/eventBus';
-import { jobCreationEventStore, startJobEventStore, jobCompletionEventStore, onHoldJobEventStore } from '../../core/eventStore';
+import { jobEventStore } from '../../core/eventStore';
 import { onHoldJobCommandHandler } from '../23_PutJobOnHold/commandHandler';
 import { PutJobOnHoldCommand } from '../23_PutJobOnHold/commands';
 
@@ -18,10 +18,7 @@ let isChangeRequestEventHandlerInitialized = false;
  */
 const reconstructJobState = (jobId) => {
   const allJobEvents = [
-    ...jobCreationEventStore.getEvents(),
-    ...startJobEventStore.getEvents(),
-    ...jobCompletionEventStore.getEvents(),
-    ...onHoldJobEventStore.getEvents()
+    ...jobEventStore.getEvents()
   ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
   let job = null;
@@ -61,7 +58,7 @@ export const initializeChangeRequestEventHandler = () => {
     const { requestId, changedByUserId, description } = event.data;
 
     // Find all jobs related to this requestId
-    const allJobCreatedEvents = jobCreationEventStore.getEvents()
+    const allJobCreatedEvents = jobEventStore.getEvents()
       .filter(e => e.type === 'JobCreated' && e.data.requestId === requestId)
       .map(e => e.data);
 

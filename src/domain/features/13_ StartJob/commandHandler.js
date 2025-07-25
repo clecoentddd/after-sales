@@ -2,7 +2,7 @@
 // Handles commands related to starting a repair job.
 
 import { eventBus } from '../../core/eventBus';
-import { jobCreationEventStore } from '../../core/eventStore'; // JobStartedEvent goes into jobCreationEventStore
+import { jobEventStore } from '../../core/eventStore'; // JobStartedEvent goes into jobCreatjobEventStore
 import { StartJobAggregate } from './aggregate'; // Use the new StartJobAggregate
 
 export const startJobCommandHandler = {
@@ -17,7 +17,7 @@ export const startJobCommandHandler = {
     switch (command.type) {
       case 'StartJob':
         const event = StartJobAggregate.start(command);
-        jobCreationEventStore.append(event);
+        jobEventStore.append(event);
         eventBus.publish(event);
         return { success: true, event };
 

@@ -4,12 +4,9 @@ import {
   requestEventStore,
   quotationEventStore,
   quoteApprovalEventStore,
-  jobCreationEventStore,
-  startJobEventStore,
-  jobCompletionEventStore,
+  jobEventStore,
   invoiceEventStore,
   changeRequestEventStore,
-  onHoldJobEventStore,
   onHoldQuotationEventStore,
 } from './eventStore';
 
@@ -20,13 +17,10 @@ export function getAllEvents() {
     { name: 'requestEventStore', store: requestEventStore },
     { name: 'quotationEventStore', store: quotationEventStore },
     { name: 'quoteApprovalEventStore', store: quoteApprovalEventStore },
-    { name: 'jobCreationEventStore', store: jobCreationEventStore },
-    { name: 'startJobEventStore', store: startJobEventStore },
-    { name: 'jobCompletionEventStore', store: jobCompletionEventStore },
+    { name: 'jobEventStore', store: jobEventStore },
     { name: 'invoiceEventStore', store: invoiceEventStore },
     { name: 'changeRequestEventStore', store: changeRequestEventStore },
-    { name: 'onHoldJobEventStore', store: onHoldJobEventStore },
-    { name: 'onHoldQuotationEventStore', store: onHoldQuotationEventStore },
+    { name: 'jobEventStore', store: jobEventStore },
   ];
 
   const allEvents = stores.flatMap(({ name, store }) =>

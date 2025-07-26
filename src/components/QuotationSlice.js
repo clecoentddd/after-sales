@@ -10,7 +10,7 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
     if (!quoteId) return;
 
     // Check current status from the 'quotations' read model
-    const currentQuote = quotations.find(q => q.quotationId === quoteId);
+    const currentQuote = quotations.find(q => q.quoteId === quoteId);
     if (currentQuote && currentQuote.status === 'Approved') {
       console.warn(`Quote ${quoteId} is already approved.`);
       return;
@@ -22,11 +22,11 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
     }
 
     quoteApprovalCommandHandler.handle(
-      ApproveQuoteCommand(
-        quoteId,
-        currentUserId 
-      )
-    );
+      new ApproveQuoteCommand({
+    quoteId,
+    userId: currentUserId
+  })
+);
   };
 
   // Removed: handlePutQuotationOnHold function and its related logic
@@ -43,9 +43,9 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
         ) : (
           <ul className="action-list">
             {quotations.map(quote => (
-              <li key={quote.quotationId}>
+              <li key={quote.quoteId}>
                 <button 
-                  onClick={() => handleApproveQuote(quote.quotationId)}
+                  onClick={() => handleApproveQuote(quote.quoteId)}
                   disabled={quote.status === 'Approved' || quote.status === 'On Hold'}
                   className={quote.status === 'Approved' ? 'approved-button' : ''}
                 >
@@ -61,7 +61,7 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
       <div className="aggregate-column second-column">
         <ReadModelDisplay
           items={quotations}
-          idKey="quotationId"
+          idKey="quoteId"
           renderDetails={(quotation) => {
             const customer = customers.find(c => c.customerId === quotation.customerId);
             const request = requests.find(r => r.requestId === quotation.requestId);

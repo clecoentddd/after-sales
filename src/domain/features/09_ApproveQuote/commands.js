@@ -1,15 +1,18 @@
-// approval/commands.js
-// Defines commands related to the Quote Approval domain.
+// Defines the ApproveQuoteCommand used to request approval of a quotation
 
-/**
- * Factory function for creating an ApproveQuoteCommand.
- * This command is used to initiate the approval of a specific quotation.
- * @param {string} quoteId - The ID of the quotation to approve.
- * @param {string} userId - The ID of the user initiating the approval.
- * @returns {object} The ApproveQuoteCommand object.
- */
-export const ApproveQuoteCommand = (quoteId, userId) => ({
-  type: 'ApproveQuote', // Command type identifier
-  quoteId,    // The ID of the quote to be approved
-  userId      // The ID of the user performing the approval
-});
+export class ApproveQuoteCommand {
+  /**
+   * @param {Object} params
+   * @param {string} params.quoteId - ID of the quotation to approve
+   * @param {string} params.userId - ID of the user approving the quote
+   */
+  constructor({ quoteId, userId }) {
+    if (!quoteId || !userId) {
+      throw new Error("ApproveQuoteCommand requires quoteId, requestId, and userId.");
+    }
+
+    this.type = 'ApproveQuote';
+    this.quoteId = quoteId;
+    this.userId = userId;
+  }
+}

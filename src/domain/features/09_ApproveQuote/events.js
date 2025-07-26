@@ -8,10 +8,11 @@
  * @param {string} approvedByUserId - The ID of the user who approved the quotation.
  * @returns {object} The QuoteApprovedEvent object.
  */
-export const QuoteApprovedEvent = (quoteId, approvedByUserId) => ({
+export const QuoteApprovedEvent = (quoteId, requestId, approvedByUserId) => ({
   type: 'QuoteApproved', // Event type identifier
   data: {
     quoteId,
+    requestId,
     approvedByUserId,
   },
   metadata: {

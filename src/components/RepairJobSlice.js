@@ -135,7 +135,7 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
             renderDetails={(job) => {
               const customer = customers.find(c => c.customerId === job.customerId);
               const request = requests.find(r => r.requestId === job.requestId);
-              const quote = quotations.find(q => q.quotationId === job.quoteId);
+              const quote = quotations.find(q => q.quoteId === job.quoteId);
               return (
                 <>
                   <strong>{job.jobDetails?.title || 'Untitled'}</strong>

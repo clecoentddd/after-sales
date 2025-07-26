@@ -36,14 +36,14 @@ function QuotationSubscriberToChangeRequest({ currentUserId }) {
       }
 
       const quotation = matchingQuotations[0];
-      const quotationId = quotation.quotationId;
+      const quoteId = quotation.quoteId;
 
-      console.log(`[QuotationSubscriberToChangeRequest] ✅ Found quotation ${quotationId} for requestId: ${requestId}`);
+      console.log(`[QuotationSubscriberToChangeRequest] ✅ Found quotation ${quoteId} for requestId: ${requestId}`);
 
       // Call the command handler — it will decide what to do
       const result = onHoldQuotationCommandHandler.handle({
         type: 'PutQuotationOnHold',
-        quotationId,
+        quoteId,
         requestId,
         changeRequestId,
         heldByUserId: currentUserId,
@@ -51,7 +51,7 @@ function QuotationSubscriberToChangeRequest({ currentUserId }) {
       });
 
       if (!result.success) {
-        console.error(`[QuotationSubscriberToChangeRequest] ❌ Command failed for quotationId ${quotationId}:`, result.message);
+        console.error(`[QuotationSubscriberToChangeRequest] ❌ Command failed for quoteId ${quoteId}:`, result.message);
       }
     });
 

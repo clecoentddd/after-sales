@@ -1,77 +1,53 @@
-// createJob/eventHandler.js
-// This handler subscribes to the 'QuoteApproved' event and emits a 'JobCreated' event.
+// src/domain/features/11_CreateJobAutomation/eventHandler.js
 
 import { eventBus } from '../../core/eventBus';
-import { jobEventStore, quotationEventStore, customerEventStore, requestEventStore } from '../../core/eventStore'; // Import necessary event stores
-import { JobAggregate } from './aggregate';
+import {
+  jobEventStore,
+  quotationEventStore,
+  requestEventStore
+} from '../../core/eventStore';
+
+import { createJobCommandHandler } from './commandHandler';
+import { CreateJobFromApprovedQuoteCommand } from './commands';
 
 let isCreateJobEventHandlerInitialized = false;
 
-/**
- * Initializes the create job event handler by subscribing to relevant events.
- * This function is designed to be idempotent.
- */
 export const initializeCreateJobEventHandler = () => {
-  if (isCreateJobEventHandlerInitialized) {
-    console.warn('[CreateJobEventHandler] Already initialized. Skipping re-subscription.');
-    return;
-  }
+  if (isCreateJobEventHandlerInitialized) return;
 
   eventBus.subscribe('QuoteApproved', (event) => {
     console.log(`[CreateJobEventHandler] Received QuoteApproved event:`, event);
-    
-    // Log the current state of the relevant event stores for debugging
-    console.log(`[CreateJobEventHandler] Current quotationEventStore events:`, quotationEventStore.getEvents());
-    console.log(`[CreateJobEventHandler] Current requestEventStore events:`, requestEventStore.getEvents());
 
     const { quoteId } = event.data;
-    console.log(`[CreateJobEventHandler] Looking for quotation with ID: ${quoteId}`);
 
-    // Reconstruct the specific quotation state from its events
-    const allQuotationEvents = quotationEventStore.getEvents();
-    let targetQuotation = allQuotationEvents
-      .filter(e => e.type === 'QuotationCreated' && e.data.quotationId === quoteId)
-      .map(e => e.data)
-      .at(0); // Get the first (and hopefully only) matching quotation created event
+    const quotation = quotationEventStore
+      .getEvents()
+      .find(e => e.type === 'QuotationCreated' && e.data.quoteId === quoteId)?.data;
 
-    if (!targetQuotation) {
-      console.error(`[CreateJobEventHandler] ERROR: Could not find quotation data for ID: ${quoteId}. Cannot create job.`);
+    if (!quotation) {
+      console.error(`[CreateJobEventHandler] Could not find quotation for quoteId: ${quoteId}`);
       return;
     }
-    console.log(`[CreateJobEventHandler] Successfully found quotation:`, targetQuotation);
 
-    console.log(`[CreateJobEventHandler] Looking for request with ID: ${targetQuotation.requestId}`);
+    const request = requestEventStore
+      .getEvents()
+      .find(e => e.type === 'RequestCreated' && e.data.requestId === quotation.requestId)?.data;
 
-    // Reconstruct the specific request state from its events
-    const allRequestEvents = requestEventStore.getEvents();
-    let targetRequest = allRequestEvents
-      .filter(e => e.type === 'RequestCreated' && e.data.requestId === targetQuotation.requestId)
-      .map(e => e.data)
-      .at(0); // Get the first (and hopefully only) matching request created event
-
-    if (!targetRequest) {
-      console.error(`[CreateJobEventHandler] ERROR: Could not find request data for ID: ${targetQuotation.requestId}. Cannot create job.`);
+    if (!request) {
+      console.error(`[CreateJobEventHandler] Could not find request for requestId: ${quotation.requestId}`);
       return;
     }
-    console.log(`[CreateJobEventHandler] Successfully found request:`, targetRequest);
 
+    const command = new CreateJobFromApprovedQuoteCommand({
+      customerId: quotation.customerId,
+      requestId: quotation.requestId,
+      quoteId: quotation.quoteId,
+      requestDetails: request.requestDetails
+    });
 
-    const customerId = targetQuotation.customerId;
-    const requestId = targetQuotation.requestId;
-    const requestDetails = targetRequest.requestDetails; // Contains title, description etc.
-
-    const jobCreatedEvent = JobAggregate.createFromQuoteApproval(
-      customerId,
-      requestId,
-      quoteId,
-      requestDetails
-    );
-
-    jobEventStore.append(jobCreatedEvent);
-    eventBus.publish(jobCreatedEvent);
-    console.log(`[CreateJobEventHandler] Published JobCreated event for job ID: ${jobCreatedEvent.data.jobId}`);
+    createJobCommandHandler.handle(command);
   });
 
   isCreateJobEventHandlerInitialized = true;
-  console.log('[CreateJobEventHandler] Subscribed to QuoteApproved events for job creation.');
+  console.log('[CreateJobEventHandler] Subscribed to QuoteApproved events');
 };

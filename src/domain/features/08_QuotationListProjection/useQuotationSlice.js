@@ -26,8 +26,8 @@ export function useQuotationSlice() {
     const map = new Map();
 
     allEvents.forEach(event => {
-      const quotationId = event.data.quotationId || event.data.quoteId;
-      let current = map.get(quotationId) || { quotationId };
+      const quoteId = event.data.quoteId || event.data.quoteId;
+      let current = map.get(quoteId) || { quoteId };
 
       if (event.type === 'QuotationCreated') {
         const existingStatus = current.status;
@@ -44,7 +44,7 @@ export function useQuotationSlice() {
         current.changeRequestId = event.data.changeRequestId;
       }
 
-      map.set(quotationId, current);
+      map.set(quoteId, current);
     });
 
     setQuotations(Array.from(map.values()));
@@ -55,10 +55,10 @@ export function useQuotationSlice() {
       setQuotationEvents(prev => [...prev, event]);
       setQuotations(prev => {
         const next = [...prev];
-        const idx = next.findIndex(q => q.quotationId === event.data.quotationId);
+        const idx = next.findIndex(q => q.quoteId === event.data.quoteId);
 
         const newData = {
-          quotationId: event.data.quotationId,
+          quoteId: event.data.quoteId,
           requestId: event.data.requestId,
           customerId: event.data.customerId,
           quotationDetails: event.data.quotationDetails,
@@ -85,7 +85,7 @@ export function useQuotationSlice() {
       setApprovedQuotes(prev => [...prev, event.data]);
       setQuotationEvents(prev => [...prev, event]);
       setQuotations(prev => prev.map(q =>
-        q.quotationId === event.data.quoteId
+        q.quoteId === event.data.quoteId
           ? { ...q, status: 'Approved' }
           : q
       ));
@@ -95,10 +95,10 @@ export function useQuotationSlice() {
       setQuotationEvents(prev => [...prev, event]);
       setQuotations(prev => {
         const next = [...prev];
-        const idx = next.findIndex(q => q.quotationId === event.data.quotationId);
+        const idx = next.findIndex(q => q.quoteId === event.data.quoteId);
 
         const holdData = {
-          quotationId: event.data.quotationId,
+          quoteId: event.data.quoteId,
           status: 'On Hold',
           onHoldReason: event.data.reason,
           requestId: event.data.requestId || null,

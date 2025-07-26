@@ -9,10 +9,10 @@ import { OnHoldQuotationAggregate } from './aggregate';
  * Reconstructs the current state of a single quotation from its events.
  * This is crucial for the command handler to provide the aggregate with the necessary context.
  * It considers QuotationCreated, QuoteApproved, and QuotationOnHold events to build the state.
- * @param {string} quotationId - The ID of the quotation to reconstruct.
+ * @param {string} quoteId - The ID of the quotation to reconstruct.
  * @returns {object|null} The reconstructed quotation object or null if not found.
  */
-const reconstructQuotationState = (quotationId) => {
+const reconstructQuotationState = (quoteId) => {
   // Combine all relevant event types for the quotation and sort them chronologically
   const allQuotationEvents = [
     ...quotationEventStore.getEvents(), 
@@ -22,9 +22,9 @@ const reconstructQuotationState = (quotationId) => {
 
   allQuotationEvents.forEach(event => {
     // Determine the relevant ID for filtering, as QuoteApproved uses 'quoteId'
-    const targetId = event.type === 'QuoteApproved' ? event.data.quoteId : event.data.quotationId;
+    const targetId = event.type === 'QuoteApproved' ? event.data.quoteId : event.data.quoteId;
 
-    if (targetId === quotationId) {
+    if (targetId === quoteId) {
       if (event.type === 'QuotationCreated') {
         quotation = { ...event.data }; // Initialize or update with creation data
       } else if (quotation && event.type === 'QuoteApproved') {
@@ -52,8 +52,8 @@ export const onHoldQuotationCommandHandler = {
     switch (command.type) {
       case 'PutQuotationOnHold':
         // Reconstruct the current state of the specific quotation for the aggregate to validate
-        const currentQuotationState = reconstructQuotationState(command.quotationId);
-        console.log(`[OnHoldQuotationCommandHandler] Reconstructed quotation state for ${command.quotationId}:`, currentQuotationState);
+        const currentQuotationState = reconstructQuotationState(command.quoteId);
+        console.log(`[OnHoldQuotationCommandHandler] Reconstructed quotation state for ${command.quoteId}:`, currentQuotationState);
 
         // Pass the command and the current quotation state to the aggregate
         const event = OnHoldQuotationAggregate.putOnHold(command, currentQuotationState);
@@ -64,7 +64,7 @@ export const onHoldQuotationCommandHandler = {
           return { success: true, event };
         } else {
           // If aggregate returns null, it means the command was not applicable based on business rules
-          console.warn(`[OnHoldQuotationCommandHandler] Command '${command.type}' failed for quotation ${command.quotationId}. Reason: Not applicable based on current state.`);
+          console.warn(`[OnHoldQuotationCommandHandler] Command '${command.type}' failed for quotation ${command.quoteId}. Reason: Not applicable based on current state.`);
           // In a UI context, you might want to show a user-friendly message here.
           // For now, we return success: false and a message.
           const errorResponse = {
@@ -79,7 +79,7 @@ export const onHoldQuotationCommandHandler = {
                   ? 'QUOTE_ALREADY_APPROVED' 
                   : 'QUOTE_INVALID_STATUS')
                 : 'QUOTE_NOT_FOUND_OR_INVALID',
-              quotationId: command.quotationId,
+              quoteId: command.quoteId,
               changeRequestId: command.changeRequestId,
             };
             return errorResponse;

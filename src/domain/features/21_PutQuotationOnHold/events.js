@@ -4,17 +4,17 @@
 /**
  * Factory function for creating a QuotationOnHoldEvent.
  * This event signifies that a specific quotation has been put on hold.
- * @param {string} quotationId - The ID of the quotation that was put on hold.
+ * @param {string} quoteId - The ID of the quotation that was put on hold.
  * @param {string} requestId - The ID of the request related to the quotation.
  * @param {string} changeRequestId - The ID of the change request, if any, that caused the hold.
  * @param {string} heldByUserId - The ID of the user who put the quotation on hold.
  * @param {string} reason - The reason for holding the quotation.
  * @returns {object} The QuotationOnHoldEvent object.
  */
-export const QuotationOnHoldEvent = (quotationId, requestId, changeRequestId, heldByUserId, reason) => ({
+export const QuotationOnHoldEvent = (quoteId, requestId, changeRequestId, heldByUserId, reason) => ({
   type: 'QuotationOnHold', // Event type identifier
   data: {
-    quotationId,
+    quoteId,
     requestId,
     changeRequestId,
     heldByUserId,

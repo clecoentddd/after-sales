@@ -3,7 +3,7 @@
 // It acts as a process manager connecting job completion to invoicing.
 
 import { eventBus } from '../../core/eventBus';
-import { jobEventStore, quotationEventStore, customerEventStore } from '../../core/eventStore';
+import { jobEventStore, quotationEventStore, customerEventStore, requestEventStore } from '../../core/eventStore';
 import { InvoiceAggregate } from './aggregate'; // Import InvoiceAggregate
 import { invoiceEventStore } from '../../core/eventStore'; // Import invoiceEventStore
 
@@ -38,7 +38,7 @@ export const initializeInvoiceFromJobCompletionHandler = () => {
 
     const allQuotationEvents = quotationEventStore.getEvents();
     const quotation = allQuotationEvents
-      .filter(e => e.type === 'QuotationCreated' && e.data.quotationId === jobCreated.quoteId)
+      .filter(e => e.type === 'QuotationCreated' && e.data.quoteId === jobCreated.quoteId)
       .map(e => e.data)
       .at(0);
 
@@ -60,8 +60,9 @@ export const initializeInvoiceFromJobCompletionHandler = () => {
     // Now we have sufficient data to create an invoice
     const invoiceCreatedEvent = InvoiceAggregate.createInvoice(
       jobId,
-      quotation.quotationId,
+      quotation.quoteId,
       customer.customerId,
+      quotation.requestId,
       quotation.quotationDetails.estimatedAmount, // Use amount from the quote
       quotation.quotationDetails.currency,
       jobCreated.jobDetails.title // Use job title for invoice description

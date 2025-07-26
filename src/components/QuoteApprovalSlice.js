@@ -18,7 +18,7 @@ return (
           items={approvedQuotes}
           idKey="quoteId"
           renderDetails={(approval) => {
-            const approvedQuotation = quotations.find(q => q.quotationId === approval.quoteId);
+            const approvedQuotation = quotations.find(q => q.quoteId === approval.quoteId);
             const customer = approvedQuotation ? customers.find(c => c.customerId === approvedQuotation.customerId) : null;
             return (
               <>

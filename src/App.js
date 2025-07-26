@@ -22,6 +22,7 @@ import QuotationSubscriberToChangeRequest from './components/QuotationSubscriber
 import QuotationApprovalMonitor from './components/QuotationApprovalMonitor';
 
 import EventsPage from './EventsPage';  // import your new EventsPage
+import LiveModelPage from './LiveModelPage'; // Assuming you have a LiveModelPage component
 
 import { initializeQuotationEventHandler } from './domain/features/07_CreateQuotation/eventHandler';
 import { initializeCreateJobEventHandler } from './domain/features/11_CreateJobAutomation/eventHandler';
@@ -57,7 +58,8 @@ function App() {
           <h1>Event Sourcing Demo</h1>
           <nav style={{ marginBottom: 20 }}>
             <Link to="/" style={{ marginRight: 15 }}>Home</Link>
-            <Link to="/events">Events</Link>
+            <Link to="/events" style={{ marginRight: 15 }}>Events</Link>
+            <Link to="/liveModel">RequestSatus</Link>
           </nav>
         </header>
 
@@ -110,6 +112,7 @@ function App() {
             }
           />
           <Route path="/events" element={<EventsPage />} />
+          <Route path="/liveModel" element={<LiveModelPage />} />
         </Routes>
       </div>
     </Router>

@@ -1,29 +1,41 @@
-// completeJob/commandHandler.js
-// Handles commands related to completing a repair job.
+// src/domain/features/15_CompleteJob/commandHandler.js
 
 import { eventBus } from '../../core/eventBus';
-import { jobEventStore } from '../../core/eventStore'; // Event for job completion goes here
-import { CompleteJobAggregate } from './aggregate';
+import { jobEventStore } from '../../core/eventStore';
+import { JobAggregate } from '../../entities/Job/aggregate'; // shared aggregate
 
 export const completeJobCommandHandler = {
-  /**
-   * Handles incoming commands for the Complete Job domain.
-   * @param {object} command - The command object to handle.
-   * @param {string} command.type - The type of the command (e.g., 'CompleteJob').
-   * @returns {object} An object indicating success and optionally the generated event.
-   */
   handle(command) {
     console.log(`[CompleteJobCommandHandler] Handling command: ${command.type}`, command);
+
     switch (command.type) {
-      case 'CompleteJob':
-        const event = CompleteJobAggregate.complete(command);
-        jobEventStore.append(event); // Append JobCompletedEvent to its dedicated store
-        eventBus.publish(event); // Publish JobCompletedEvent
+      case 'CompleteJob': {
+        // Rehydrate aggregate from event history
+        const events = jobEventStore
+          .getEvents()
+          .filter(e => e.data.jobId === command.jobId);
+
+        const aggregate = new JobAggregate();
+        aggregate.replay(events);
+
+        const event = aggregate.complete(command);
+        if (!event) {
+          return {
+            success: false,
+            message: `Job ${command.jobId} is already completed.`,
+            code: 'JOB_ALREADY_COMPLETED'
+          };
+        }
+
+        jobEventStore.append(event);
+        eventBus.publish(event);
+
         return { success: true, event };
+      }
 
       default:
         console.warn(`[CompleteJobCommandHandler] Unknown command type: ${command.type}`);
-        return { success: false };
+        return { success: false, message: 'Unknown command' };
     }
   }
 };

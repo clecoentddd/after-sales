@@ -1,29 +1,31 @@
 // startJob/commandHandler.js
-// Handles commands related to starting a repair job.
 
 import { eventBus } from '../../core/eventBus';
-import { jobEventStore } from '../../core/eventStore'; // JobStartedEvent goes into jobCreatjobEventStore
-import { StartJobAggregate } from './aggregate'; // Use the new StartJobAggregate
+import { jobEventStore } from '../../core/eventStore';
+import { JobAggregate } from '../../entities/Job/aggregate'; 
 
 export const startJobCommandHandler = {
-  /**
-   * Handles incoming commands for the Start Job domain.
-   * @param {object} command - The command object to handle.
-   * @param {string} command.type - The type of the command (e.g., 'StartJob').
-   * @returns {object} An object indicating success and optionally the generated event.
-   */
   handle(command) {
     console.log(`[StartJobCommandHandler] Handling command: ${command.type}`, command);
-    switch (command.type) {
-      case 'StartJob':
-        const event = StartJobAggregate.start(command);
-        jobEventStore.append(event);
-        eventBus.publish(event);
-        return { success: true, event };
 
-      default:
-        console.warn(`[StartJobCommandHandler] Unknown command type: ${command.type}`);
-        return { success: false };
+    // Rebuild aggregate state from events related to this job
+    const events = jobEventStore.getEvents().filter(e => e.data.jobId === command.jobId);
+    const jobAggregate = new JobAggregate();
+    jobAggregate.replay(events);
+
+    try {
+      // Attempt to start the job, may throw if status !== 'Pending'
+      const event = jobAggregate.start(command);
+
+      // Persist and publish event
+      jobEventStore.append(event);
+      eventBus.publish(event);
+
+      console.log(`[StartJobCommandHandler] Job started event published for jobId: ${command.jobId}`);
+      return { success: true, event };
+    } catch (error) {
+      console.error(`[StartJobCommandHandler] Error starting job:`, error.message);
+      return { success: false, error: error.message };
     }
   }
 };

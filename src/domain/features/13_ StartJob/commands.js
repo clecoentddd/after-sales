@@ -9,9 +9,10 @@
  * @param {string} startedByUserId - The ID of the user who started the job.
  * @returns {object} The StartJobCommand object.
  */
-export const StartJobCommand = (jobId, assignedTeam, startedByUserId) => ({
+export const StartJobCommand = (jobId, requestId, assignedTeam, startedByUserId) => ({
   type: 'StartJob', // Command type identifier
   jobId,
+  requestId,
   assignedTeam,
   startedByUserId,
 });

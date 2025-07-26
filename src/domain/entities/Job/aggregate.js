@@ -2,6 +2,8 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { JobCreatedEvent } from '../../events/jobCreatedEvent';
+import { JobStartedEvent } from '../../events/jobStartedEvent';
+import { JobCompletedEvent } from '../../events/jobCompletedEvent';
 
 export class JobAggregate {
   constructor() {
@@ -14,48 +16,78 @@ export class JobAggregate {
   }
 
   /**
-   * Rebuilds the aggregate state from historical events.
-   * @param {Array} events - Event history for the job
+   * Rebuilds the aggregate state from past events.
+   * @param {Array} events - All domain events related to this job.
    */
   replay(events) {
-    console.log(`[JobAggregate] Replaying ${events.length} events...`);
     events.forEach(event => {
-      if (event.type === 'JobCreated') {
-        this.status = event.data.status;
-        this.jobId = event.data.jobId;
-        this.customerId = event.data.customerId;
-        this.requestId = event.data.requestId;
-        this.quoteId = event.data.quoteId;
-        this.jobDetails = event.data.jobDetails;
+      switch (event.type) {
+        case 'JobCreated':
+          this.jobId = event.data.jobId;
+          this.status = 'Pending';
+          break;
+        case 'JobStarted':
+          this.status = 'Started';
+          this.assignedTeam = event.data.assignedTeam;
+          break;
+        case 'JobCompleted':
+          this.status = 'Completed';
+          break;
+        // Add other cases as needed (e.g., JobOnHold)
       }
     });
   }
 
   /**
-   * Static factory: create a new job from an approved quote.
-   * @param {string} customerId 
-   * @param {string} requestId 
-   * @param {string} quoteId 
-   * @param {object} requestDetails 
-   * @returns {object} JobCreatedEvent
+   * Factory method to create a new job based on a quote approval.
    */
   static createFromQuoteApproval(customerId, requestId, quoteId, requestDetails) {
     console.log(`[JobAggregate] Creating job from approved quote: ${quoteId}`);
 
     const jobDetails = {
       title: `Repair Job for: ${requestDetails.title}`,
-      description: `Initiated from approved quote for request: ${requestDetails.description || 'No description provided.'}`,
+      description: `Initiated from approved quote for request: ${requestDetails.description || 'No description'}`,
       priority: 'Normal',
       assignedTeam: 'Unassigned'
     };
 
     return JobCreatedEvent(
-      uuidv4(),     // jobId
+      uuidv4(),
       customerId,
       requestId,
       quoteId,
       jobDetails,
-      'Pending'     // initial status
+      'Pending'
     );
+  }
+
+  /**
+   * Starts a job if not already started or completed.
+   */
+  start(command) {
+    if (this.status === 'Started') {
+      console.warn(`[JobAggregate] Job ${command.jobId} is already started.`);
+      return null;
+    }
+    if (this.status === 'Completed') {
+      throw new Error(`Cannot start job ${command.jobId} because it is already completed.`);
+    }
+
+    return JobStartedEvent(command.jobId, command.requestId, command.assignedTeam, command.startedByUserId);
+  }
+
+  /**
+   * Completes a job if it is currently started.
+   */
+  complete(command) {
+    if (this.status === 'Completed') {
+      console.warn(`[JobAggregate] Job ${command.jobId} is already completed.`);
+      return null;
+    }
+    if (this.status !== 'Started') {
+      throw new Error(`Cannot complete job ${command.jobId}. Current status: ${this.status}. Expected: 'Started'`);
+    }
+
+    return JobCompletedEvent(command.jobId, command.requestId, command.completedBy, command.completionDetails);
   }
 }

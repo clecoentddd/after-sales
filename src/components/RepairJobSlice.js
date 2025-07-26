@@ -9,52 +9,70 @@ import { CompleteJobCommand } from '../domain/features/15_CompleteJob/commands';
 function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, currentUserId }) {
   const [selectedTeam, setSelectedTeam] = useState('Team_A'); // Default team
 
-  const handleStartJob = (jobId) => {
-    console.log('[RepairJobSlice] Attempting to start job:', jobId, 'with team:', selectedTeam);
-    if (!jobId || !selectedTeam) {
-      console.warn("Please select a team before starting the job.");
-      return;
-    }
+const handleStartJob = (jobId) => {
+  console.log('[RepairJobSlice] Attempting to start job:', jobId, 'with team:', selectedTeam);
+  if (!jobId || !selectedTeam) {
+    console.warn("Please select a team before starting the job.");
+    return;
+  }
 
-    const jobToStart = jobs.find(job => job.jobId === jobId);
-    console.log('[RepairJobSlice] Job to start:', jobToStart);
+  const jobToStart = jobs.find(job => job.jobId === jobId);
+  console.log('[RepairJobSlice] Job to start:', jobToStart);
 
-    if (jobToStart && jobToStart.status !== 'Pending') {
-      console.warn(`Job ${jobId} is already ${jobToStart.status}.`);
-      return;
-    }
+  if (jobToStart && jobToStart.status !== 'Pending') {
+    console.warn(`Job ${jobId} is already ${jobToStart.status}.`);
+    return;
+  }
 
-    startJobCommandHandler.handle(
-      StartJobCommand(
-        jobId,
-        selectedTeam,
-        currentUserId
-      )
-    );
-    console.log('[RepairJobSlice] StartJobCommand dispatched:', { jobId, selectedTeam, currentUserId });
-  };
+  // ✅ Fix: include requestId
+  startJobCommandHandler.handle(
+    StartJobCommand(
+      jobToStart.jobId,
+      jobToStart.requestId,
+      selectedTeam,
+      currentUserId
+    )
+  );
 
-  const handleCompleteJob = (jobId) => {
-    console.log('[RepairJobSlice] Attempting to complete job:', jobId);
-    if (!jobId) return;
+  console.log('[RepairJobSlice] StartJobCommand dispatched:', {
+    jobId: jobToStart.jobId,
+    requestId: jobToStart.requestId,
+    selectedTeam,
+    currentUserId
+  });
+};
 
-    const jobToComplete = jobs.find(job => job.jobId === jobId);
-    console.log('[RepairJobSlice] Job to complete:', jobToComplete);
+const handleCompleteJob = (jobId) => {
+  console.log('[RepairJobSlice] Attempting to complete job:', jobId);
+  if (!jobId) return;
 
-    if (jobToComplete && jobToComplete.status !== 'Started') {
-      console.warn(`Job ${jobId} cannot be completed as its status is ${jobToComplete.status}. Only 'Started' jobs can be completed.`);
-      return;
-    }
+  const jobToComplete = jobs.find(job => job.jobId === jobId);
+  console.log('[RepairJobSlice] Job to complete:', jobToComplete);
 
-    completeJobCommandHandler.handle(
-      CompleteJobCommand(
-        jobId,
-        currentUserId,
-        { notes: `Job completed by ${currentUserId} at ${new Date().toLocaleString()}` }
-      )
-    );
-    console.log('[RepairJobSlice] CompleteJobCommand dispatched:', { jobId, currentUserId });
-  };
+  if (jobToComplete && jobToComplete.status !== 'Started') {
+    console.warn(`Job ${jobId} cannot be completed as its status is ${jobToComplete.status}. Only 'Started' jobs can be completed.`);
+    return;
+  }
+
+  // ✅ Include requestId
+  completeJobCommandHandler.handle(
+    CompleteJobCommand(
+      jobToComplete.jobId,
+      jobToComplete.requestId, // <-- add this
+      currentUserId,
+      {
+        notes: `Job completed by ${currentUserId} at ${new Date().toLocaleString()}`
+      }
+    )
+  );
+
+  console.log('[RepairJobSlice] CompleteJobCommand dispatched:', {
+    jobId: jobToComplete.jobId,
+    requestId: jobToComplete.requestId,
+    currentUserId
+  });
+};
+
 
   // Detailed logs for debugging
   console.log('[RepairJobSlice] Render with jobs:', jobs);

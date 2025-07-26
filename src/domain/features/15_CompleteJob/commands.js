@@ -1,17 +1,24 @@
-// completeJob/commands.js
-// Defines commands related to completing a repair job.
+// src/domain/features/15_CompleteJob/commands.js
 
 /**
- * Factory function for creating a CompleteJobCommand.
- * This command is used to initiate the completion of a specific repair job.
+ * Creates a CompleteJobCommand object with validation.
+ *
  * @param {string} jobId - The ID of the job to complete.
- * @param {string} completedByUserId - The ID of the user who marked the job as complete.
- * @param {object} completionDetails - Optional details about the job completion (e.g., notes, final checks).
- * @returns {object} The CompleteJobCommand object.
+ * @param {string} completedByUserId - The ID of the user completing the job.
+ * @param {object} completionDetails - Optional metadata (e.g., notes, duration).
+ * @returns {object} A well-structured command object.
+ * @throws {Error} If required fields are missing.
  */
-export const CompleteJobCommand = (jobId, completedByUserId, completionDetails = {}) => ({
-  type: 'CompleteJob', // Command type identifier
-  jobId,
-  completedByUserId,
-  completionDetails,
-});
+export const CompleteJobCommand = (jobId, requestId, completedByUserId, completionDetails = {}) => {
+  if (!jobId || !completedByUserId) {
+    throw new Error('CompleteJobCommand requires jobId and completedByUserId.');
+  }
+
+  return {
+    type: 'CompleteJob',
+    jobId,
+    requestId,
+    completedBy: completedByUserId,
+    completionDetails
+  };
+};

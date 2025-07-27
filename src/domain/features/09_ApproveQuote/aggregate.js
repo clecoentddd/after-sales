@@ -26,9 +26,9 @@ export class QuoteApprovalAggregate {
           console.log(`[QuoteApprovalAggregate] Status set to Approved; requestId: ${this.requestId}`);
           break;
         case 'QuotationOnHold':
-          this.status = 'On Hold';
+          this.status = 'OnHold';
           this.requestId = event.data.requestId;
-          console.log(`[QuoteApprovalAggregate] Status set to On Hold; requestId: ${this.requestId}`);
+          console.log(`[QuoteApprovalAggregate] Status set to OnHold; requestId: ${this.requestId}`);
           break;
         default:
           console.log(`[QuoteApprovalAggregate] Unhandled event type: ${event.type}`);

@@ -34,7 +34,7 @@ const reconstructJobState = (jobId) => {
         job.status = 'Completed';
         job.completionDetails = event.data.completionDetails;
       } else if (job && event.type === 'JobOnHold') {
-        job.status = 'On Hold';
+        job.status = 'OnHold';
         job.onHoldReason = event.data.reason;
       }
     }
@@ -69,12 +69,13 @@ export const initializeChangeRequestEventHandler = () => {
       if (currentJobState && currentJobState.status !== 'Completed') {
         console.log(`[ChangeRequestEventHandler] Job ${jobId} is Pending and related to Change Request. Putting on Hold.`);
         onHoldJobCommandHandler.handle(
-          PutJobOnHoldCommand(
-            jobId,
-            changedByUserId, // User who raised the change request is putting job on hold
-            `Change request raised: ${description}`
-          )
-        );
+  PutJobOnHoldCommand(
+    jobId,
+    changedByUserId,
+    `Change request raised: ${description}`,
+    event.data.changeRequestId // assuming this is available on event
+  )
+);
       } else {
         console.log(`[ChangeRequestEventHandler] Job ${jobId} not found or not in 'Pending' status. Current status: ${currentJobState?.status || 'Not Found'}. Skipping hold.`);
       }

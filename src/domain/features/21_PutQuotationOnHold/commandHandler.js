@@ -30,7 +30,7 @@ const reconstructQuotationState = (quoteId) => {
       } else if (quotation && event.type === 'QuoteApproved') {
         quotation.status = 'Approved'; // Update status to Approved
       } else if (quotation && event.type === 'QuotationOnHold') {
-        quotation.status = 'On Hold'; // Update status to On Hold
+        quotation.status = 'OnHold'; // Update status to OnHold
         quotation.onHoldReason = event.data.reason; // Store the reason
       }
       // Add more event types here if they affect the quotation's state
@@ -42,7 +42,7 @@ const reconstructQuotationState = (quoteId) => {
 
 export const onHoldQuotationCommandHandler = {
   /**
-   * Handles incoming commands for the On Hold Quotation domain.
+   * Handles incoming commands for the OnHold Quotation domain.
    * @param {object} command - The command object to handle.
    * @param {string} command.type - The type of the command (e.g., 'PutQuotationOnHold').
    * @returns {object} An object indicating success and optionally the generated event.

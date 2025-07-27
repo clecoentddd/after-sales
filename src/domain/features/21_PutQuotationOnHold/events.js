@@ -20,7 +20,7 @@ export const QuotationOnHoldEvent = (quoteId, requestId, changeRequestId, heldBy
     heldByUserId,
     reason,
     onHoldAt: new Date().toISOString(), // Timestamp of when the quotation was put on hold
-    status: 'On Hold' // Explicitly set status in the event data
+    status: 'OnHold' // Explicitly set status in the event data
   },
   metadata: {
     timestamp: new Date().toISOString()

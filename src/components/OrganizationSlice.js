@@ -6,16 +6,13 @@ import { organizationCommandHandler } from '../domain/features/01_CreateOrganiza
 function OrganizationSlice({ organizations, orgEvents }) {
   const [orgName, setOrgName] = useState('');
 
-  const handleCreateOrg = (e) => {
-    e.preventDefault();
-    if (!orgName.trim()) return;
-    
-    organizationCommandHandler.handle({ 
-      type: 'CreateOrganization', 
-      name: orgName.trim() 
-    });
-    setOrgName('');
-  };
+const handleCreateOrg = (e) => {
+  e.preventDefault();
+  if (!orgName.trim()) return;
+
+  organizationCommandHandler.handle(orgName.trim());
+  setOrgName('');
+};
 
 return (
   <div className="aggregate-block">

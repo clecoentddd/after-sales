@@ -1,0 +1,104 @@
+/* LiveRequestModel.css */
+
+.live-request-container {
+  padding: 1rem;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.request-id-list {
+  width: 30%;
+  border-right: 1px solid #ccc;
+  padding-right: 1rem;
+}
+
+.request-id-list ul {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 0;
+  list-style: none;
+}
+
+.request-id-list button {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.request-id-list button:hover {
+  background-color: #e6f0ff;
+}
+
+.request-id-list button.selected {
+  background-color: #cce0ff;
+  font-weight: bold;
+}
+
+.timeline-container {
+  width: 70%;
+  padding-left: 1rem;
+  border-left: 1px solid #ddd;
+  background-color: #f9f9f9;
+  border-radius: 6px;
+}
+
+.timeline-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.timeline {
+  position: relative;
+  margin-left: 1.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid #007bff;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.timeline-event {
+  position: relative;
+  margin-bottom: 1.5rem;
+  padding-left: 1rem;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.timeline-event::before {
+  content: '';
+  position: absolute;
+  left: -1.5rem;
+  top: 1rem;
+  width: 10px;
+  height: 10px;
+  background-color: #007bff;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.timeline-event .event-type {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.timeline-event .timestamp {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.timeline-event .event-data {
+  background-color: #f1f5f9;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.75rem;
+  overflow-x: auto;
+}

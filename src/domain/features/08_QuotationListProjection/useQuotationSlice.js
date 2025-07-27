@@ -38,7 +38,7 @@ export function useQuotationSlice() {
       } else if (event.type === 'QuoteApproved') {
         current.status = 'Approved';
       } else if (event.type === 'QuotationOnHold') {
-        current.status = 'On Hold';
+        current.status = 'OnHold';
         current.onHoldReason = event.data.reason;
         current.requestId = event.data.requestId;
         current.changeRequestId = event.data.changeRequestId;
@@ -99,7 +99,7 @@ export function useQuotationSlice() {
 
         const holdData = {
           quoteId: event.data.quoteId,
-          status: 'On Hold',
+          status: 'OnHold',
           onHoldReason: event.data.reason,
           requestId: event.data.requestId || null,
           changeRequestId: event.data.changeRequestId || null

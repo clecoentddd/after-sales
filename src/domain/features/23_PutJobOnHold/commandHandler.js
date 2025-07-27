@@ -1,29 +1,41 @@
-// src/domain/features/onHoldJob/commandHandler.js
-// Handles commands related to putting a job on hold.
-
 import { eventBus } from '../../core/eventBus';
-import { jobEventStore } from '../../core/eventStore'; // Event for job on hold goes here
-import { OnHoldJobAggregate } from './aggregate';
+import { jobEventStore } from '../../core/eventStore';
+import { JobAggregate } from '../../entities/Job/aggregate';
 
 export const onHoldJobCommandHandler = {
-  /**
-   * Handles incoming commands for the On Hold Job domain.
-   * @param {object} command - The command object to handle.
-   * @param {string} command.type - The type of the command (e.g., 'PutJobOnHold').
-   * @returns {object} An object indicating success and optionally the generated event.
-   */
   handle(command) {
     console.log(`[OnHoldJobCommandHandler] Handling command: ${command.type}`, command);
+
     switch (command.type) {
       case 'PutJobOnHold':
-        const event = OnHoldJobAggregate.putOnHold(command);
-        jobEventStore.append(event); // Append JobOnHoldEvent to its dedicated store
-        eventBus.publish(event); // Publish JobOnHoldEvent
+        console.log(`[OnHoldJobCommandHandler] Fetching events for jobId: ${command.jobId}`);
+        const jobEvents = jobEventStore.getEvents().filter(e => e.data.jobId === command.jobId);
+        console.log(`[OnHoldJobCommandHandler] Retrieved ${jobEvents.length} event(s) for jobId: ${command.jobId}`);
+
+        const aggregate = new JobAggregate();
+        aggregate.replay(jobEvents);
+        console.log(`[OnHoldJobCommandHandler] Aggregate state after replay:`, aggregate);
+
+        const event = aggregate.putOnHold(command);
+
+        if (!event) {
+          console.warn(`[OnHoldJobCommandHandler] putOnHold returned null or undefined for jobId ${command.jobId} — likely invalid state transition.`);
+          return { success: false, error: 'Invalid job state for putOnHold' };
+        }
+
+        console.log(`[OnHoldJobCommandHandler] Event created:`, event);
+
+        jobEventStore.append(event);
+        console.log(`[OnHoldJobCommandHandler] Event appended to store.`);
+
+        eventBus.publish(event);
+        console.log(`[OnHoldJobCommandHandler] Event published on event bus.`);
+
         return { success: true, event };
 
       default:
         console.warn(`[OnHoldJobCommandHandler] Unknown command type: ${command.type}`);
-        return { success: false };
+        return { success: false, error: 'Unknown command type' };
     }
   }
 };

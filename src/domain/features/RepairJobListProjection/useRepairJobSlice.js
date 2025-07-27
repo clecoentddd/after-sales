@@ -33,7 +33,7 @@ export function useRepairJobSlice() {
           break;
         case 'JobOnHold':
           if (jobMap.has(jobId)) {
-            jobMap.get(jobId).status = 'On Hold';
+            jobMap.get(jobId).status = 'OnHold';
           }
           break;
         default:
@@ -75,7 +75,7 @@ export function useRepairJobSlice() {
         setRepairJobs(prev =>
           prev.map(job =>
             job.jobId === event.data.jobId
-              ? { ...job, status: 'On Hold' }
+              ? { ...job, status: 'OnHold' }
               : job
           )
         );

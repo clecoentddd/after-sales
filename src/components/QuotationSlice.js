@@ -16,7 +16,7 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
       return;
     }
     // Also prevent approval if it's on hold
-    if (currentQuote && currentQuote.status === 'On Hold') {
+    if (currentQuote && currentQuote.status === 'OnHold') {
       console.warn(`Quote ${quoteId} is on hold and cannot be approved directly. Resolve hold first.`);
       return;
     }
@@ -46,7 +46,7 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
               <li key={quote.quoteId}>
                 <button 
                   onClick={() => handleApproveQuote(quote.quoteId)}
-                  disabled={quote.status === 'Approved' || quote.status === 'On Hold'}
+                  disabled={quote.status === 'Approved' || quote.status === 'OnHold'}
                   className={quote.status === 'Approved' ? 'approved-button' : ''}
                 >
                   {quote.status === 'Approved' ? 'Approved' : 'Approve Quote'}
@@ -73,7 +73,7 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
                   Related Request: {request?.requestDetails.title.slice(0, 20)}... <br />
                   Amount: {quotation.quotationDetails.estimatedAmount} {quotation.quotationDetails.currency} <br />
                   Status: {quotation.status} 
-                  {quotation.status === 'On Hold' && ` (Reason: ${quotation.onHoldReason || 'N/A'})`}
+                  {quotation.status === 'OnHold' && ` (Reason: ${quotation.onHoldReason || 'N/A'})`}
                 </small>
               </>
             );

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { requestCommandHandler } from '../domain/features/05_CreateRequest/commandHandler';
-import { CreateRequestCommand } from '../domain/features/05_CreateRequest/commands';
+import { createRequestCommandHandler } from '../domain/features/05_CreateRequest/commandHandler';
 
 function RequestSlice({ requests, requestEvents, customers }) {
   const [requestTitle, setRequestTitle] = useState('');
@@ -11,90 +10,88 @@ function RequestSlice({ requests, requestEvents, customers }) {
 
   const handleCreateRequest = (e) => {
     e.preventDefault();
-    if (!requestTitle.trim() || !selectedCustomerId) {
-      console.warn("Please enter a request title and select a customer.");
+
+    const title = requestTitle.trim();
+    const description = requestDescription.trim();
+
+    if (!title || !selectedCustomerId) {
+      console.warn('Please enter a request title and select a customer.');
       return;
     }
-    
-    requestCommandHandler.handle(
-      CreateRequestCommand(
-        selectedCustomerId,
-        {
-          title: requestTitle.trim(),
-          description: requestDescription.trim(),
-        }
-      )
-    );
-    
+
+    createRequestCommandHandler.handle({
+      customerId: selectedCustomerId,
+      requestDetails: { title, description }
+    });
+
     setRequestTitle('');
     setRequestDescription('');
     setSelectedCustomerId('');
   };
 
-return (
-  <div className="aggregate-block">
-    <h2>Request Aggregate</h2>
-    <div className="aggregate-columns">
-      
-      <div className="aggregate-column first-column">
-        <h3>Raise a request</h3>
-        <form onSubmit={handleCreateRequest} className="command-form">
-          <input
-            type="text"
-            value={requestTitle}
-            onChange={(e) => setRequestTitle(e.target.value)}
-            placeholder="Request title"
-            required
+  return (
+    <div className="aggregate-block">
+      <h2>Request Aggregate</h2>
+      <div className="aggregate-columns">
+        <div className="aggregate-column first-column">
+          <h3>Raise a request</h3>
+          <form onSubmit={handleCreateRequest} className="command-form">
+            <input
+              type="text"
+              value={requestTitle}
+              onChange={(e) => setRequestTitle(e.target.value)}
+              placeholder="Request title"
+              required
+            />
+            <textarea
+              value={requestDescription}
+              onChange={(e) => setRequestDescription(e.target.value)}
+              placeholder="Request description (optional)"
+              rows="3"
+            ></textarea>
+            <select
+              value={selectedCustomerId}
+              onChange={(e) => setSelectedCustomerId(e.target.value)}
+              required
+            >
+              <option value="">Select Customer</option>
+              {customers.map((customer) => (
+                <option key={customer.customerId} value={customer.customerId}>
+                  {customer.name}
+                </option>
+              ))}
+            </select>
+            <button type="submit">Create Request</button>
+          </form>
+        </div>
+
+        <div className="aggregate-column second-column">
+          <ReadModelDisplay
+            items={requests}
+            idKey="requestId"
+            renderDetails={(request) => {
+              const customer = customers.find(
+                (c) => c.customerId === request.customerId
+              );
+              return (
+                <>
+                  <strong>{request.requestDetails.title}</strong>
+                  <small>
+                    For: {customer?.name || 'Unknown Customer'} <br />
+                    Status: {request.status}
+                  </small>
+                </>
+              );
+            }}
           />
-          <textarea
-            value={requestDescription}
-            onChange={(e) => setRequestDescription(e.target.value)}
-            placeholder="Request description (optional)"
-            rows="3"
-          ></textarea>
-          <select
-            value={selectedCustomerId}
-            onChange={(e) => setSelectedCustomerId(e.target.value)}
-            required
-          >
-            <option value="">Select Customer</option>
-            {customers.map(customer => (
-              <option key={customer.customerId} value={customer.customerId}>
-                {customer.name}
-              </option>
-            ))}
-          </select>
-          <button type="submit">Create Request</button>
-        </form>
-      </div>
+        </div>
 
-      <div className="aggregate-column second-column">
-        <ReadModelDisplay
-          items={requests}
-          idKey="requestId"
-          renderDetails={(request) => {
-            const customer = customers.find(c => c.customerId === request.customerId);
-            return (
-              <>
-                <strong>{request.requestDetails.title}</strong>
-                <small>
-                  For: {customer?.name || 'Unknown Customer'} <br />
-                  Status: {request.status}
-                </small>
-              </>
-            );
-          }}
-        />
+        <div className="aggregate-column third-column">
+          <EventLogDisplay events={requestEvents} />
+        </div>
       </div>
-
-      <div className="aggregate-column third-column">
-        <EventLogDisplay events={requestEvents} />
-      </div>
-
     </div>
-  </div>
-);
-
+  );
 }
 
 export default RequestSlice;

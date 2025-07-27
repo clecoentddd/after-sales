@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { JobCreatedEvent } from '../../events/jobCreatedEvent';
 import { JobStartedEvent } from '../../events/jobStartedEvent';
 import { JobCompletedEvent } from '../../events/jobCompletedEvent';
+import { JobOnHoldEvent } from '../../events/jobOnHoldEvent';
 
 export class JobAggregate {
   constructor() {
@@ -24,6 +25,7 @@ export class JobAggregate {
       switch (event.type) {
         case 'JobCreated':
           this.jobId = event.data.jobId;
+          this.requestId = event.data.requestId;
           this.status = 'Pending';
           break;
         case 'JobStarted':
@@ -33,6 +35,10 @@ export class JobAggregate {
         case 'JobCompleted':
           this.status = 'Completed';
           break;
+        case 'JobOnHold':
+          this.status = 'OnHold';
+          this.onHoldReason = event.data.reason;
+        break;
         // Add other cases as needed (e.g., JobOnHold)
       }
     });
@@ -90,4 +96,28 @@ export class JobAggregate {
 
     return JobCompletedEvent(command.jobId, command.requestId, command.completedBy, command.completionDetails);
   }
+
+  putOnHold(command) {
+  if (this.status === 'Completed' || this.status === 'OnHold') {
+    console.warn(`[JobAggregate] Cannot put job ${command.jobId} on hold. Current status: ${this.status}`);
+    return null;
+  }
+
+  return {
+    type: 'JobOnHold',
+    data: {
+      jobId: command.jobId,
+      requestId: this.requestId,            // <-- use hydrated requestId here
+      changeRequestId: command.changeRequestId,
+      putOnHoldBy: command.heldByUserId,
+      reason: command.reason,
+      onHoldAt: new Date().toISOString(),
+      status: 'OnHold',
+    },
+    metadata: {
+      timestamp: new Date().toISOString(),
+    }
+  };
+}
+
 }

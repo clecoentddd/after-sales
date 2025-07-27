@@ -7,6 +7,16 @@ import {
   invoiceEventStore,
 } from './eventStore';
 
+export function getEventsFromStores(stores) {
+  let allEvents = [];
+  stores.forEach(store => {
+    allEvents = allEvents.concat(store.getEvents());
+  });
+  // Optionally, sort events by timestamp if order matters
+  allEvents.sort((a, b) => new Date(a.metadata.timestamp) - new Date(b.metadata.timestamp));
+  return allEvents;
+}
+
 export function getAllEvents() {
   const stores = [
     { name: 'organizationEventStore', store: organizationEventStore },

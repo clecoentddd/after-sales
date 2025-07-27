@@ -7,27 +7,27 @@ import { eventBus } from '../../core/eventBus';
 export function useQuotationSlice() {
   const [quotations, setQuotations] = useState([]);
   const [quotationEvents, setQuotationEvents] = useState([]);
-  const [approvedQuotes, setApprovedQuotes] = useState([]);
+  const [approvedQuotations, setApprovedQuotations] = useState([]);
 
   useEffect(() => {
     const quotationCreatedEvents = quotationEventStore.getEvents().filter(e => e.type === 'QuotationCreated');
-    const quoteApprovedEvents = quotationEventStore.getEvents().filter(e => e.type === 'QuoteApproved');
+    const quotationApprovedEvents = quotationEventStore.getEvents().filter(e => e.type === 'QuotationApproved');
     const quotationOnHoldEvents = quotationEventStore.getEvents().filter(e => e.type === 'QuotationOnHold');
 
     const allEvents = [
       ...quotationCreatedEvents,
-      ...quoteApprovedEvents,
+      ...quotationApprovedEvents,
       ...quotationOnHoldEvents
     ].sort((a, b) => new Date(a.metadata.timestamp).getTime() - new Date(b.metadata.timestamp).getTime());
 
     setQuotationEvents(allEvents);
-    setApprovedQuotes(quoteApprovedEvents.map(e => e.data));
+    setApprovedQuotations(quotationApprovedEvents.map(e => e.data));
 
     const map = new Map();
 
     allEvents.forEach(event => {
-      const quoteId = event.data.quoteId || event.data.quoteId;
-      let current = map.get(quoteId) || { quoteId };
+      const quotationId = event.data.quotationId || event.data.quotationId;
+      let current = map.get(quotationId) || { quotationId };
 
       if (event.type === 'QuotationCreated') {
         const existingStatus = current.status;
@@ -35,7 +35,7 @@ export function useQuotationSlice() {
         if (existingStatus && existingStatus !== 'Draft' && existingStatus !== 'Pending') {
           current.status = existingStatus;
         }
-      } else if (event.type === 'QuoteApproved') {
+      } else if (event.type === 'QuotationApproved') {
         current.status = 'Approved';
       } else if (event.type === 'QuotationOnHold') {
         current.status = 'OnHold';
@@ -44,7 +44,7 @@ export function useQuotationSlice() {
         current.changeRequestId = event.data.changeRequestId;
       }
 
-      map.set(quoteId, current);
+      map.set(quotationId, current);
     });
 
     setQuotations(Array.from(map.values()));
@@ -55,10 +55,10 @@ export function useQuotationSlice() {
       setQuotationEvents(prev => [...prev, event]);
       setQuotations(prev => {
         const next = [...prev];
-        const idx = next.findIndex(q => q.quoteId === event.data.quoteId);
+        const idx = next.findIndex(q => q.quotationId === event.data.quotationId);
 
         const newData = {
-          quoteId: event.data.quoteId,
+          quotationId: event.data.quotationId,
           requestId: event.data.requestId,
           customerId: event.data.customerId,
           quotationDetails: event.data.quotationDetails,
@@ -81,11 +81,11 @@ export function useQuotationSlice() {
       });
     });
 
-    const unsubApproved = eventBus.subscribe('QuoteApproved', (event) => {
-      setApprovedQuotes(prev => [...prev, event.data]);
+    const unsubApproved = eventBus.subscribe('QuotationApproved', (event) => {
+      setApprovedQuotations(prev => [...prev, event.data]);
       setQuotationEvents(prev => [...prev, event]);
       setQuotations(prev => prev.map(q =>
-        q.quoteId === event.data.quoteId
+        q.quotationId === event.data.quotationId
           ? { ...q, status: 'Approved' }
           : q
       ));
@@ -95,10 +95,10 @@ export function useQuotationSlice() {
       setQuotationEvents(prev => [...prev, event]);
       setQuotations(prev => {
         const next = [...prev];
-        const idx = next.findIndex(q => q.quoteId === event.data.quoteId);
+        const idx = next.findIndex(q => q.quotationId === event.data.quotationId);
 
         const holdData = {
-          quoteId: event.data.quoteId,
+          quotationId: event.data.quotationId,
           status: 'OnHold',
           onHoldReason: event.data.reason,
           requestId: event.data.requestId || null,
@@ -126,5 +126,5 @@ export function useQuotationSlice() {
     };
   }, []);
 
-  return { quotations, quotationEvents, approvedQuotes };
+  return { quotations, quotationEvents, approvedQuotations };
 }

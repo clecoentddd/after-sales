@@ -11,14 +11,14 @@ describe('OnHoldQuotationCommandHandler', () => {
 
   it('Given a quotation is already approved, when a change request is raised, then an error is returned', () => {
     // GIVEN
-    const quoteId = 'quote-123';
+    const quotationId = 'quotation-123';
     const requestId = 'request-456';
     const changeRequestId = 'cr-789';
 
     quotationEventStore.append({
       type: 'QuotationCreated',
       data: {
-        quoteId,
+        quotationId,
         requestId,
         createdByUserId: 'user-1',
         status: 'Draft',
@@ -27,9 +27,9 @@ describe('OnHoldQuotationCommandHandler', () => {
     });
 
     quotationEventStore.append({
-      type: 'QuoteApproved',
+      type: 'QuotationApproved',
       data: {
-        quoteId: quoteId,
+        quotationId: quotationId,
         approvedByUserId: 'approver-1',
       },
       metadata: { timestamp: new Date().toISOString() },
@@ -37,7 +37,7 @@ describe('OnHoldQuotationCommandHandler', () => {
 
     // WHEN
     const command = PutQuotationOnHoldCommand(
-      quoteId,
+      quotationId,
       requestId,
       changeRequestId,
       'system-user',
@@ -48,9 +48,9 @@ describe('OnHoldQuotationCommandHandler', () => {
 
     // THEN
     expect(result.success).toBe(false);
-    expect(result.code).toBe('QUOTE_ALREADY_APPROVED');
+    expect(result.code).toBe('QUOTATION_ALREADY_APPROVED');
     expect(result.message).toBe('Quotation is already approved and cannot be put on hold.');
-    expect(result.quoteId).toBe(quoteId);
+    expect(result.quotationId).toBe(quotationId);
     expect(result.changeRequestId).toBe(changeRequestId);
   });
 });

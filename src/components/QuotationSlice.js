@@ -1,29 +1,29 @@
 import React, { useState } from 'react'; // Keep useState for other potential uses if needed, otherwise remove
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { quoteApprovalCommandHandler } from '../domain/features/09_ApproveQuote/commandHandler';
-import { ApproveQuoteCommand } from '../domain/features/09_ApproveQuote/commands';
+import { quotationApprovalCommandHandler } from '../domain/features/09_ApproveQuotation/commandHandler';
+import { ApproveQuotationCommand } from '../domain/features/09_ApproveQuotation/commands';
 
-function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers, requests, currentUserId }) {
+function QuotationSlice({ quotations, quotationEvents, approvedQuotations, customers, requests, currentUserId }) {
  
-  const handleApproveQuote = (quoteId) => {
-    if (!quoteId) return;
+  const handleApproveQuotation = (quotationId) => {
+    if (!quotationId) return;
 
     // Check current status from the 'quotations' read model
-    const currentQuote = quotations.find(q => q.quoteId === quoteId);
-    if (currentQuote && currentQuote.status === 'Approved') {
-      console.warn(`Quote ${quoteId} is already approved.`);
+    const currentQuotation = quotations.find(q => q.quotationId === quotationId);
+    if (currentQuotation && currentQuotation.status === 'Approved') {
+      console.warn(`Quotation ${quotationId} is already approved.`);
       return;
     }
     // Also prevent approval if it's on hold
-    if (currentQuote && currentQuote.status === 'OnHold') {
-      console.warn(`Quote ${quoteId} is on hold and cannot be approved directly. Resolve hold first.`);
+    if (currentQuotation && currentQuotation.status === 'OnHold') {
+      console.warn(`Quotation ${quotationId} is on hold and cannot be approved directly. Resolve hold first.`);
       return;
     }
 
-    quoteApprovalCommandHandler.handle(
-      new ApproveQuoteCommand({
-    quoteId,
+    quotationApprovalCommandHandler.handle(
+      new ApproveQuotationCommand({
+    quotationId,
     userId: currentUserId
   })
 );
@@ -39,19 +39,19 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
       <div className="aggregate-column first-column">
         <h3>Actions</h3>
         {quotations.length === 0 ? (
-          <p>Create a Request to generate a Quote.</p>
+          <p>Create a Request to generate a Quotation.</p>
         ) : (
           <ul className="action-list">
-            {quotations.map(quote => (
-              <li key={quote.quoteId}>
+            {quotations.map(quotation => (
+              <li key={quotation.quotationId}>
                 <button 
-                  onClick={() => handleApproveQuote(quote.quoteId)}
-                  disabled={quote.status === 'Approved' || quote.status === 'OnHold'}
-                  className={quote.status === 'Approved' ? 'approved-button' : ''}
+                  onClick={() => handleApproveQuotation(quotation.quotationId)}
+                  disabled={quotation.status === 'Approved' || quotation.status === 'OnHold'}
+                  className={quotation.status === 'Approved' ? 'approved-button' : ''}
                 >
-                  {quote.status === 'Approved' ? 'Approved' : 'Approve Quote'}
+                  {quotation.status === 'Approved' ? 'Approved' : 'Approve Quotation'}
                 </button>
-                <small>{quote.quotationDetails.title.slice(0, 30)}...</small>
+                <small>{quotation.quotationDetails.title.slice(0, 30)}...</small>
               </li>
             ))}
           </ul>
@@ -61,7 +61,7 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotes, customers
       <div className="aggregate-column second-column">
         <ReadModelDisplay
           items={quotations}
-          idKey="quoteId"
+          idKey="quotationId"
           renderDetails={(quotation) => {
             const customer = customers.find(c => c.customerId === quotation.customerId);
             const request = requests.find(r => r.requestId === quotation.requestId);

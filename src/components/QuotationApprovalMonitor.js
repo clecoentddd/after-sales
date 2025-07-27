@@ -23,7 +23,7 @@ function QuotationApprovalMonitor({ currentUserId, quotations }) { // Add 'quota
       // Call the automation logic. The automation will now trigger the command,
       // and the aggregate will handle the validity check against its internal state.
       putQuotationOnHoldAutomaticallyIfPendingApproval(
-        event.data.quoteId, 
+        event.data.quotationId, 
         currentUserId, // Use the current system user for the hold action
         quotations // Pass the current quotations read model for the automation to check state
       );

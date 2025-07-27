@@ -8,24 +8,24 @@ import {
 } from '../../core/eventStore';
 
 import { createJobCommandHandler } from './commandHandler';
-import { CreateJobFromApprovedQuoteCommand } from './commands';
+import { CreateJobFromApprovedQuotationCommand } from './commands';
 
 let isCreateJobEventHandlerInitialized = false;
 
 export const initializeCreateJobEventHandler = () => {
   if (isCreateJobEventHandlerInitialized) return;
 
-  eventBus.subscribe('QuoteApproved', (event) => {
-    console.log(`[CreateJobEventHandler] Received QuoteApproved event:`, event);
+  eventBus.subscribe('QuotationApproved', (event) => {
+    console.log(`[CreateJobEventHandler] Received QuotationApproved event:`, event);
 
-    const { quoteId } = event.data;
+    const { quotationId } = event.data;
 
     const quotation = quotationEventStore
       .getEvents()
-      .find(e => e.type === 'QuotationCreated' && e.data.quoteId === quoteId)?.data;
+      .find(e => e.type === 'QuotationCreated' && e.data.quotationId === quotationId)?.data;
 
     if (!quotation) {
-      console.error(`[CreateJobEventHandler] Could not find quotation for quoteId: ${quoteId}`);
+      console.error(`[CreateJobEventHandler] Could not find quotation for quotationId: ${quotationId}`);
       return;
     }
 
@@ -38,10 +38,10 @@ export const initializeCreateJobEventHandler = () => {
       return;
     }
 
-    const command = new CreateJobFromApprovedQuoteCommand({
+    const command = new CreateJobFromApprovedQuotationCommand({
       customerId: quotation.customerId,
       requestId: quotation.requestId,
-      quoteId: quotation.quoteId,
+      quotationId: quotation.quotationId,
       requestDetails: request.requestDetails
     });
 
@@ -49,5 +49,5 @@ export const initializeCreateJobEventHandler = () => {
   });
 
   isCreateJobEventHandlerInitialized = true;
-  console.log('[CreateJobEventHandler] Subscribed to QuoteApproved events');
+  console.log('[CreateJobEventHandler] Subscribed to QuotationApproved events');
 };

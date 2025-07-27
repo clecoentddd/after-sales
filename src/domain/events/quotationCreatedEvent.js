@@ -4,17 +4,17 @@
 /**
  * Factory function for creating a QuotationCreatedEvent.
  * This event signifies that a new quotation has been generated.
- * @param {string} quoteId - Unique ID of the created quotation.
+ * @param {string} quotationId - Unique ID of the created quotation.
  * @param {string} requestId - The ID of the request for which the quotation was created.
  * @param {string} customerId - The ID of the customer associated with this quotation.
  * @param {object} quotationDetails - Details about the quotation (e.g., amount, items, expiry date).
  * @param {string} status - The initial status of the quotation (e.g., 'Draft', 'Pending').
  * @returns {object} The QuotationCreatedEvent object.
  */
-export const QuotationCreatedEvent = (quoteId, requestId, customerId, quotationDetails, status = 'Draft') => ({
+export const QuotationCreatedEvent = (quotationId, requestId, customerId, quotationDetails, status = 'Draft') => ({
   type: 'QuotationCreated', // Event type identifier
   data: {
-    quoteId,
+    quotationId,
     requestId,
     customerId,
     quotationDetails,

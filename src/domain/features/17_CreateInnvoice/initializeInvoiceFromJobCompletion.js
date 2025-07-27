@@ -38,12 +38,12 @@ export const initializeInvoiceFromJobCompletionHandler = () => {
 
     const allQuotationEvents = quotationEventStore.getEvents();
     const quotation = allQuotationEvents
-      .filter(e => e.type === 'QuotationCreated' && e.data.quoteId === jobCreated.quoteId)
+      .filter(e => e.type === 'QuotationCreated' && e.data.quotationId === jobCreated.quotationId)
       .map(e => e.data)
       .at(0);
 
     if (!quotation) {
-      console.error(`[CompleteJobEventHandler] Could not find quotation for ID: ${jobCreated.quoteId}. Cannot create invoice.`);
+      console.error(`[CompleteJobEventHandler] Could not find quotation for ID: ${jobCreated.quotationId}. Cannot create invoice.`);
       return;
     }
 
@@ -60,10 +60,10 @@ export const initializeInvoiceFromJobCompletionHandler = () => {
     // Now we have sufficient data to create an invoice
     const invoiceCreatedEvent = InvoiceAggregate.createInvoice(
       jobId,
-      quotation.quoteId,
+      quotation.quotationId,
       customer.customerId,
       quotation.requestId,
-      quotation.quotationDetails.estimatedAmount, // Use amount from the quote
+      quotation.quotationDetails.estimatedAmount, // Use amount from the quotation
       quotation.quotationDetails.currency,
       jobCreated.jobDetails.title // Use job title for invoice description
     );

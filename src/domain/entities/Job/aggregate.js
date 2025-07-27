@@ -12,7 +12,7 @@ export class JobAggregate {
     this.jobId = null;
     this.customerId = null;
     this.requestId = null;
-    this.quoteId = null;
+    this.quotationId = null;
     this.jobDetails = {};
   }
 
@@ -45,14 +45,14 @@ export class JobAggregate {
   }
 
   /**
-   * Factory method to create a new job based on a quote approval.
+   * Factory method to create a new job based on a quotation approval.
    */
-  static createFromQuoteApproval(customerId, requestId, quoteId, requestDetails) {
-    console.log(`[JobAggregate] Creating job from approved quote: ${quoteId}`);
+  static createFromQuotationApproval(customerId, requestId, quotationId, requestDetails) {
+    console.log(`[JobAggregate] Creating job from approved quotation: ${quotationId}`);
 
     const jobDetails = {
       title: `Repair Job for: ${requestDetails.title}`,
-      description: `Initiated from approved quote for request: ${requestDetails.description || 'No description'}`,
+      description: `Initiated from approved quotation for request: ${requestDetails.description || 'No description'}`,
       priority: 'Normal',
       assignedTeam: 'Unassigned'
     };
@@ -61,7 +61,7 @@ export class JobAggregate {
       uuidv4(),
       customerId,
       requestId,
-      quoteId,
+      quotationId,
       jobDetails,
       'Pending'
     );

@@ -8,11 +8,11 @@ import { OnHoldQuotationAggregate } from './aggregate';
 /**
  * Reconstructs the current state of a single quotation from its events.
  * This is crucial for the command handler to provide the aggregate with the necessary context.
- * It considers QuotationCreated, QuoteApproved, and QuotationOnHold events to build the state.
- * @param {string} quoteId - The ID of the quotation to reconstruct.
+ * It considers QuotationCreated, QuotationApproved, and QuotationOnHold events to build the state.
+ * @param {string} quotationId - The ID of the quotation to reconstruct.
  * @returns {object|null} The reconstructed quotation object or null if not found.
  */
-const reconstructQuotationState = (quoteId) => {
+const reconstructQuotationState = (quotationId) => {
   // Combine all relevant event types for the quotation and sort them chronologically
   const allQuotationEvents = [
     ...quotationEventStore.getEvents(), 
@@ -21,13 +21,13 @@ const reconstructQuotationState = (quoteId) => {
   let quotation = null;
 
   allQuotationEvents.forEach(event => {
-    // Determine the relevant ID for filtering, as QuoteApproved uses 'quoteId'
-    const targetId = event.type === 'QuoteApproved' ? event.data.quoteId : event.data.quoteId;
+    // Determine the relevant ID for filtering, as QuotationApproved uses 'quotationId'
+    const targetId = event.type === 'QuotationApproved' ? event.data.quotationId : event.data.quotationId;
 
-    if (targetId === quoteId) {
+    if (targetId === quotationId) {
       if (event.type === 'QuotationCreated') {
         quotation = { ...event.data }; // Initialize or update with creation data
-      } else if (quotation && event.type === 'QuoteApproved') {
+      } else if (quotation && event.type === 'QuotationApproved') {
         quotation.status = 'Approved'; // Update status to Approved
       } else if (quotation && event.type === 'QuotationOnHold') {
         quotation.status = 'OnHold'; // Update status to OnHold
@@ -52,8 +52,8 @@ export const onHoldQuotationCommandHandler = {
     switch (command.type) {
       case 'PutQuotationOnHold':
         // Reconstruct the current state of the specific quotation for the aggregate to validate
-        const currentQuotationState = reconstructQuotationState(command.quoteId);
-        console.log(`[OnHoldQuotationCommandHandler] Reconstructed quotation state for ${command.quoteId}:`, currentQuotationState);
+        const currentQuotationState = reconstructQuotationState(command.quotationId);
+        console.log(`[OnHoldQuotationCommandHandler] Reconstructed quotation state for ${command.quotationId}:`, currentQuotationState);
 
         // Pass the command and the current quotation state to the aggregate
         const event = OnHoldQuotationAggregate.putOnHold(command, currentQuotationState);
@@ -64,7 +64,7 @@ export const onHoldQuotationCommandHandler = {
           return { success: true, event };
         } else {
           // If aggregate returns null, it means the command was not applicable based on business rules
-          console.warn(`[OnHoldQuotationCommandHandler] Command '${command.type}' failed for quotation ${command.quoteId}. Reason: Not applicable based on current state.`);
+          console.warn(`[OnHoldQuotationCommandHandler] Command '${command.type}' failed for quotation ${command.quotationId}. Reason: Not applicable based on current state.`);
           // In a UI context, you might want to show a user-friendly message here.
           // For now, we return success: false and a message.
           const errorResponse = {
@@ -76,10 +76,10 @@ export const onHoldQuotationCommandHandler = {
                 : "Quotation not found or invalid.", // this should rarely happen given your aggregate logic
               code: currentQuotationState
                 ? (currentQuotationState.status === 'Approved' 
-                  ? 'QUOTE_ALREADY_APPROVED' 
-                  : 'QUOTE_INVALID_STATUS')
-                : 'QUOTE_NOT_FOUND_OR_INVALID',
-              quoteId: command.quoteId,
+                  ? 'QUOTATION_ALREADY_APPROVED' 
+                  : 'QUOTATION_INVALID_STATUS')
+                : 'QUOTATION_NOT_FOUND_OR_INVALID',
+              quotationId: command.quotationId,
               changeRequestId: command.changeRequestId,
             };
             return errorResponse;

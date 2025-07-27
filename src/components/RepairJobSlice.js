@@ -104,7 +104,7 @@ const handleCompleteJob = (jobId) => {
 
         <div className="aggregate-column first-column">
           <h3>Assign a team to start a job</h3>
-          <p>Jobs are automatically created when a Quote is Approved.</p>
+          <p>Jobs are automatically created when a Quotation is Approved.</p>
           <div className="team-selection">
             <label htmlFor="team-select">Assign Team:</label>
             <select
@@ -153,14 +153,14 @@ const handleCompleteJob = (jobId) => {
             renderDetails={(job) => {
               const customer = customers.find(c => c.customerId === job.customerId);
               const request = requests.find(r => r.requestId === job.requestId);
-              const quote = quotations.find(q => q.quoteId === job.quoteId);
+              const quotation = quotations.find(q => q.quotationId === job.quotationId);
               return (
                 <>
                   <strong>{job.jobDetails?.title || 'Untitled'}</strong>
                   <small>
                     For: {customer?.name || 'Unknown Customer'} <br />
                     From Request: {request?.requestDetails?.title?.slice(0, 20) || 'N/A'}... <br />
-                    From Quote: {quote?.quotationDetails?.title?.slice(0, 20) || 'N/A'}... <br />
+                    From Quotation: {quotation?.quotationDetails?.title?.slice(0, 20) || 'N/A'}... <br />
                     Status: {job.status} {job.jobDetails?.assignedTeam && `(${job.jobDetails.assignedTeam})`}
                   </small>
                 </>

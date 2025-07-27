@@ -3,21 +3,21 @@
 import { jobEventStore } from '../../core/eventStore';
 import { eventBus } from '../../core/eventBus';
 import { JobAggregate } from '../../entities/Job/aggregate'; // Import the JobAggregate
-import { CreateJobFromApprovedQuoteCommand } from './commands';
+import { CreateJobFromApprovedQuotationCommand } from './commands';
 
 export const createJobCommandHandler = {
   handle(command) {
-    if (command.type !== 'CreateJobFromApprovedQuote') {
+    if (command.type !== 'CreateJobFromApprovedQuotation') {
       console.warn(`[CreateJobCommandHandler] Unknown command type: ${command.type}`);
       return { success: false, message: 'Unsupported command' };
     }
 
     console.log(`[CreateJobCommandHandler] Handling command: ${command.type}`, command);
 
-    const jobCreatedEvent = JobAggregate.createFromQuoteApproval(
+    const jobCreatedEvent = JobAggregate.createFromQuotationApproval(
       command.customerId,
       command.requestId,
-      command.quoteId,
+      command.quotationId,
       command.requestDetails
     );
 

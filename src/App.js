@@ -5,7 +5,7 @@ import { useOrganizationSlice } from './domain/features/02_OrganisationListProje
 import { useCustomerSlice } from './domain/features/04_CustomerListProjection/useCustomerSlice';
 import { useRequestSlice } from './domain/features/06_RequestListProjection/useRequestSlice';
 import { useQuotationSlice } from './domain/features/08_QuotationListProjection/useQuotationSlice';
-import { useQuoteApprovalSlice } from './domain/features/10_QuotesApprovedList/useQuoteApprovalSlice';
+import { useQuotationApprovalSlice } from './domain/features/10_QuotationsApprovedList/useQuotationApprovalSlice';
 import { useRepairJobSlice } from './domain/features/RepairJobListProjection//useRepairJobSlice';
 import { useInvoicingSlice } from './domain/features/18_InvoicesListProjection/UseInvoicingSlice';
 import { useChangeRequestSlice } from './domain/features/20_ChangeRequestList/useChangeRequestSlice';
@@ -14,7 +14,7 @@ import OrganizationSlice from './components/OrganizationSlice';
 import CustomerSlice from './components/CustomerSlice';
 import RequestSlice from './components/RequestSlice';
 import QuotationSlice from './components/QuotationSlice';
-import QuoteApprovalSlice from './components/QuoteApprovalSlice';
+import QuotationApprovalSlice from './components/QuotationApprovalSlice';
 import RepairJobSlice from './components/RepairJobSlice';
 import InvoicingSlice from './components/InvoicingSlice';
 import ChangeRequestSlice from './components/ChangeRequestSlice';
@@ -38,7 +38,7 @@ function App() {
   const { customers, customerEvents } = useCustomerSlice();
   const { requests, requestEvents } = useRequestSlice();
   const { quotations, quotationEvents } = useQuotationSlice();
-  const { approvedQuotes, approvalEvents } = useQuoteApprovalSlice();
+  const { approvedQuotations, approvalEvents } = useQuotationApprovalSlice();
   const { jobs, jobEvents } = useRepairJobSlice();
   const { invoices, invoiceEvents } = useInvoicingSlice();
   const { changeRequests, changeRequestEvents } = useChangeRequestSlice();
@@ -74,13 +74,13 @@ function App() {
                 <QuotationSlice
                   quotations={quotations}
                   quotationEvents={quotationEvents}
-                  approvedQuotes={approvedQuotes}
+                  approvedQuotations={approvedQuotations}
                   customers={customers}
                   requests={requests}
                   currentUserId={currentUserId}
                 />
-                <QuoteApprovalSlice
-                  approvedQuotes={approvedQuotes}
+                <QuotationApprovalSlice
+                  approvedQuotations={approvedQuotations}
                   approvalEvents={approvalEvents}
                   quotations={quotations}
                   customers={customers}

@@ -1,15 +1,15 @@
 // src/domain/features/11_CreateJobAutomation/commands.js
 
-export class CreateJobFromApprovedQuoteCommand {
-  constructor({ customerId, requestId, quoteId, requestDetails }) {
-    if (!customerId || !requestId || !quoteId || !requestDetails) {
-      throw new Error('Missing required fields for CreateJobFromApprovedQuoteCommand');
+export class CreateJobFromApprovedQuotationCommand {
+  constructor({ customerId, requestId, quotationId, requestDetails }) {
+    if (!customerId || !requestId || !quotationId || !requestDetails) {
+      throw new Error('Missing required fields for CreateJobFromApprovedQuotationCommand');
     }
 
-    this.type = 'CreateJobFromApprovedQuote';
+    this.type = 'CreateJobFromApprovedQuotation';
     this.customerId = customerId;
     this.requestId = requestId;
-    this.quoteId = quoteId;
+    this.quotationId = quotationId;
     this.requestDetails = requestDetails;
   }
 }

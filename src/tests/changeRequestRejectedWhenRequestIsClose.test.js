@@ -1,27 +1,26 @@
-// src/domain/features/19_ChangeRequested/__tests__/changeRequestRejectedWhenRequestIsClosed.test.js
-
-import { ChangeRequestAggregate } from '../domain/features/19_ChangeRequested/aggregate';
+import { changeRequestCommandHandler } from '../domain/features/19_ChangeRequested/commandHandler';
 import { ChangeRequestRaisedCommand } from '../domain/features/19_ChangeRequested/commands';
+import { requestEventStore } from '../domain/core/eventStore';
+import { RequestCreatedEvent } from '../domain/events/requestCreatedEvent';
+import { RequestClosedEvent } from '../domain/events/requestClosedEvent';
 
 describe('Change Request Rules - reject changeRequest when request is closed', () => {
   const requestId = 'req-closed-001';
   const userId = 'user-1';
   const description = 'Update customer address';
 
-  it('should reject raising a change request when request is closed', () => {
-    // Given: a closed request aggregate state
-    const closedRequestState = {
-      requestId,
-      status: 'Closed',
-      changeRequests: []
-    };
+  beforeEach(() => {
+    requestEventStore.clear(); // Reset the store for clean test
+    requestEventStore.append(RequestCreatedEvent(requestId, 'customer-123', { title: 'Test' }, 'Pending'));
+    requestEventStore.append(RequestClosedEvent(requestId));
+  });
 
-    // When: we try to raise a change request
+  it('should reject raising a change request when request is closed', () => {
     const command = ChangeRequestRaisedCommand(requestId, userId, description);
 
-    // Then: aggregate should throw or reject with error
-    expect(() => {
-      ChangeRequestAggregate.raiseChangeRequest(command, closedRequestState);
-    }).toThrow('Request is already closed. No change request is accepted');
+    const result = changeRequestCommandHandler.handle(command);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Request is already closed. No change request is accepted');
   });
 });

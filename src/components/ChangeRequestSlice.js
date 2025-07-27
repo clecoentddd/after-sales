@@ -3,7 +3,7 @@ import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
 import { changeRequestCommandHandler } from '../domain/features/19_ChangeRequested/commandHandler';
 import { ChangeRequestRaisedCommand } from '../domain/features/19_ChangeRequested/commands';
-import DecisionProjectionUI from '../domain/features/19a_ChangeRequestDecisionTree/ui'; // <-- default export component
+import DecisionProjectionUI from '../domain/features/19a_ChangeRequestDecisionTree/ui';
 
 function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, currentUserId }) {
   const [selectedRequestId, setSelectedRequestId] = useState('');
@@ -42,11 +42,14 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
               required
             >
               <option value="">Select Request to Change</option>
-              {requests.map(request => (
-                <option key={request.requestId} value={request.requestId}>
-                  {request.requestDetails.title} (ID: {request.requestId.slice(0, 8)}...)
-                </option>
-              ))}
+              {requests.map(request => {
+                console.log('[ChangeRequestSlice] Rendering request option with ID:', request?.requestId);
+                return (
+                  <option key={request.requestId} value={request.requestId}>
+                    {request.requestDetails.title} (ID: {request.requestId || 'Unknown ID'})
+                  </option>
+                );
+              })}
             </select>
             <textarea
               value={changeDescription}
@@ -65,14 +68,16 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
             idKey="changeRequestId"
             renderDetails={(changeReq) => {
               const originalRequest = requests.find(req => req.requestId === changeReq.requestId);
+
               return (
                 <>
-                  <strong>Change for: {originalRequest?.requestDetails.title.slice(0, 30)}...</strong>
-                  <small>
-                    Request ID: {changeReq.requestId.slice(0, 8)}... <br />
-                    Description: {changeReq.description.slice(0, 40)}... <br />
-                    Raised by: {changeReq.changedByUserId} <br />
-                    Status: {changeReq.status}
+                  {console.log('[ChangeRequestSlice] Rendering change request for:', changeReq?.requestId)}
+<strong>Change for: {originalRequest?.requestDetails.title || 'Unknown Title'}</strong>
+<small>
+  Request ID: {changeReq.requestId || 'Missing ID'} <br />
+  Description: {changeReq.description || 'No description'} <br />
+                    Raised by: {changeReq.changedByUserId || 'N/A'} <br />
+                    Status: {changeReq.status || 'N/A'}
                   </small>
                 </>
               );
@@ -85,7 +90,6 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
         </div>
       </div>
 
-      {/* ✅ New: Projection Block */}
       <DecisionProjectionUI />
     </div>
   );

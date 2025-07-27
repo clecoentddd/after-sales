@@ -9,8 +9,8 @@ export const changeRequestCommandHandler = {
 
     switch (command.type) {
       case 'ChangeRequestRaised':
-        // Optionally generate a changeRequestId if not present
-        const changeRequestId = command.changeRequestId || uuidv4();
+        
+        const changeRequestId = uuidv4();
 
         // Include the changeRequestId in the command passed to the aggregate
         const event = ChangeRequestAggregate.raiseChangeRequest({

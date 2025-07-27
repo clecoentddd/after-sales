@@ -29,7 +29,7 @@ import { initializeCreateJobEventHandler } from './domain/features/11_CreateJobA
 import { initializeInvoiceFromJobCompletionHandler } from './domain/features/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
 import { initializeChangeRequestEventHandler } from './domain/features/23_PutJobOnHold/eventHandler';
 import { initializeChangeRequestDecisionTreeHandler } from './domain/features/19a_ChangeRequestDecisionTree/eventHandler';
-
+import {initializeCompleteJobEventHandler } from './domain/features/27_CloseRequest/eventHandler';
 import { useEffect } from 'react';
 
 function App() {
@@ -51,6 +51,7 @@ function App() {
     initializeInvoiceFromJobCompletionHandler();
     initializeChangeRequestEventHandler();
     initializeChangeRequestDecisionTreeHandler();
+    initializeCompleteJobEventHandler();
   }, []);
 
   return (

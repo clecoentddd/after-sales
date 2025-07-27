@@ -1,21 +1,60 @@
-import { RequestCreatedEvent } from '../../events/requestCreatedEvent';
+import { RequestCreatedEvent } from "../../events/requestCreatedEvent";
 
 export class RequestAggregate {
-  /**
-   * Create a new request event from the given command.
-   * @param {object} command - The command object.
-   * @param {string} command.requestId - The request UUID generated outside.
-   * @param {string} command.customerId - Customer ID.
-   * @param {object} command.requestDetails - Details of the request.
-   * @returns {object} RequestCreatedEvent
-   */
+  constructor() {
+    this.state = null;
+  }
+
+  replay(events) {
+    for (const event of events) {
+      this.apply(event);
+    }
+  }
+
+  apply(event) {
+    switch (event.type) {
+      case 'RequestCreated':
+        this.state = {
+          requestId: event.data.requestId,
+          customerId: event.data.customerId,
+          requestDetails: event.data.requestDetails,
+          status: 'Pending',
+        };
+        break;
+      case 'RequestClosed':
+        if (this.state) {
+          this.state.status = 'Closed';
+        }
+        break;
+    }
+  }
+
   static create(command) {
-    console.log(`[RequestAggregate] Creating request from command:`, command);
+    console.log('[RequestAggregate] Creating RequestCreatedEvent with requestId:', command.requestId);
     return RequestCreatedEvent(
-      command.requestId,      // Use UUID passed by command handler
+      command.requestId,
       command.customerId,
       command.requestDetails,
-      'Pending'               // Initial status
+      'Pending'
     );
+  }
+
+  close(command) {
+    if (!this.state) {
+      throw new Error(`Request ${command.requestId} not found`);
+    }
+
+    if (this.state.status === 'Closed') {
+      throw new Error(`Request ${command.requestId} is already closed`);
+    }
+
+    return {
+      type: 'RequestClosed',
+      data: {
+        requestId: command.requestId,
+        closedByUserId: command.closedByUserId,
+        closedAt: new Date().toISOString(),
+      },
+    };
   }
 }

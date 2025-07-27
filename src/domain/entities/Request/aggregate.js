@@ -39,6 +39,12 @@ export class RequestAggregate {
     );
   }
 
+  ensureChangeRequestAllowed() {
+  if (this.state.status === 'Closed') {
+    throw new Error('Request is already closed. No change request is accepted');
+    }
+  }
+
   close(command) {
     if (!this.state) {
       throw new Error(`Request ${command.requestId} not found`);

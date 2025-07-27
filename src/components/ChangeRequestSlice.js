@@ -16,13 +16,16 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
       return;
     }
 
-    changeRequestCommandHandler.handle(
+    const result = changeRequestCommandHandler.handle(
       ChangeRequestRaisedCommand(
         selectedRequestId,
         currentUserId,
         changeDescription.trim()
       )
     );
+    if (!result.success) {
+      alert(result.error); // Or set it in state and show in the UI
+    }
 
     setSelectedRequestId('');
     setChangeDescription('');

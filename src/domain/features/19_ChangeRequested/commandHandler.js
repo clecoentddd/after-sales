@@ -1,32 +1,38 @@
-import { v4 as uuidv4 } from 'uuid'; // If you need to generate IDs here
-import { eventBus } from '../../core/eventBus';
-import { requestEventStore } from '../../core/eventStore'; // Event for change request goes here
+// src/domain/features/19_ChangeRequested/commandHandler.js
+
 import { ChangeRequestAggregate } from './aggregate';
+import { RequestAggregate } from '../../entities/Request/aggregate';
+import { changeRequestEventStore } from '../../core/eventStore';
+import { requestEventStore } from '../../core/eventStore';
+import { eventBus } from '../../core/eventBus';
 
 export const changeRequestCommandHandler = {
   handle(command) {
-    console.log(`[ChangeRequestCommandHandler] Handling command: ${command.type}`, command);
+    console.log(`[ChangeRequestCommandHandler] Handling command:`, command);
 
-    switch (command.type) {
-      case 'ChangeRequestRaised':
-        
-        const changeRequestId = uuidv4();
+    try {
+      // 1. Rehydrate the request aggregate
+      const requestEvents = requestEventStore
+        .getEvents()
+        .filter(e => e.data.requestId === command.requestId);
 
-        // Include the changeRequestId in the command passed to the aggregate
-        const event = ChangeRequestAggregate.raiseChangeRequest({
-          ...command,
-          changeRequestId,
-        });
+      const requestAggregate = new RequestAggregate();
+      requestAggregate.replay(requestEvents);
 
-        requestEventStore.append(event);
-        eventBus.publish(event);
+      // 2. Business rule: is change request allowed?
+      requestAggregate.ensureChangeRequestAllowed();
 
-        // Return success and changeRequestId for downstream use
-        return { success: true, event, changeRequestId };
+      // 3. Create change request
+      const changeRequestAggregate = new ChangeRequestAggregate();
+      const event = changeRequestAggregate.raiseChangeRequest(command);
 
-      default:
-        console.warn(`[ChangeRequestCommandHandler] Unknown command type: ${command.type}`);
-        return { success: false };
+      requestEventStore.append(event);
+      eventBus.publish(event);
+
+      return { success: true, event };
+    } catch (error) {
+      console.warn(`[ChangeRequestCommandHandler] Command rejected: ${error.message}`);
+      return { success: false, error: error.message };
     }
   }
 };

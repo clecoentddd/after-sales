@@ -28,6 +28,7 @@ import { initializeQuotationEventHandler } from './domain/features/07_CreateQuot
 import { initializeCreateJobEventHandler } from './domain/features/11_CreateJobAutomation/eventHandler';
 import { initializeInvoiceFromJobCompletionHandler } from './domain/features/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
 import { initializeChangeRequestEventHandler } from './domain/features/23_PutJobOnHold/eventHandler';
+import { initializeChangeRequestDecisionTreeHandler } from './domain/features/19a_ChangeRequestDecisionTree/eventHandler';
 
 import { useEffect } from 'react';
 
@@ -49,6 +50,7 @@ function App() {
     initializeCreateJobEventHandler();
     initializeInvoiceFromJobCompletionHandler();
     initializeChangeRequestEventHandler();
+    initializeChangeRequestDecisionTreeHandler();
   }, []);
 
   return (

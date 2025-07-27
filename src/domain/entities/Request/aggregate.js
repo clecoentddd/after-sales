@@ -1,4 +1,4 @@
-import { RequestCreatedEvent } from '../../events/requestCreateEvent';
+import { RequestCreatedEvent } from '../../events/requestCreatedEvent';
 
 export class RequestAggregate {
   /**

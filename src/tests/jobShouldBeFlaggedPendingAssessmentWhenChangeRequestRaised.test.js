@@ -5,6 +5,7 @@ import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { JobStartedEvent } from '../domain/events/jobStartedEvent';
+import { ChangeRequestRaisedEvent } from '../domain/features/19_ChangeRequested/events';
 
 describe('Job flagged as ChangeRequestReceivedPendingAssessment when change request is raised and job already started', () => {
   const requestId = 'req-002';
@@ -17,19 +18,20 @@ describe('Job flagged as ChangeRequestReceivedPendingAssessment when change requ
   beforeEach(() => {
     jobEventStore.clear();
 
-    jobEventStore.append(
-      JobCreatedEvent(
-        jobId,
-        quotationId,
-        customerId,
-        {
-          title: 'Replace heater',
-          description: 'Heating issue in customer flat',
-          priority: 'High',
-          assignedTeam: 'Team B'
-        }
-      )
-    );
+   jobEventStore.append(
+  JobCreatedEvent(
+    jobId,
+    customerId,
+    requestId,
+    quotationId,
+    {
+      title: 'Replace heater',
+      description: 'Heating issue in customer flat',
+      priority: 'High',
+      assignedTeam: 'Team B'
+    }
+  )
+);
 
     jobEventStore.append(
       JobStartedEvent(
@@ -57,20 +59,8 @@ describe('Job flagged as ChangeRequestReceivedPendingAssessment when change requ
     });
   });
 
-  const event = {
-    type: 'ChangeRequestRaised',
-    aggregateId: changeRequestId,
-    data: {
-      requestId,
-      changeRequestId,
-      changedByUserId: userId,
-      description: 'Add inspection photos'
-    },
-    metadata: {
-      timestamp: new Date().toISOString()
-    },
-    timestamp: new Date()
-  };
+  const event = ChangeRequestRaisedEvent(changeRequestId, requestId, userId, 'Add inspection photos');
+  eventBus.publish(event);
 
   console.log('[Test] Publishing ChangeRequestRaisedEvent:', event);
   eventBus.publish(event);

@@ -43,9 +43,9 @@ export class QuotationAggregate {
           console.log('[QuotationAggregate] Applying QuotationCreatedEvent:', event);
           aggregate = new QuotationAggregate(
             event.aggregateId,
-            event.requestId,
-            event.quotationId,
-            event.initialStatus || 'Draft' // Fixed typo: event.tatus to event.initialStatus
+            event.data.requestId,
+            event.data.quotationId,
+            event.data.status || 'Draft' // Fixed typo: event.tatus to event.initialStatus
           );
           break;
         case 'QuotationApproved':

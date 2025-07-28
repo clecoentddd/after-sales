@@ -13,6 +13,7 @@
  */
 export const QuotationCreatedEvent = (quotationId, requestId, customerId, quotationDetails, status = 'Draft') => ({
   type: 'QuotationCreated', // Event type identifier
+  aggregateId: quotationId, // Unique identifier for the aggregate
   data: {
     quotationId,
     requestId,

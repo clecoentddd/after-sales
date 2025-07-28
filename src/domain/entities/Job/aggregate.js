@@ -1,10 +1,9 @@
-// src/domain/entities/Job/aggregate.js
-
 import { v4 as uuidv4 } from 'uuid';
 import { JobCreatedEvent } from '../../events/jobCreatedEvent';
 import { JobStartedEvent } from '../../events/jobStartedEvent';
 import { JobCompletedEvent } from '../../events/jobCompletedEvent';
 import { JobOnHoldEvent } from '../../events/jobOnHoldEvent';
+import { JobFlaggedForAssessmentEvent } from '../../events/jobFlaggedForAssessmentEvent';
 
 export class JobAggregate {
   constructor() {
@@ -38,15 +37,14 @@ export class JobAggregate {
         case 'JobOnHold':
           this.status = 'OnHold';
           this.onHoldReason = event.data.reason;
-        break;
-        // Add other cases as needed (e.g., JobOnHold)
+          break;
+        case 'ChangeRequestReceivedPendingAssessment':
+          this.status = 'ChangeRequestReceivedPendingAssessment';
+          break;
       }
     });
   }
 
-  /**
-   * Factory method to create a new job based on a quotation approval.
-   */
   static createFromQuotationApproval(customerId, requestId, quotationId, requestDetails) {
     console.log(`[JobAggregate] Creating job from approved quotation: ${quotationId}`);
 
@@ -67,9 +65,6 @@ export class JobAggregate {
     );
   }
 
-  /**
-   * Starts a job if not already started or completed.
-   */
   start(command) {
     if (this.status === 'Started') {
       console.warn(`[JobAggregate] Job ${command.jobId} is already started.`);
@@ -82,9 +77,6 @@ export class JobAggregate {
     return JobStartedEvent(command.jobId, command.requestId, command.assignedTeam, command.startedByUserId);
   }
 
-  /**
-   * Completes a job if it is currently started.
-   */
   complete(command) {
     if (this.status === 'Completed') {
       console.warn(`[JobAggregate] Job ${command.jobId} is already completed.`);
@@ -98,26 +90,37 @@ export class JobAggregate {
   }
 
   putOnHold(command) {
-  if (this.status === 'Completed' || this.status === 'OnHold') {
-    console.warn(`[JobAggregate] Cannot put job ${command.jobId} on hold. Current status: ${this.status}`);
-    return null;
+    if (this.status === 'Completed' || this.status === 'OnHold') {
+      console.warn(`[JobAggregate] Cannot put job ${command.jobId} on hold. Current status: ${this.status}`);
+      return null;
+    }
+
+    return JobOnHoldEvent(
+      command.jobId,
+      this.requestId,
+      command.changeRequestId,
+      command.heldByUserId,
+      command.reason
+    );
   }
 
-  return {
-    type: 'JobOnHold',
-    data: {
-      jobId: command.jobId,
-      requestId: this.requestId,            // <-- use hydrated requestId here
-      changeRequestId: command.changeRequestId,
-      putOnHoldBy: command.heldByUserId,
-      reason: command.reason,
-      onHoldAt: new Date().toISOString(),
-      status: 'OnHold',
-    },
-    metadata: {
-      timestamp: new Date().toISOString(),
+  /**
+   * Flags a job for assessment if a change request is raised and job is already started.
+   * @param {object} command - FlagJobForAssessmentCommand
+   * @returns {object|null} Event or null if invalid state
+   */
+  flagForAssessment(command) {
+    if (this.status !== 'Started') {
+      console.warn(`[JobAggregate] Cannot flag job ${command.jobId} for assessment. Status is ${this.status}`);
+      return null;
     }
-  };
-}
 
+    return JobFlaggedForAssessmentEvent(
+      command.jobId,
+      this.requestId,
+      command.changeRequestId,
+      command.flaggedByUserId,
+      command.reason
+    );
+  }
 }

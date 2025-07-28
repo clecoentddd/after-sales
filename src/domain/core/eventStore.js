@@ -19,6 +19,12 @@ class EventStore {
     return [...this.events];
   }
 
+    // New method: loadEvents
+  loadEvents(aggregateId) {
+    // Filter the internal events array to return only events belonging to the specified aggregateId
+    return this.events.filter(event => event.aggregateId === aggregateId);
+  }
+
     clear() {
     this.events = [];
   }

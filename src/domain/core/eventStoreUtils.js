@@ -12,6 +12,14 @@ export function getEventsFromStores(stores) {
   stores.forEach(store => {
     allEvents = allEvents.concat(store.getEvents());
   });
+
+  // Check for missing or invalid metadata.timestamp and log them
+  allEvents.forEach((event, index) => {
+    if (!event.metadata || !event.metadata.timestamp) {
+      console.warn(`[getEventsFromStores] Event at index ${index} is missing metadata.timestamp:`, event);
+    }
+  });
+  
   // Optionally, sort events by timestamp if order matters
   allEvents.sort((a, b) => new Date(a.metadata.timestamp) - new Date(b.metadata.timestamp));
   return allEvents;

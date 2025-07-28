@@ -24,7 +24,7 @@ return (
               <>
                 <strong>Quotation Approved: {approvedQuotation?.quotationDetails.title.slice(0, 40)}...</strong>
                 <small>
-                  Quotation ID: {approval.quotationId.slice(0, 8)}... <br />
+                  Quotation ID: {approval.quotationId}... <br />
                   Approved by: {approval.approvedByUserId} <br />
                   For: {customer?.name || 'Unknown Customer'}
                 </small>

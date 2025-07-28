@@ -22,11 +22,11 @@ export const quotationApprovalCommandHandler = {
     }
 
     // Step 1: Load events for the aggregate
-    const events = quotationEventStore.getEvents(command.quotationId);
+    const events = quotationEventStore.loadEvents(command.quotationId);
+    console.log(`[QuotationApprovalCommandHandler] Loaded ${events.length} events for quotationId: ${command.quotationId}`);
 
     // Step 2: Hydrate the aggregate
-    const aggregate = new QuotationAggregate();
-    aggregate.replay(events);
+    const aggregate = QuotationAggregate.replay(events); 
 
     // Step 3: Let the aggregate handle the command
     const event = aggregate.approve(command);

@@ -36,6 +36,11 @@ export function useRepairJobSlice() {
             jobMap.get(jobId).status = 'OnHold';
           }
           break;
+          case 'ChangeRequestReceivedPendingAssessment':
+          if (jobMap.has(jobId)) {
+            jobMap.get(jobId).status = 'ChangeRequestReceivedPendingAssessment';
+          }
+          break;
         default:
           break;
       }
@@ -76,6 +81,16 @@ export function useRepairJobSlice() {
           prev.map(job =>
             job.jobId === event.data.jobId
               ? { ...job, status: 'OnHold' }
+              : job
+          )
+        );
+        setRepairJobEvents(prev => [...prev, event]);
+      }),
+       eventBus.subscribe('ChangeRequestReceivedPendingAssessment', (event) => {
+        setRepairJobs(prev =>
+          prev.map(job =>
+            job.jobId === event.data.jobId
+              ? { ...job, status: 'ChangeRequestReceivedPendingAssessment' }
               : job
           )
         );

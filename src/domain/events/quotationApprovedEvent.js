@@ -10,6 +10,7 @@
  */
 export const QuotationApprovedEvent = (quotationId, requestId, approvedByUserId) => ({
   type: 'QuotationApproved', // Event type identifier
+  aggregateId: quotationId, // Unique identifier for the aggregate
   data: {
     quotationId,
     requestId,

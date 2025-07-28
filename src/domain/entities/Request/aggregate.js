@@ -1,4 +1,5 @@
 import { RequestCreatedEvent } from "../../events/requestCreatedEvent";
+import { RequestClosedEvent } from "../../events/requestClosedEvent";
 
 export class RequestAggregate {
   constructor() {
@@ -54,13 +55,6 @@ export class RequestAggregate {
       throw new Error(`Request ${command.requestId} is already closed`);
     }
 
-    return {
-      type: 'RequestClosed',
-      data: {
-        requestId: command.requestId,
-        closedByUserId: command.closedByUserId,
-        closedAt: new Date().toISOString(),
-      },
-    };
+     return RequestClosedEvent(command.requestId, command.closedByUserId);
   }
 }

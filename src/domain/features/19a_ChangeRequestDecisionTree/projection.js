@@ -106,6 +106,11 @@ export const ChangeRequestDecisionTreeProjection = {
         update(data.requestId, { jobStatus: 'Completed' });
         break;
 
+      case 'ChangeRequestReceivedPendingAssessment':
+        console.log(`[DecisionProjection] Change request received for ${data.requestId}`);
+        update(data.requestId, { jobStatus: 'Pending CR Assessment' });
+        break;
+
       default:
         console.warn(`[DecisionProjection] Unhandled event type: ${type}`);
         break;

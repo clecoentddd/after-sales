@@ -27,7 +27,7 @@ import LiveModelPage from './LiveModelPage'; // Assuming you have a LiveModelPag
 import { initializeQuotationEventHandler } from './domain/features/07_CreateQuotation/eventHandler';
 import { initializeCreateJobEventHandler } from './domain/features/11_CreateJobAutomation/eventHandler';
 import { initializeInvoiceFromJobCompletionHandler } from './domain/features/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
-import { initializeChangeRequestEventHandler } from './domain/features/23_PutJobOnHold/eventHandler';
+import { initializeChangeRequestToJobReactionProcessor } from './domain/features/99_changeRequestToJobReactionProcessor/changeRequestToJobReactionProcessor';
 import { initializeChangeRequestDecisionTreeHandler } from './domain/features/19a_ChangeRequestDecisionTree/eventHandler';
 import {initializeCompleteJobEventHandler } from './domain/features/27_CloseRequest/eventHandler';
 import { useEffect } from 'react';
@@ -39,6 +39,7 @@ function App() {
   const { customers, customerEvents } = useCustomerSlice();
   const { requests, requestEvents } = useRequestSlice();
   const { quotations, quotationEvents } = useQuotationSlice();
+  console.log('Quotations in App.js:', quotations);
   const { approvedQuotations, approvalEvents } = useQuotationApprovalSlice();
   const { jobs, jobEvents } = useRepairJobSlice();
   const { invoices, invoiceEvents } = useInvoicingSlice();
@@ -49,7 +50,7 @@ function App() {
     initializeQuotationEventHandler();
     initializeCreateJobEventHandler();
     initializeInvoiceFromJobCompletionHandler();
-    initializeChangeRequestEventHandler();
+    initializeChangeRequestToJobReactionProcessor();
     initializeChangeRequestDecisionTreeHandler();
     initializeCompleteJobEventHandler();
   }, []);

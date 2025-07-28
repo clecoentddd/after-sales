@@ -1,6 +1,6 @@
 // src/tests/jobGoesOnHoldWhenChangeRequestRaised.test.js
 
-import { initializeChangeRequestEventHandler } from '../domain/features/23_PutJobOnHold/eventHandler';
+import { initializeChangeRequestToJobReactionProcessor } from '../domain/features/99_changeRequestToJobReactionProcessor/changeRequestToJobReactionProcessor';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
@@ -34,7 +34,7 @@ describe('Job goes on hold when change request is raised', () => {
       )
     );
 
-    initializeChangeRequestEventHandler();
+    initializeChangeRequestToJobReactionProcessor();
   });
 
   it('should put the job on hold when change request is raised', () => {

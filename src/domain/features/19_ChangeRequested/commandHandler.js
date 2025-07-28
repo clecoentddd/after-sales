@@ -2,9 +2,9 @@
 
 import { ChangeRequestAggregate } from './aggregate';
 import { RequestAggregate } from '../../entities/Request/aggregate';
-import { changeRequestEventStore } from '../../core/eventStore';
 import { requestEventStore } from '../../core/eventStore';
 import { eventBus } from '../../core/eventBus';
+import { v4 as uuidv4 } from 'uuid'; // Import UUID generator
 
 export const changeRequestCommandHandler = {
   handle(command) {
@@ -22,9 +22,16 @@ export const changeRequestCommandHandler = {
       // 2. Business rule: is change request allowed?
       requestAggregate.ensureChangeRequestAllowed();
 
+      const changeRequestId = uuidv4(); // Generate UUID for the change request
+
+      const commandWithId = {
+        ...command,
+        changeRequestId, // Inject generated ID
+      };
+
       // 3. Create change request
-      const changeRequestAggregate = new ChangeRequestAggregate();
-      const event = changeRequestAggregate.raiseChangeRequest(command);
+      const event = ChangeRequestAggregate.raiseChangeRequest(commandWithId);
+
 
       requestEventStore.append(event);
       eventBus.publish(event);

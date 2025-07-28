@@ -4,9 +4,17 @@ import EventLogDisplay from './EventLogDisplay';
 import { quotationApprovalCommandHandler } from '../domain/features/09_ApproveQuotation/commandHandler';
 import { ApproveQuotationCommand } from '../domain/features/09_ApproveQuotation/commands';
 
+
+const OriginalApproveQuotationCommand = ApproveQuotationCommand;
+const ApproveQuotationCommandWithLog = function(...args) {
+  console.log('[QuotationSlice] Creating ApproveQuotationCommand with args:', args);
+  return new OriginalApproveQuotationCommand(...args);
+};
+
 function QuotationSlice({ quotations, quotationEvents, approvedQuotations, customers, requests, currentUserId }) {
  
   const handleApproveQuotation = (quotationId) => {
+    console.log('[QuotationSlice] Attempting to approve quotation:', quotationId);
     if (!quotationId) return;
 
     // Check current status from the 'quotations' read model
@@ -22,10 +30,10 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotations, custo
     }
 
     quotationApprovalCommandHandler.handle(
-      new ApproveQuotationCommand({
-    quotationId,
-    userId: currentUserId
-  })
+            ApproveQuotationCommandWithLog({
+        quotationId,
+        userId: currentUserId
+    })
 );
   };
 
@@ -43,7 +51,9 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotations, custo
         ) : (
           <ul className="action-list">
             {quotations.map(quotation => (
+              console.log(`[QuotationSlice] Mapping: Button for quotationId: ${quotation.quotationId}`),
               <li key={quotation.quotationId}>
+                {console.log('Rendering button for quotationId:', quotation.quotationId)} 
                 <button 
                   onClick={() => handleApproveQuotation(quotation.quotationId)}
                   disabled={quotation.status === 'Approved' || quotation.status === 'OnHold'}
@@ -51,7 +61,7 @@ function QuotationSlice({ quotations, quotationEvents, approvedQuotations, custo
                 >
                   {quotation.status === 'Approved' ? 'Approved' : 'Approve Quotation'}
                 </button>
-                <small>{quotation.quotationDetails.title.slice(0, 30)}...</small>
+                <small>{quotation.quotationDetails.title.slice(0, 80)}...</small>
               </li>
             ))}
           </ul>

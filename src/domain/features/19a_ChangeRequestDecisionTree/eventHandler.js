@@ -16,6 +16,7 @@ export const initializeChangeRequestDecisionTreeHandler = () => {
     'JobStarted',
     'JobOnHold',
     'JobCompleted',
+    'ChangeRequestReceivedPendingAssessment',
   ];
 
   subscribedEvents.forEach((eventType) => {

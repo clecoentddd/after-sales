@@ -126,7 +126,7 @@ const handleCompleteJob = (jobId) => {
                       onClick={() => handleStartJob(job.jobId)}
                       className="start-button"
                     >
-                      Start Job {job.jobDetails?.title ? job.jobDetails.title.slice(0, 30) : 'Untitled'}...
+                      Start Job {job.jobDetails?.title ? job.jobDetails.title.slice(0, 80) : 'Untitled'}...
                     </button>
                   )}
                   {job.status === 'Started' && (
@@ -134,7 +134,7 @@ const handleCompleteJob = (jobId) => {
                       onClick={() => handleCompleteJob(job.jobId)}
                       className="complete-button"
                     >
-                      Complete Job {job.jobDetails?.title ? job.jobDetails.title.slice(0, 30) : 'Untitled'}...
+                      Complete Job {job.jobDetails?.title ? job.jobDetails.title.slice(0, 80) : 'Untitled'}...
                     </button>
                   )}
                   <small>Current Status: {job.status}</small>

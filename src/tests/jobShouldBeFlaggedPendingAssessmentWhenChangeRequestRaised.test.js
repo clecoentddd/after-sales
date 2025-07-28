@@ -15,64 +15,74 @@ describe('Job flagged as ChangeRequestReceivedPendingAssessment when change requ
   const changeRequestId = 'change-654';
 
   beforeEach(() => {
-    // Clear event store
     jobEventStore.clear();
 
-    // Seed with a created and then started job
     jobEventStore.append(
       JobCreatedEvent(
         jobId,
-        customerId,
-        requestId,
         quotationId,
+        customerId,
         {
           title: 'Replace heater',
           description: 'Heating issue in customer flat',
           priority: 'High',
           assignedTeam: 'Team B'
-        },
-        'Pending'
+        }
       )
     );
 
     jobEventStore.append(
       JobStartedEvent(
         jobId,
-        requestId,
-        'Team B',
-        userId
+        userId,
+        'Team B'
       )
     );
 
     initializeChangeRequestToJobReactionProcessor();
   });
 
-  it('should mark job as ChangeRequestReceivedPendingAssessment, not put on hold', () => {
-    // Act: simulate a raised change request
-    const event = {
-      type: 'ChangeRequestRaised',
-      data: {
-        requestId,
-        changeRequestId,
-        changedByUserId: userId,
-        description: 'Add inspection photos'
-      },
-      timestamp: new Date().toISOString()
-    };
+  it('should mark job as ChangeRequestReceivedPendingAssessment, not put on hold', async () => {
+  const expectedType = 'ChangeRequestReceivedPendingAssessment';
 
-    eventBus.publish(event);
+  // Use a promise to wait for the correct event
+  const waitForEvent = new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject('Event not received in time'), 1000);
 
-    // Assert: should NOT get a JobOnHold event
-    const allEvents = jobEventStore.getEvents();
-    const jobOnHoldEvents = allEvents.filter(e => e.type === 'JobOnHold' && e.data.jobId === jobId);
-    const assessmentFlagEvent = allEvents.find(e =>
-      e.type === 'JobStatusChanged' &&
-      e.data.jobId === jobId &&
-      e.data.newStatus === 'ChangeRequestReceivedPendingAssessment'
-    );
-
-    expect(jobOnHoldEvents.length).toBe(0);
-    expect(assessmentFlagEvent).toBeDefined();
-    expect(assessmentFlagEvent.data.reason).toContain('Change request raised');
+    eventBus.subscribe(expectedType, (event) => {
+      if (event.data.jobId === jobId) {
+        clearTimeout(timeout);
+        resolve(event);
+      }
+    });
   });
+
+  const event = {
+    type: 'ChangeRequestRaised',
+    aggregateId: changeRequestId,
+    data: {
+      requestId,
+      changeRequestId,
+      changedByUserId: userId,
+      description: 'Add inspection photos'
+    },
+    metadata: {
+      timestamp: new Date().toISOString()
+    },
+    timestamp: new Date()
+  };
+
+  console.log('[Test] Publishing ChangeRequestRaisedEvent:', event);
+  eventBus.publish(event);
+
+  const assessmentFlagEvent = await waitForEvent;
+
+  const allEvents = jobEventStore.getEvents();
+  const jobOnHoldEvents = allEvents.filter(e => e.type === 'JobOnHoldEvent' && e.data.jobId === jobId);
+
+  expect(jobOnHoldEvents.length).toBe(0);
+  expect(assessmentFlagEvent).toBeDefined();
+  expect(assessmentFlagEvent.data.reason).toContain('Change request needs assessment');
+});
+
 });

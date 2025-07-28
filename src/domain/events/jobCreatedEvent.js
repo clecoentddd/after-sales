@@ -27,8 +27,4 @@ export const JobCreatedEvent = (jobId, customerId, requestId, quotationId, jobDe
   }
 });
 
-// Future events could include:
-// JobScheduledEvent
-// JobStartedEvent
-// JobCompletedEvent
-// JobStatusChangedEvent
+

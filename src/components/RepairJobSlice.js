@@ -99,7 +99,7 @@ const handleCompleteJob = (jobId) => {
 
   return (
     <div className="aggregate-block">
-      <h2>Repair Job Aggregate</h2>
+      <h2>Repair Job Management</h2>
       <div className="aggregate-columns">
 
         <div className="aggregate-column first-column">

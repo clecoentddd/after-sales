@@ -34,7 +34,7 @@ function CustomerSlice({ customers, customerEvents, organizations }) {
 
   return (
     <div className="aggregate-block">
-      <h2>Customer Aggregate</h2>
+      <h2>Customer Management</h2>
       <div className="aggregate-columns">
         <div className="aggregate-column first-column">
           <h3>Create a customer for an organization</h3>

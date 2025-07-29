@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { changeRequestCommandHandler } from '../domain/features/19_ChangeRequested/commandHandler';
-import { ChangeRequestRaisedCommand } from '../domain/features/19_ChangeRequested/commands';
+import { changeRequestCommandHandler } from '../domain/features/19__RaiseChangeRequest/commandHandler';
+import { RaiseChangeRequestCommand } from '../domain/features/19__RaiseChangeRequest/commands';
 import DecisionProjectionUI from '../domain/features/19a_ChangeRequestDecisionTree/ui';
 
 function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, currentUserId }) {
@@ -17,7 +17,7 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
     }
 
     const result = changeRequestCommandHandler.handle(
-      ChangeRequestRaisedCommand(
+      RaiseChangeRequestCommand(
         selectedRequestId,
         currentUserId,
         changeDescription.trim()
@@ -33,7 +33,7 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
 
   return (
     <div className="aggregate-block">
-      <h2>Change Request Aggregate</h2>
+      <h2>Change Request Management</h2>
       <div className="aggregate-columns">
 
         <div className="aggregate-column first-column">
@@ -46,7 +46,7 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
             >
               <option value="">Select Request to Change</option>
               {requests.map(request => {
-                console.log('[ChangeRequestSlice] Rendering request option with ID:', request?.requestId);
+                // console.log('[ChangeRequestSlice] Rendering request option with ID:', request?.requestId);
                 return (
                   <option key={request.requestId} value={request.requestId}>
                     {request.requestDetails.title} (ID: {request.requestId || 'Unknown ID'})

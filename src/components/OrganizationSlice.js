@@ -16,7 +16,7 @@ const handleCreateOrg = (e) => {
 
 return (
   <div className="aggregate-block">
-    <h2>Organization Aggregate</h2>
+    <h2>Organization Setup</h2>
     <div className="aggregate-columns">
       <div className="aggregate-column first-column">
         <h3>Create a new organisation</h3>

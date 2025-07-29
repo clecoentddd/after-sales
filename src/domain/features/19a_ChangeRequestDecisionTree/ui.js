@@ -22,19 +22,47 @@ function DecisionProjectionUI() {
     rebuildProjection();
   };
 
+  const handleEmptyProjection = () => {
+    console.log('[DecisionProjectionUI] Empty Projection button clicked - resetting projection');
+    ChangeRequestDecisionTreeProjection.reset();
+  };
+
   return (
     <div className="projection-block">
       <h3>
         Request Status Projection (Quotation + Job)
-        <button 
-          onClick={handleRefresh} 
-          style={{ marginLeft: '1rem', padding: '0.25rem 0.5rem', cursor: 'pointer' }}
+        <button
+          onClick={handleEmptyProjection}
+          style={{
+            marginLeft: '1rem',
+            padding: '0.25rem 0.5rem',
+            cursor: 'pointer',
+            backgroundColor: '#ff6b6b', // A shade of red
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px'
+          }}
+          title="Empty projection"
+        >
+          Empty Projection
+        </button>
+        <button
+          onClick={handleRefresh}
+          style={{
+            marginLeft: '1rem',
+            padding: '0.25rem 0.5rem',
+            cursor: 'pointer',
+            backgroundColor: '#4ECDC4', // A shade of teal
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px'
+          }}
           title="Rebuild projection from all events"
         >
-          Refresh
+          Rebuild Projection
         </button>
       </h3>
-      
+
       {allStates.length === 0 ? (
         <p><em>No request projections available.</em></p>
       ) : (

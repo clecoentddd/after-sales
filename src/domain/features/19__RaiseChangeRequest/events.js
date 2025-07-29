@@ -14,3 +14,15 @@ export const ChangeRequestRaisedEvent = (changeRequestId, requestId, changedByUs
     timestamp: new Date().toISOString()
   }
 });
+
+export function ChangeRequestRejectedEvent(changeRequestId, requestId, reason) {
+  return {
+    type: 'ChangeRequestRejected',
+    data: {
+      changeRequestId,
+      requestId,
+      reason,
+      timestamp: new Date().toISOString(),
+    }
+  };
+}

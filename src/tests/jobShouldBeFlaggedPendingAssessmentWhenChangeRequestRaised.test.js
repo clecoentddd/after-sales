@@ -5,7 +5,7 @@ import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { JobStartedEvent } from '../domain/events/jobStartedEvent';
-import { ChangeRequestRaisedEvent } from '../domain/features/19_ChangeRequested/events';
+import { ChangeRequestRaisedEvent } from '../domain/features/19__RaiseChangeRequest/events';
 
 describe('Job flagged as ChangeRequestReceivedPendingAssessment when change request is raised and job already started', () => {
   const requestId = 'req-002';

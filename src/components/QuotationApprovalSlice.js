@@ -5,7 +5,7 @@ import EventLogDisplay from './EventLogDisplay';
 function QuotationApprovalSlice({ approvedQuotations, approvalEvents, quotations, customers }) {
 return (
   <div className="aggregate-block">
-    <h2>Quotation Approval Aggregate</h2>
+    <h2>Quotation Approval List</h2>
     <div className="aggregate-columns">
 
       <div className="aggregate-column first-column">

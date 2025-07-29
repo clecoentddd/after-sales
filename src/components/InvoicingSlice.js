@@ -5,7 +5,7 @@ import EventLogDisplay from './EventLogDisplay';
 function InvoicingSlice({ invoices, invoiceEvents, customers, jobs }) {
   return (
   <div className="aggregate-block">
-    <h2>Invoicing Aggregate</h2>
+    <h2>Invoicing Management</h2>
     <div className="aggregate-columns">
 
       <div className="aggregate-column first-column">

@@ -31,7 +31,7 @@ function RequestSlice({ requests, requestEvents, customers }) {
 
   return (
     <div className="aggregate-block">
-      <h2>Request Aggregate</h2>
+      <h2>Request Management</h2>
       <div className="aggregate-columns">
         <div className="aggregate-column first-column">
           <h3>Raise a request</h3>

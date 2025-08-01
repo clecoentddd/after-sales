@@ -1,8 +1,11 @@
-// src/domain/features/25_RejectChangeRequest/commands.js
-
-export const RejectChangeRequestCommand = (changeRequestId, changedByUserId, reason) => ({
-  type: 'RejectChangeRequestCommand',
-  changeRequestId,
-  changedByUserId,
-  reason
-});
+// Stub for RejectChangeRequestCommand
+export const RejectChangeRequestCommand = (changeRequestId, requestId, userId, reason) => {
+  return {
+    data: {
+      changeRequestId: changeRequestId || 'default-change-request-id',
+      requestId: requestId || 'default-request-id',
+      userId: userId || 'default-user-id',
+      reason: reason || 'default reason'
+    }
+  };
+};

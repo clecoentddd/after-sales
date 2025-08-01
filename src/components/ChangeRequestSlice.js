@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { changeRequestCommandHandler } from '../domain/features/19__RaiseChangeRequest/commandHandler';
-import { RaiseChangeRequestCommand } from '../domain/features/19__RaiseChangeRequest/commands';
+import { changeRequestCommandHandler } from '../domain/features/19_RaiseChangeRequest/commandHandler';
+import { RaiseChangeRequestCommand } from '../domain/features/19_RaiseChangeRequest/commands';
 import DecisionProjectionUI from '../domain/features/19a_ChangeRequestDecisionTree/ui';
 
 function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, currentUserId }) {

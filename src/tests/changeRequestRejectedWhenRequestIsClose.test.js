@@ -1,5 +1,5 @@
-import { changeRequestCommandHandler } from '../domain/features/19_ChangeRequested/commandHandler';
-import { RaiseChangeRequestCommand } from '../domain/features/19_ChangeRequested/commands';
+import { changeRequestCommandHandler } from '../domain/features/19_RaiseChangeRequest/commandHandler';
+import { RaiseChangeRequestCommand } from '../domain/features/19_RaiseChangeRequest/commands';
 import { requestEventStore } from '../domain/core/eventStore';
 import { RequestCreatedEvent } from '../domain/events/requestCreatedEvent';
 import { RequestClosedEvent } from '../domain/events/requestClosedEvent';

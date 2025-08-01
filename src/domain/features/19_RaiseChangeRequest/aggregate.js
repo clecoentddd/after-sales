@@ -1,6 +1,6 @@
 // src/domain/features/changeRequested/aggregate.js
-import { ChangeRequestRaisedEvent } from './events';
-import { ChangeRequestRejectedEvent } from './events';
+import { ChangeRequestRaisedEvent } from '../../events/changeRequestRaisedEvent';
+import { ChangeRequestRejectedDueToClosedRequest } from '../../events/changeRequestRejectedDueToClosedRequest';
 
 export class ChangeRequestAggregate {
   static raiseChangeRequest(command) {
@@ -13,7 +13,7 @@ export class ChangeRequestAggregate {
   }
 
   static rejectChangeRequest(command) {
-    return ChangeRequestRejectedEvent(
+    return ChangeRequestRejectedDueToClosedRequest(
       command.changeRequestId,
       command.requestId,
       command.reason

@@ -2,7 +2,7 @@ import { eventBus } from '../../core/eventBus';
 import { jobEventStore } from '../../core/eventStore';
 import { JobAggregate } from '../../entities/Job/aggregate';
 
-export const onHoldJobCommandHandler = {
+export const OnHoldJobCommandHandler = {
   handle(command) {
     console.log(`[OnHoldJobCommandHandler] Handling command: ${command.type}`, command);
 

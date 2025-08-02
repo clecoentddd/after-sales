@@ -23,11 +23,12 @@ import QuotationApprovalMonitor from './components/QuotationApprovalMonitor';
 
 import EventsPage from './EventsPage';  // import your new EventsPage
 import LiveModelPage from './LiveModelPage'; // Assuming you have a LiveModelPage component
+import ToDoListPage from './ToDoChangeRequestProcessPage'; // Assuming you have a ToDoListPage component
 
 import { initializeQuotationEventHandler } from './domain/features/07_CreateQuotation/eventHandler';
 import { initializeCreateJobEventHandler } from './domain/features/11_CreateJobAutomation/eventHandler';
 import { initializeInvoiceFromJobCompletionHandler } from './domain/features/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
-import { initializeAssignJobToChangeRequestProcessor } from './domain/features/99_changeRequestToJobReactionProcessor/changeRequestToJobReactionProcessor';
+import { initializeAssignJobToChangeRequestProcessor } from './domain/features/99_changeRequestToJobReactionProcessor/initializeAssignJobToChangeRequestProcessor';
 import { initializeChangeRequestDecisionTreeHandler } from './domain/features/19a_ChangeRequestDecisionTree/eventHandler';
 import {initializeCompleteJobEventHandler } from './domain/features/27_CloseRequest/eventHandler';
 import { useEffect } from 'react';
@@ -61,9 +62,10 @@ function App() {
         <header>
           <h1>Event Sourcing Demo</h1>
           <nav style={{ marginBottom: 20 }}>
-            <Link to="/" style={{ marginRight: 15 }}>Home</Link>
-            <Link to="/events" style={{ marginRight: 15 }}>Events</Link>
-            <Link to="/liveModel">RequestSatus</Link>
+           <Link to="/" style={{ marginRight: '15px' }}>Home</Link>
+            <Link to="/events" style={{ marginRight: '15px' }}>Events</Link>
+            <Link to="/liveModel" style={{ marginRight: '15px' }}>RequestStatus</Link>
+            <Link to="/toDoList" style={{ marginRight: '15px' }}>ToDoList</Link>
           </nav>
         </header>
 
@@ -117,6 +119,7 @@ function App() {
           />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/liveModel" element={<LiveModelPage />} />
+          <Route path="/toDoList" element={<ToDoListPage />} />
         </Routes>
       </div>
     </Router>

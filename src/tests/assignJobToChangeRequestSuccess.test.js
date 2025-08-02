@@ -5,7 +5,7 @@ import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { ChangeRequestRaisedEvent } from '../domain/events/changeRequestRaisedEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
-import { todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
+import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
 
 describe('Assign Job to Change Request - Success Scenario', () => {
   const jobId = 'job-123';
@@ -47,7 +47,7 @@ describe('Assign Job to Change Request - Success Scenario', () => {
         expect(todoItem).toBeDefined();
         expect(todoItem.jobId).toBe(jobId);
         expect(todoItem.changeRequestId).toBe(changeRequestId);
-        expect(todoItem.track).toBe('No'); // Assuming 'No' means it's pending assessment
+        expect(todoItem.track).toBe(TODO_STATUS.TO_BE_ASSESSED); // Assuming 'No' means it's pending assessment
 
         done(); // Notify Jest that the test is complete
       } catch (error) {

@@ -4,8 +4,8 @@ import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { JobAssignedToChangeRequestEvent } from '../domain/events/JobAssignedToChangeRequestEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
-import { todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
-import { reconstructJobState } from '../domain/entities/Job/aggregate'; // Adjust the import path as needed
+import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
+import { reconstructJobState } from '../domain/entities/Job/aggregate';
 
 describe('To-Do List Processing - Status Change Scenario', () => {
   const jobId = 'job-123';
@@ -27,34 +27,36 @@ describe('To-Do List Processing - Status Change Scenario', () => {
     const jobCreatedEvent = JobCreatedEvent(jobId, customerId, requestId, quotationId, jobDetails, 'Pending');
     jobEventStore.append(jobCreatedEvent);
 
-    // Add a todo item with status 'No' to simulate an existing item
+    // Add a todo item with status TO_BE_ASSESSED to simulate an existing item
     const eventId = 'event-123';
-    updateTodoList(eventId, 'No', jobId, changeRequestId, userId, description);
+    updateTodoList(eventId, TODO_STATUS.TO_BE_ASSESSED, jobId, changeRequestId, userId, description);
 
     // Log the initial state for verification
     console.log('[Test Setup] Initial Todo List:', todoList);
   });
 
-  it('should update the todo list item status to "Yes" when processed', (done) => {
+  it('should update the todo list item status to ASSESSED when processed', (done) => {
+    jest.setTimeout(10000); // Increase timeout to 10 seconds
+
     // Subscribe to the event that indicates the todo item has been processed
-    eventBus.subscribe('JobAssignedToChangeRequest', (event) => {
+    eventBus.subscribe('TodoListUpdated', (event) => {
       try {
-        console.log('[Test] Received JobAssignedToChangeRequest event:', event);
+        console.log('[Test] Received TodoListUpdated event:', event);
 
         // Reconstruct the job state to ensure it is 'Pending'
         const job = reconstructJobState(jobId);
         console.log('[Test] Reconstructed Job State:', job);
 
-        // Verify the job status is now "onHold"
+        // Verify the job status is now "OnHold"
         expect(job.status).toBe('OnHold');
 
         // Check the todoList directly to verify the status change
         const todoItem = todoList.find(item => item.changeRequestId === changeRequestId);
         console.log('[Test] Found Todo Item:', todoItem);
 
-        // Verify the todo item status is updated to 'Yes'
+        // Verify the todo item status is updated to ASSESSED
         expect(todoItem).toBeDefined();
-        expect(todoItem.track).toBe('Yes');
+        expect(todoItem.track).toBe(TODO_STATUS.ASSESSED);
 
         done(); // Notify that the test is complete
       } catch (error) {

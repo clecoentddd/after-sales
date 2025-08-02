@@ -6,13 +6,12 @@ import { requestEventStore } from '../../core/eventStore';
 import { RejectChangeRequestAssignmentCommandHandler } from './commandHandler';
 import { RejectChangeRequestAssignmentCommand } from './commands';
 import { JobAssignedToChangeRequestEvent } from '../../events/JobAssignedToChangeRequestEvent';
-import { todoList, updateTodoList } from './todoListManager';
+import { TODO_STATUS, todoList, updateTodoList } from './todoListManager';
 import { reconstructJobState } from '../../entities/Job/aggregate'; // Adjust the import path as needed
-
 
 const isEventProcessed = (eventId) => {
   const item = todoList.find(item => item.eventId === eventId);
-  return item ? item.track === 'Yes' : false;
+  return item ? item.track === TODO_STATUS.TO_BE_ASSESSED : false;
 };
 
 // Initialize the processor to handle job assignments to change requests
@@ -47,7 +46,7 @@ export const initializeAssignJobToChangeRequestProcessor = () => {
       RejectChangeRequestAssignmentCommandHandler.handle(
         RejectChangeRequestAssignmentCommand(changeRequestId, requestId, changedByUserId, 'No job found for request')
       );
-      updateTodoList(eventId, 'Yes');
+      updateTodoList(eventId, TODO_STATUS.ERROR_NO_JOB );
       return;
     }
 
@@ -60,11 +59,11 @@ export const initializeAssignJobToChangeRequestProcessor = () => {
         RejectChangeRequestAssignmentCommandHandler.handle(
           RejectChangeRequestAssignmentCommand(changeRequestId, requestId, changedByUserId, 'No job found for request')
         );
-        updateTodoList(eventId, 'Yes');
+        updateTodoList(eventId, TODO_STATUS.ERROR_NO_JOB);
         return;
       }
 
-      updateTodoList(eventId, 'No', jobId, changeRequestId, changedByUserId, description);
+      updateTodoList(eventId, TODO_STATUS.TO_BE_ASSESSED, jobId, changeRequestId, changedByUserId, description);
       const jobAssignedEvent = JobAssignedToChangeRequestEvent(jobId, changeRequestId, changedByUserId, description);
       requestEventStore.append(jobAssignedEvent);
       eventBus.publish(jobAssignedEvent);

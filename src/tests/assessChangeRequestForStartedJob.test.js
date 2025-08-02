@@ -3,7 +3,7 @@ import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { JobAssignedToChangeRequestEvent } from '../domain/events/JobAssignedToChangeRequestEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
-import { todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
+import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
 import { reconstructJobState } from '../domain/entities/Job/aggregate'; // Adjust the import path as needed
 import { JobStartedEvent } from '../domain/events/jobStartedEvent'; // Import the JobStartedEvent
 
@@ -32,17 +32,17 @@ describe('To-Do List Processing - Started Status Scenario', () => {
 
     // Add a todo item with status 'No'
     const eventId = 'event-123';
-    updateTodoList(eventId, 'No', jobId, changeRequestId, userId, description);
+    updateTodoList(eventId, TODO_STATUS.TO_BE_ASSESSED, jobId, changeRequestId, userId, description);
   });
 
-  it('should flag the job for assessment and update the todo list item status to "Yes"', (done) => {
-    eventBus.subscribe('JobAssignedToChangeRequest', (event) => {
+  it('should flag the job for assessment and update the todo list item status to "TO_BE_ASSESSED"', (done) => {
+    eventBus.subscribe('TodoListUpdated', (event) => {
       try {
         const job = reconstructJobState(jobId);
         expect(job.status).toBe('ChangeRequestReceivedPendingAssessment');
 
         const todoItem = todoList.find(item => item.changeRequestId === changeRequestId);
-        expect(todoItem.track).toBe('Yes');
+        expect(todoItem.track).toBe(TODO_STATUS.ASSESSMENT_TO_BE_PROVIDED);
 
         done();
       } catch (error) {

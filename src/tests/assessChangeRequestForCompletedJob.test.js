@@ -4,7 +4,7 @@ import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { JobAssignedToChangeRequestEvent } from '../domain/events/JobAssignedToChangeRequestEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
-import { todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
+import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
 import { reconstructJobState } from '../domain/entities/Job/aggregate'; // Adjust the import path as needed
 import { JobStartedEvent } from '../domain/events/jobStartedEvent';
 import { JobCompletedEvent } from '../domain/events/jobCompletedEvent';
@@ -38,17 +38,17 @@ describe('To-Do List Processing - Completed Status Scenario', () => {
 
     // Add a todo item with status 'No'
     const eventId = 'event-123';
-    updateTodoList(eventId, 'No', jobId, changeRequestId, userId, description);
+    updateTodoList(eventId, TODO_STATUS.TO_BE_ASSESSED, jobId, changeRequestId, userId, description);
   });
 
-  it('should reject the change request and update the todo list item status to "Yes"', (done) => {
-    eventBus.subscribe('JobAssignedToChangeRequest', (event) => {
+  it('should reject the change request and update the todo list item status to TO_BE_ASSESSED', (done) => {
+    eventBus.subscribe('TodoListUpdated', (event) => {
       try {
         const job = reconstructJobState(jobId);
         expect(job.status).toBe('Completed');
 
         const todoItem = todoList.find(item => item.changeRequestId === changeRequestId);
-        expect(todoItem.track).toBe('Yes');
+        expect(todoItem.track).toBe(TODO_STATUS.ASSESSED);
 
         done();
       } catch (error) {

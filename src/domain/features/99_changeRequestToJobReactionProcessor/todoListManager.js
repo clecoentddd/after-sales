@@ -1,5 +1,13 @@
 // src/domain/features/99_changeRequestToJobReactionProcessor/todoListManager.js
 
+// Define status constants within the same file
+export const TODO_STATUS = {
+  TO_BE_ASSESSED: 'ToBeAssessed',
+  ASSESSED: 'Assessed',
+  ASSESSMENT_TO_BE_PROVIDED: 'AssessmentToBeProvided',
+  ERROR_NO_JOB: 'ErrorNoJob'
+};
+
 let todoList = [];
 
 export const updateTodoList = (eventId, status, jobId = null, changeRequestId = null, changedByUserId = null, description = null) => {

@@ -31,6 +31,7 @@ import { initializeInvoiceFromJobCompletionHandler } from './domain/features/17_
 import { initializeAssignJobToChangeRequestProcessor } from './domain/features/99_changeRequestToJobReactionProcessor/initializeAssignJobToChangeRequestProcessor';
 import { initializeChangeRequestDecisionTreeHandler } from './domain/features/19a_ChangeRequestDecisionTree/eventHandler';
 import {initializeCompleteJobEventHandler } from './domain/features/27_CloseRequest/eventHandler';
+import {initializeToDoJobToAssessChangeRequest} from './domain/features/98_AssignJobToChangeRequestProcessor/initializeAssigToDoJobToAssessChangeRequestProcessor';
 import { useEffect } from 'react';
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
     initializeAssignJobToChangeRequestProcessor();
     initializeChangeRequestDecisionTreeHandler();
     initializeCompleteJobEventHandler();
+    initializeToDoJobToAssessChangeRequest()
   }, []);
 
   return (

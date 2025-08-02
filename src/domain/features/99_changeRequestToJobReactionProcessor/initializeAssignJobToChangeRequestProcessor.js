@@ -7,38 +7,15 @@ import { RejectChangeRequestAssignmentCommandHandler } from './commandHandler';
 import { RejectChangeRequestAssignmentCommand } from './commands';
 import { JobAssignedToChangeRequestEvent } from '../../events/JobAssignedToChangeRequestEvent';
 import { todoList, updateTodoList } from './todoListManager';
+import { reconstructJobState } from '../../entities/Job/aggregate'; // Adjust the import path as needed
+
 
 const isEventProcessed = (eventId) => {
   const item = todoList.find(item => item.eventId === eventId);
   return item ? item.track === 'Yes' : false;
 };
 
-const reconstructJobState = (jobId) => {
-  const allEvents = jobEventStore.getEvents().sort((a, b) =>
-    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-  );
-  let job = null;
-  allEvents.forEach(event => {
-    if (event.data.jobId === jobId) {
-      switch (event.type) {
-        case 'JobCreated':
-          job = { ...event.data, status: 'Pending' };
-          break;
-        case 'JobStarted':
-          job.status = 'Started';
-          break;
-        case 'JobCompleted':
-          job.status = 'Completed';
-          break;
-        case 'JobOnHold':
-          job.status = 'OnHold';
-          job.onHoldReason = event.data.reason;
-          break;
-      }
-    }
-  });
-  return job;
-};
+// Initialize the processor to handle job assignments to change requests
 
 let isMatchingProcessorInitialized = false;
 
@@ -89,8 +66,9 @@ export const initializeAssignJobToChangeRequestProcessor = () => {
 
       updateTodoList(eventId, 'No', jobId, changeRequestId, changedByUserId, description);
       const jobAssignedEvent = JobAssignedToChangeRequestEvent(jobId, changeRequestId, changedByUserId, description);
-      eventBus.publish(jobAssignedEvent);
       requestEventStore.append(jobAssignedEvent);
+      eventBus.publish(jobAssignedEvent);
+
     });
   });
 

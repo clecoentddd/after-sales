@@ -46,7 +46,7 @@ export const initializeAssignJobToChangeRequestProcessor = () => {
       RejectChangeRequestAssignmentCommandHandler.handle(
         RejectChangeRequestAssignmentCommand(changeRequestId, requestId, changedByUserId, 'No job found for request')
       );
-      updateTodoList(eventId, TODO_STATUS.ERROR_NO_JOB );
+      updateTodoList(eventId, TODO_STATUS.ERROR_NO_JOB , "Unknown Job", changeRequestId, changedByUserId, 'No job found for request');
       return;
     }
 
@@ -59,7 +59,7 @@ export const initializeAssignJobToChangeRequestProcessor = () => {
         RejectChangeRequestAssignmentCommandHandler.handle(
           RejectChangeRequestAssignmentCommand(changeRequestId, requestId, changedByUserId, 'No job found for request')
         );
-        updateTodoList(eventId, TODO_STATUS.ERROR_NO_JOB);
+           updateTodoList(eventId, TODO_STATUS.ERROR_NO_JOB , "Unknown Job", changeRequestId, changedByUserId, 'No job found for request');
         return;
       }
 

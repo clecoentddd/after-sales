@@ -1,11 +1,9 @@
-// src/components/ToDoListPage.js
-
 import React from 'react';
 import { getTodoList } from './domain/features/99_changeRequestToJobReactionProcessor/todoListManager'; // Adjust the import path as needed
+import './ToDoListPage.css'; // Import the CSS file
 
 function ToDoListPage() {
   const todoList = getTodoList();
-
   return (
     <div className="todo-column">
       <h2>To-Do List</h2>

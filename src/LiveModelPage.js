@@ -39,7 +39,7 @@ const LiveRequestModel = () => {
 
   return (
     <div className="live-request-container">
-      <h2>📦 Parcel-Style Request Timeline</h2>
+      <h2>📦 Request Timeline</h2>
       <div className="flex" style={{ display: 'flex', gap: '2rem' }}>
         <div className="request-id-list">
           <h3>Request IDs</h3>

@@ -16,6 +16,7 @@ import { TodoListUpdatedEvent } from '../99_changeRequestToJobReactionProcessor/
 let isProcessorInitialized = false;
 
 export const initializeToDoJobToAssessChangeRequest = () => {
+  console.log('[initializeToDoJobToAssessChangeRequest] Initializing To-Do Job Processor'); 
   if (isProcessorInitialized) return;
 
   const processTodoList = () => {
@@ -71,8 +72,26 @@ export const initializeToDoJobToAssessChangeRequest = () => {
   };
 
   // Subscribe to the JobAssignedToChangeRequest event to trigger processing
-  eventBus.subscribe('JobAssignedToChangeRequest', processTodoList);
+  eventBus.subscribe('CreatedJobAssignedToChangeRequest',() => {
+  console.log('[Subscription] Received CreatedJobAssignedToChangeRequest, calling processTodoList...');
+  processTodoList();
+  });
+
+  eventBus.subscribe('StartedJobAssignedToChangeRequest',() => {
+  console.log('[Subscription] Received StartedJobAssignedToChangeRequest, calling processTodoList...');
+  processTodoList();
+  });
+
+  eventBus.subscribe('CompleteJobAssignedToChangeRequest',() => {
+  console.log('[Subscription] Received CompleteJobAssignedToChangeRequest, calling processTodoList...');
+  processTodoList();
+  });
+
+  
+
+  
+  console.log('[TodoProcessor] Initialized and ready to process JobAssignedToChangeRequest events.');
 
   isProcessorInitialized = true;
-  console.log('[TodoProcessor] Ready to process JobAssignedToChangeRequest events.');
+  console.log('[TodoProcessor] Ready to process createdJobAssignedToChangeRequest events.');
 };

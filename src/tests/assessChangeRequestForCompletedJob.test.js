@@ -1,8 +1,8 @@
 // Import necessary modules and functions
-import { initializeToDoJobToAssessChangeRequest } from '../domain/features/98_AssignJobToChangeRequestProcessor/initializeAssigToDoJobToAssessChangeRequestProcessor';
+import { initializeToDoJobToAssessChangeRequest } from '../domain/features/98_AssignJobToChangeRequestProcessor/initializeAssignToDoJobToAssessChangeRequestProcessor';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
-import { JobAssignedToChangeRequestEvent } from '../domain/events/JobAssignedToChangeRequestEvent';
+import { CompleteJobAssignedToChangeRequestEvent } from '../domain/features/99_changeRequestToJobReactionProcessor/CompleteJobAssignedToChangeRequestEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
 import { reconstructJobState } from '../domain/entities/Job/aggregate'; // Adjust the import path as needed
@@ -56,7 +56,7 @@ describe('To-Do List Processing - Completed Status Scenario', () => {
       }
     });
 
-    const jobAssignedEvent = JobAssignedToChangeRequestEvent(jobId, changeRequestId, userId, description);
+    const jobAssignedEvent = CompleteJobAssignedToChangeRequestEvent(jobId, changeRequestId, userId, description);
     eventBus.publish(jobAssignedEvent);
   });
 });

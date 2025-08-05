@@ -1,10 +1,12 @@
 // src/tests/assignJobToChangeRequestSuccess.test.js
 
-import { initializeAssignJobToChangeRequestProcessor } from '../domain/features/99_changeRequestToJobReactionProcessor/initializeAssignJobToChangeRequestProcessor';
+import { initializeAssignStartedJobToChangeRequestProcessor } from '../domain/features/99_changeRequestToJobReactionProcessor/initializeAssignStartedJobToChangeRequestProcessor';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { ChangeRequestRaisedEvent } from '../domain/events/changeRequestRaisedEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
+import { JobStartedEvent } from '../domain/events/jobStartedEvent';
+import { AssignStartedJobToChangeRequestCommand } from '../domain/features/99_changeRequestToJobReactionProcessor/assignStartedJobToChangeRequestCommand';
 import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
 
 describe('Assign Job to Change Request - Success Scenario', () => {
@@ -19,11 +21,14 @@ describe('Assign Job to Change Request - Success Scenario', () => {
   beforeEach(() => {
     // Clear the event store and initialize the processor before each test
     jobEventStore.clear();
-    initializeAssignJobToChangeRequestProcessor();
+    initializeAssignStartedJobToChangeRequestProcessor();
 
     // Create and store a JobCreated event to simulate an existing job
     const jobCreatedEvent = JobCreatedEvent(jobId, customerId, requestId, quotationId, jobDetails, 'Pending');
     jobEventStore.append(jobCreatedEvent);
+
+       const jobStartedEvent = JobStartedEvent(jobId, requestId, jobDetails.assignedTeam, userId);
+        jobEventStore.append(jobStartedEvent);
 
     // Log the event store to verify the job was added
     console.log('[Test Setup] Job Event Store:', jobEventStore.getEvents());
@@ -33,12 +38,12 @@ describe('Assign Job to Change Request - Success Scenario', () => {
     jest.setTimeout(10000); // Increase timeout if necessary
 
     // Subscribe to the JobAssignedToChangeRequest event
-    eventBus.subscribe('JobAssignedToChangeRequest', (event) => {
+    eventBus.subscribe('StartedJobAssignedToChangeRequest', (event) => {
        try {
-        console.log('[Test] Received JobAssignedToChangeRequest event:', event);
+        console.log('[Test] Received StartedJobAssignedToChangeRequest event:', event);
 
         // Verify the job assignment details
-        expect(event.type).toBe('JobAssignedToChangeRequest');
+        expect(event.type).toBe('StartedJobAssignedToChangeRequest');
         expect(event.data.jobId).toBe(jobId);
         expect(event.data.changeRequestId).toBe(changeRequestId);
 

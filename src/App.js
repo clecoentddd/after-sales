@@ -28,10 +28,14 @@ import ToDoListPage from './ToDoChangeRequestProcessPage'; // Assuming you have 
 import { initializeQuotationEventHandler } from './domain/features/07_CreateQuotation/eventHandler';
 import { initializeCreateJobEventHandler } from './domain/features/11_CreateJobAutomation/eventHandler';
 import { initializeInvoiceFromJobCompletionHandler } from './domain/features/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
-import { initializeAssignJobToChangeRequestProcessor } from './domain/features/99_changeRequestToJobReactionProcessor/initializeAssignJobToChangeRequestProcessor';
+// import { initializeAssignJobToChangeRequestProcessor } from './domain/features/99_changeRequestToJobReactionProcessor/initializeAssignJobToChangeRequestProcessor';
+import { initializeAssignCreatedJobToChangeRequestProcessor } from './domain/features/99_changeRequestToJobReactionProcessor/initializeAssignCreatedJobToChangeRequestProcessor';
+import { initializeAssignStartedJobToChangeRequestProcessor } from './domain/features/99_changeRequestToJobReactionProcessor/initializeAssignStartedJobToChangeRequestProcessor';
+import { initializeAssignCompleteJobToChangeRequestProcessor } from './domain/features/99_changeRequestToJobReactionProcessor/initializeAssignCompleteJobToChangeRequestProcessor';
 import { initializeChangeRequestDecisionTreeHandler } from './domain/features/19a_ChangeRequestDecisionTree/eventHandler';
 import {initializeCompleteJobEventHandler } from './domain/features/27_CloseRequest/eventHandler';
-import {initializeToDoJobToAssessChangeRequest} from './domain/features/98_AssignJobToChangeRequestProcessor/initializeAssigToDoJobToAssessChangeRequestProcessor';
+import {initializeToDoJobToAssessChangeRequest} from './domain/features/98_AssignJobToChangeRequestProcessor/initializeAssignToDoJobToAssessChangeRequestProcessor';
+
 import { useEffect } from 'react';
 
 function App() {
@@ -52,10 +56,13 @@ function App() {
     initializeQuotationEventHandler();
     initializeCreateJobEventHandler();
     initializeInvoiceFromJobCompletionHandler();
-    initializeAssignJobToChangeRequestProcessor();
+    // initializeAssignJobToChangeRequestProcessor();
+    initializeAssignCreatedJobToChangeRequestProcessor();
+    initializeAssignStartedJobToChangeRequestProcessor();
+    initializeAssignCompleteJobToChangeRequestProcessor();
     initializeChangeRequestDecisionTreeHandler();
     initializeCompleteJobEventHandler();
-    initializeToDoJobToAssessChangeRequest()
+    initializeToDoJobToAssessChangeRequest();
   }, []);
 
   return (

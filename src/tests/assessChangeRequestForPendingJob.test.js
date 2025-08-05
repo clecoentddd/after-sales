@@ -1,8 +1,8 @@
 // Import necessary modules and functions
-import { initializeToDoJobToAssessChangeRequest } from '../domain/features/98_AssignJobToChangeRequestProcessor/initializeAssigToDoJobToAssessChangeRequestProcessor';
+import { initializeToDoJobToAssessChangeRequest } from '../domain/features/98_AssignJobToChangeRequestProcessor/initializeAssignToDoJobToAssessChangeRequestProcessor';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
-import { JobAssignedToChangeRequestEvent } from '../domain/events/JobAssignedToChangeRequestEvent';
+import { CreatedJobAssignedToChangeRequestEvent } from '../domain/features/99_changeRequestToJobReactionProcessor/CreatedJobAssignedToChangeRequestEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
 import { reconstructJobState } from '../domain/entities/Job/aggregate';
@@ -65,7 +65,7 @@ describe('To-Do List Processing - Status Change Scenario', () => {
     });
 
     // Simulate the processing of the todo item by publishing the event
-    const jobAssignedEvent = JobAssignedToChangeRequestEvent(jobId, changeRequestId, userId, description);
+    const jobAssignedEvent = CreatedJobAssignedToChangeRequestEvent(jobId, changeRequestId, userId, description);
     console.log('[Test] Publishing JobAssignedToChangeRequest event:', jobAssignedEvent);
     eventBus.publish(jobAssignedEvent);
     console.log('[Test] Event published, waiting for subscription to process...');

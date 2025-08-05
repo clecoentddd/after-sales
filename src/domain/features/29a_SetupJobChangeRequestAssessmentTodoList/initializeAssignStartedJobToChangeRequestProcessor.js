@@ -3,12 +3,12 @@
 import { eventBus } from '../../core/eventBus';
 import { jobEventStore } from '../../core/eventStore';
 import { requestEventStore } from '../../core/eventStore';
-import { RejectChangeRequestAssignmentCommandHandler } from './commandHandler';
-import { RejectChangeRequestAssignmentCommand } from './commands';
+import { RejectChangeRequestAssignmentCommandHandler } from '../99_ToDoChangeRequestProcessManager/commandHandler';
+import { RejectChangeRequestAssignmentCommand } from '../99_ToDoChangeRequestProcessManager/commands';
 import { AssignStartedJobToChangeRequestCommandHandler } from './assignStartedJobToChangeRequestCommandHandler';
 import { AssignStartedJobToChangeRequestCommand } from './assignStartedJobToChangeRequestCommand';
-import { StartedJobAssignedToChangeRequestEvent } from './StartedJobAssignedToChangeRequestEvent';
-import { TODO_STATUS, todoList, updateTodoList } from './todoListManager';
+import { StartedJobAssignedToChangeRequestEvent } from '../../events/StartedJobAssignedToChangeRequestEvent';
+import { TODO_STATUS, todoList, updateTodoList } from '../99_ToDoChangeRequestProcessManager/todoListManager';
 import { reconstructJobState } from '../../entities/Job/aggregate';
 
 const isEventProcessed = (eventId) => {

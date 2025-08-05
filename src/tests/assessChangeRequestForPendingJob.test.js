@@ -1,10 +1,10 @@
 // Import necessary modules and functions
-import { initializeToDoJobToAssessChangeRequest } from '../domain/features/98_AssignJobToChangeRequestProcessor/initializeAssignToDoJobToAssessChangeRequestProcessor';
+import { initializeToDoCreatedJobToAssessChangeRequest } from '../domain/features/23b_PutJobOnHold/toDoCreatedJobToAssessChangeRequestProcessor.js.js';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
-import { CreatedJobAssignedToChangeRequestEvent } from '../domain/features/99_changeRequestToJobReactionProcessor/CreatedJobAssignedToChangeRequestEvent';
+import { CreatedJobAssignedToChangeRequestEvent } from '../domain/events/CreatedJobAssignedToChangeRequestEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
-import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
+import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_ToDoChangeRequestProcessManager/todoListManager.js';
 import { reconstructJobState } from '../domain/entities/Job/aggregate';
 
 describe('To-Do List Processing - Status Change Scenario', () => {
@@ -21,7 +21,7 @@ describe('To-Do List Processing - Status Change Scenario', () => {
     // Clear the event store and todo list, and initialize the processor before each test
     jobEventStore.clear();
     todoList.length = 0;
-    initializeToDoJobToAssessChangeRequest();
+    initializeToDoCreatedJobToAssessChangeRequest();
 
     // Create and store a JobCreated event to simulate an existing job with status 'Pending'
     const jobCreatedEvent = JobCreatedEvent(jobId, customerId, requestId, quotationId, jobDetails, 'Pending');

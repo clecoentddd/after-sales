@@ -1,13 +1,13 @@
 // Import necessary modules and functions
-import { initializeToDoJobToAssessChangeRequest } from '../domain/features/98_AssignJobToChangeRequestProcessor/initializeAssignToDoJobToAssessChangeRequestProcessor';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
-import { CompleteJobAssignedToChangeRequestEvent } from '../domain/features/99_changeRequestToJobReactionProcessor/CompleteJobAssignedToChangeRequestEvent';
-import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
-import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_changeRequestToJobReactionProcessor/todoListManager';
 import { reconstructJobState } from '../domain/entities/Job/aggregate'; // Adjust the import path as needed
-import { JobStartedEvent } from '../domain/events/jobStartedEvent';
 import { JobCompletedEvent } from '../domain/events/jobCompletedEvent';
+import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
+import { JobStartedEvent } from '../domain/events/jobStartedEvent';
+import { initializeToDoCompleteJobToAssessChangeRequest } from '../domain/features/32b_CompleteJobChangeRequestAssessment/toDoCompleteJobToAssessChangeRequestProcessor';
+import { CompleteJobAssignedToChangeRequestEvent } from '../domain/events/CompleteJobAssignedToChangeRequestEvent';
+import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_ToDoChangeRequestProcessManager/todoListManager';
 
 describe('To-Do List Processing - Completed Status Scenario', () => {
   const jobId = 'job-123';
@@ -22,7 +22,7 @@ describe('To-Do List Processing - Completed Status Scenario', () => {
   beforeEach(() => {
     jobEventStore.clear();
     todoList.length = 0;
-    initializeToDoJobToAssessChangeRequest();
+    initializeToDoCompleteJobToAssessChangeRequest();
 
     // Create and store a JobCreated event to simulate an existing job
     const jobCreatedEvent = JobCreatedEvent(jobId, customerId, requestId, quotationId, jobDetails, 'Pending');

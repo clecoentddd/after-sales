@@ -7,7 +7,7 @@ import { RejectChangeRequestAssignmentCommandHandler } from '../99_ToDoChangeReq
 import { RejectChangeRequestAssignmentCommand } from '../99_ToDoChangeRequestProcessManager/commands';
 import { AssignStartedJobToChangeRequestCommandHandler } from './assignStartedJobToChangeRequestCommandHandler';
 import { AssignStartedJobToChangeRequestCommand } from './assignStartedJobToChangeRequestCommand';
-import { StartedJobAssignedToChangeRequestEvent } from '../../../events/StartedJobAssignedToChangeRequestEvent';
+import { StartedJobAssignedToChangeRequestEvent } from '@events/StartedJobAssignedToChangeRequestEvent';
 import { TODO_STATUS, todoList, updateTodoList } from '../99_ToDoChangeRequestProcessManager/todoListManager';
 import { reconstructJobState } from '@entities/Job/aggregate';
 

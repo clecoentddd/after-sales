@@ -5,7 +5,7 @@ import { jobEventStore } from '@core/eventStore';
 import { requestEventStore } from '@core/eventStore';
 import { RejectChangeRequestAssignmentCommandHandler } from './commandHandler';
 import { RejectChangeRequestAssignmentCommand } from './commands';
-import { JobAssignedToChangeRequestEvent } from '../../../events/JobAssignedToChangeRequestEvent';
+import { JobAssignedToChangeRequestEvent } from '@events/JobAssignedToChangeRequestEvent';
 import { TODO_STATUS, todoList, updateTodoList } from './todoListManager';
 import { reconstructJobState } from '@entities/Job/aggregate'; // Adjust the import path as needed
 

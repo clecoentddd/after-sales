@@ -1,12 +1,13 @@
 // src/domain/features/changeRequested/events.js
 
-export const ChangeRequestRaisedEvent = (changeRequestId, requestId, changedByUserId, description) => ({
+export const ChangeRequestRaisedEvent = (changeRequestId, requestId, changedByUserId, description, versionId) => ({
   type: 'ChangeRequestRaised',
   data: {
-    changeRequestId,   // passed from outside now
-    requestId,
+    changeRequestId,   // unique id for this change request
+    requestId,         // parent request id
     changedByUserId,
     description,
+    versionId,         // new version of the request after this change
     raisedAt: new Date().toISOString(),
     status: 'Pending'
   },
@@ -14,4 +15,3 @@ export const ChangeRequestRaisedEvent = (changeRequestId, requestId, changedByUs
     timestamp: new Date().toISOString()
   }
 });
-

@@ -2,7 +2,7 @@
 
 import { eventBus } from '@core/eventBus';
 import { jobEventStore } from '@core/eventStore';
-import { ChangeRequestAssignmentRejectedEvent } from '../../../events/changeRequestAssignmentRejectedEvent';
+import { ChangeRequestAssignmentRejectedEvent } from '@events/changeRequestAssignmentRejectedEvent';
 
 export const RejectChangeRequestAssignmentCommandHandler = {
   handle: (command) => {

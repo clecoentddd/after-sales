@@ -1,6 +1,6 @@
 // src/tests/assignJobToChangeRequestSuccess.test.js
 
-import { initializeAssignCreatedJobToChangeRequestProcessor } from '../domain/features/23a_SetTodoToPutJobOnHold/initializeAssignCreatedJobToChangeRequestProcessor';
+import { initializeAssignCreatedJobToChangeRequestProcessor } from '../domain/features/00_JobManagement/23a_SetTodoToPutJobOnHold/initializeAssignCreatedJobToChangeRequestProcessor';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { ChangeRequestRaisedEvent } from '../domain/events/changeRequestRaisedEvent';

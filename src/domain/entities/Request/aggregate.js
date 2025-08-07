@@ -1,9 +1,14 @@
-import { RequestCreatedEvent } from "../../events/requestCreatedEvent";
+// src/domain/entities/RequestAggregate.js
+
+import { RequestRaisedEvent } from "../../events/requestRaisedEvent";
 import { RequestClosedEvent } from "../../events/requestClosedEvent";
+import { ChangeRequestRaisedEvent } from "../../events/changeRequestRaisedEvent";
+import { ChangeRequestRejectedDueToClosedRequest } from "../../events/changeRequestRejectedDueToClosedRequest";
 
 export class RequestAggregate {
   constructor() {
     this.state = null;
+    this.changeRequests = [];
   }
 
   replay(events) {
@@ -12,37 +17,89 @@ export class RequestAggregate {
       this.apply(event);
     }
     console.log('[RequestAggregate] State after replay:', this.state);
+    console.log('[RequestAggregate] ChangeRequests after replay:', this.changeRequests);
   }
 
   apply(event) {
     console.log('[RequestAggregate] Applying event of type:', event.type);
+
     switch (event.type) {
-      case 'RequestCreated':
+      case 'RequestRaised':
         this.state = {
           requestId: event.data.requestId,
           customerId: event.data.customerId,
           requestDetails: event.data.requestDetails,
-          status: 'Pending',
+          status: event.data.status,
+          currentVersion: event.data.versionId || 1
         };
+        this.changeRequests = [];
         break;
+
       case 'RequestClosed':
         if (this.state) {
           this.state.status = 'Closed';
         }
         break;
-      // Handle other event types as needed
+
+      case 'ChangeRequestRaised':
+        if (!this.changeRequests) this.changeRequests = [];
+        this.changeRequests.push({
+          changeRequestId: event.data.changeRequestId,
+          versionId: this.state.currentVersion + 1,
+          changedByUserId: event.data.changedByUserId,
+          description: event.data.description,
+          status: 'Pending',
+          createdAt: event.timestamp || new Date().toISOString()
+        });
+        this.state.currentVersion++;
+        break;
+
+      case 'ChangeRequestRejectedDueToClosedRequest':
+        const cr = this.changeRequests.find(cr => cr.changeRequestId === event.data.changeRequestId);
+        if (cr) cr.status = 'Rejected';
+        break;
+
+      // Add other event types as needed
     }
+
     console.log('[RequestAggregate] State after applying event:', this.state);
+    console.log('[RequestAggregate] ChangeRequests after applying event:', this.changeRequests);
   }
 
   static create(command) {
-    console.log('[RequestAggregate] Creating RequestCreatedEvent with requestId:', command.requestId);
-    return RequestCreatedEvent(
-      command.requestId,
-      command.customerId,
-      command.requestDetails,
-      'Pending'
-    );
+    console.log('[RequestAggregate] Creating RequestRaisedEvent with requestId:', command.requestId);
+
+    return RequestRaisedEvent({
+      requestId: command.requestId,
+      versionId: 1,
+      customerId: command.customerId,
+      requestDetails: command.requestDetails,
+      status: 'Pending'
+    });
+  }
+
+  raiseChangeRequest(command) {
+    if (!this.state) {
+      throw new Error('Request state is not initialized.');
+    }
+    if (this.state.status === 'Closed') {
+      throw new Error('Cannot raise change request on closed request');
+    }
+
+    return ChangeRequestRaisedEvent({
+      changeRequestId: command.changeRequestId,
+      requestId: this.state.requestId,
+      changedByUserId: command.changedByUserId,
+      description: command.description
+    });
+  }
+
+  rejectChangeRequest(command) {
+    return ChangeRequestRejectedDueToClosedRequest({
+      changeRequestId: command.changeRequestId,
+      requestId: this.state.requestId,
+      reason: command.reason
+    });
   }
 
   ensureChangeRequestAllowed() {

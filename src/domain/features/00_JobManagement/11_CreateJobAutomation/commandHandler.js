@@ -15,10 +15,10 @@ export const createJobCommandHandler = {
     console.log(`[CreateJobCommandHandler] Handling command: ${command.type}`, command);
 
     const jobCreatedEvent = JobAggregate.createFromQuotationApproval(
-      command.customerId,
-      command.requestId,
       command.quotationId,
-      command.requestDetails
+      command.requestId,
+      command.changeRequestId,
+      command.quotationDetails
     );
 
     jobEventStore.append(jobCreatedEvent);

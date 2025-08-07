@@ -1,5 +1,6 @@
 import React from 'react';
-import { getTodoList } from './domain/features/00_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager'; // Adjust the import path as needed
+
+import { getTodoList } from '@domain/features/00_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager';
 import './ToDoListPage.css'; // Import the CSS file
 
 function ToDoListPage() {

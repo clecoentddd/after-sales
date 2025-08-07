@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { createRequestCommandHandler } from '../domain/features/00_RequestManagement/05_CreateRequest/commandHandler';
+import { RaiseRequestCommandHandler } from '../domain/features/00_RequestManagement/05_RaiseRequest/commandHandler';
 
 function RequestSlice({ requests, requestEvents, customers }) {
   const [requestTitle, setRequestTitle] = useState('');
   const [requestDescription, setRequestDescription] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
 
-  const handleCreateRequest = (e) => {
+  const handleRaiseRequest = (e) => {
     e.preventDefault();
 
     const title = requestTitle.trim();
@@ -19,7 +19,7 @@ function RequestSlice({ requests, requestEvents, customers }) {
       return;
     }
 
-    createRequestCommandHandler.handle({
+    RaiseRequestCommandHandler.handle({
       customerId: selectedCustomerId,
       requestDetails: { title, description }
     });
@@ -35,7 +35,7 @@ function RequestSlice({ requests, requestEvents, customers }) {
       <div className="aggregate-columns">
         <div className="aggregate-column first-column">
           <h3>Raise a request</h3>
-          <form onSubmit={handleCreateRequest} className="command-form">
+          <form onSubmit={handleRaiseRequest} className="command-form">
             <input
               type="text"
               value={requestTitle}

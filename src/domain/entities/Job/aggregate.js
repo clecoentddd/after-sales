@@ -47,23 +47,26 @@ export class JobAggregate {
     });
   }
 
-  static createFromQuotationApproval(customerId, requestId, quotationId, requestDetails) {
-    console.log(`[JobAggregate] Creating job from approved quotation: ${quotationId}`);
-    const jobDetails = {
-      title: `Repair Job for: ${requestDetails.title}`,
-      description: `Initiated from approved quotation for request: ${requestDetails.description || 'No description'}`,
-      priority: 'Normal',
-      assignedTeam: 'Unassigned'
-    };
-    return JobCreatedEvent(
-      uuidv4(),
-      customerId,
-      requestId,
-      quotationId,
-      jobDetails,
-      'Pending'
-    );
-  }
+  static createFromQuotationApproval(quotationId, requestId, changeRequestId, quotationDetails, requestDetails) {
+  console.log(`[JobAggregate] Creating job from approved quotation: ${quotationId}`);
+
+  const jobDetails = {
+    title: `Repair Job for: ${quotationDetails.title}`,
+    description: `Initiated from approved quotation for request: ${quotationDetails.description || 'No description'}`,
+    priority: 'Normal',
+    assignedTeam: 'Unassigned'
+  };
+
+  return JobCreatedEvent(
+    uuidv4(),
+    quotationId,
+    requestId,
+    changeRequestId,
+    jobDetails,
+    'Pending'
+  );
+}
+
 
   start(command) {
     if (this.status === 'Started') {

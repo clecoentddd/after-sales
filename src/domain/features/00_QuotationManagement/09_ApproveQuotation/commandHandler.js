@@ -1,18 +1,9 @@
-// Handles commands related to the Quotation Approval domain.
-
 import { eventBus } from '@core/eventBus';
 import { quotationEventStore } from '@core/eventStore';
 import { QuotationAggregate } from '@entities/Quotation/aggregate';
+import { type } from '@testing-library/user-event/dist/type';
 
-/**
- * Handles approval of a quotation.
- */
 export const quotationApprovalCommandHandler = {
-  /**
-   * Handles an ApproveQuotation command by hydrating the aggregate and applying business rules.
-   * @param {object} command - The ApproveQuotationCommand object.
-   * @returns {object} Result indicating success or failure.
-   */
   handle(command) {
     console.log(`[QuotationApprovalCommandHandler] Handling command: ${command.type}`, command);
 
@@ -21,14 +12,18 @@ export const quotationApprovalCommandHandler = {
       return { success: false, message: `Unknown command type: ${command.type}` };
     }
 
-    // Step 1: Load events for the aggregate
     const events = quotationEventStore.loadEvents(command.quotationId);
-    console.log(`[QuotationApprovalCommandHandler] Loaded ${events.length} events for quotationId: ${command.quotationId}`);
+    const aggregate = QuotationAggregate.replay(events);
+    console.log(`[QuotationApprovalCommandHandler] Replayed aggregate state:`, aggregate);
 
-    // Step 2: Hydrate the aggregate
-    const aggregate = QuotationAggregate.replay(events); 
+    if (!aggregate || aggregate.status === 'NOT_CREATED') {
+      return {
+        success: false,
+        message: `Quotation ${command.quotationId} does not exist.`,
+        code: 'QUOTATION_NOT_FOUND',
+      };
+    }
 
-    // Step 3: Let the aggregate handle the command
     const event = aggregate.approve(command);
     if (!event) {
       return {
@@ -36,14 +31,31 @@ export const quotationApprovalCommandHandler = {
         message: `Quotation ${command.quotationId} is already approved.`,
         code: 'QUOTATION_ALREADY_APPROVED',
         quotationId: command.quotationId,
-        requestId: command.requestId,
+        requestId: aggregate.requestId,
       };
     }
 
-    // Step 4: Persist and publish the new event
-    quotationEventStore.append(event);
-    eventBus.publish(event);
+    // 💡 Enrich domain event before publishing
+    const enrichedEvent = {
+      type: 'QuotationApproved',
+      quotationId: aggregate.quotationId,
+          data: {
+            requestId: aggregate.requestId,
+            changeRequestId: aggregate.changeRequestId,
+            quotationDetails: aggregate.quotationDetails,
+            quotationStatus: aggregate.status,
+            approvedByUserId: command.userId,
+            approvedAt: new Date().toISOString(),
+          },
+          metadata: {
+            timestamp: new Date().toISOString(),
+          },
+      };
+    console.log('[QuotationApprovalCommandHandler] Generated QuotationApprovedEvent EnrichEvent:', enrichedEvent);
 
-    return { success: true, event };
+    quotationEventStore.append(event);      // Store original domain event
+    eventBus.publish(enrichedEvent);        // Publish enriched event
+
+    return { success: true, event: enrichedEvent };
   }
 };

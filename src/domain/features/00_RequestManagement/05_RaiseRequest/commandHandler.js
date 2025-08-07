@@ -2,18 +2,22 @@ import { v4 as uuidv4 } from 'uuid';
 import { RequestAggregate } from '@entities/Request/aggregate';
 import { requestEventStore } from '@core/eventStore';
 import { eventBus } from '@core/eventBus';
-import { CreateRequestCommand } from './commands';
+import { RaiseRequestCommand } from './commands';
 
-export const createRequestCommandHandler = {
+export const RaiseRequestCommandHandler = {
   handle(command) {
-    console.log(`[CreateRequestCommandHandler] Handling command:`, command);
+    console.log(`[RaiseRequestCommandHandler] Handling command:`, command);
 
     const requestId = uuidv4();
+    const changeRequestId = null; // No changeRequest for initial creation
+    const versionId = 1; // Initial version
 
-    const createCommand = CreateRequestCommand(
+    const createCommand = RaiseRequestCommand(
       requestId,
       command.customerId,
-      command.requestDetails
+      command.requestDetails,
+      changeRequestId,
+      versionId
     );
 
     try {
@@ -22,7 +26,7 @@ export const createRequestCommandHandler = {
       eventBus.publish(event);
       return { success: true, event };
     } catch (error) {
-      console.warn(`[CreateRequestCommandHandler] Failed to create request: ${error.message}`);
+      console.warn(`[RaiseRequestCommandHandler] Failed to create request: ${error.message}`);
       return { success: false, error: error.message };
     }
   }

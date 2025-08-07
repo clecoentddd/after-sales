@@ -8,13 +8,14 @@
  * @param {string} approvedByUserId - The ID of the user who approved the quotation.
  * @returns {object} The QuotationApprovedEvent object.
  */
-export const QuotationApprovedEvent = (quotationId, requestId, approvedByUserId) => ({
+export const QuotationApprovedEvent = (quotationId, requestId, changeRequestId, approvedByUserId) => ({
   type: 'QuotationApproved', // Event type identifier
   aggregateId: quotationId, // Unique identifier for the aggregate
   data: {
-    quotationId,
     requestId,
+    changeRequestId,
     approvedByUserId,
+    status: 'Approved'
   },
   metadata: {
     timestamp: new Date().toISOString() // Timestamp of when the event occurred

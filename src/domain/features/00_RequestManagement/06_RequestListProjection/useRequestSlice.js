@@ -9,12 +9,12 @@ export function useRequestSlice() {
   useEffect(() => {
     const loadedEvents = requestEventStore.getEvents();
     setRequestEvents(loadedEvents);
-    const created = loadedEvents.filter(e => e.type === 'RequestCreated').map(e => e.data);
+    const created = loadedEvents.filter(e => e.type === 'RequestRaised').map(e => e.data);
     setRequests(created);
   }, []);
 
   useEffect(() => {
-    const unsub = eventBus.subscribe('RequestCreated', (event) => {
+    const unsub = eventBus.subscribe('RequestRaised', (event) => {
       setRequests(prev => [...prev, event.data]);
       setRequestEvents(prev => [...prev, event]);
     });

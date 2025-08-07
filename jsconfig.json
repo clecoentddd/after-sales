@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "types": [],
+    "paths": {
+      "@core/*": ["./domain/core/*"],
+      "@domain/*": ["./domain/*"],
+      "@events/*": ["./domain/events/*"],
+      "@entities/*": ["./domain/entities/*"],
+      "@components/*": ["./components/*"],
+      "@utils/*": ["./utils/*"]
+    },
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

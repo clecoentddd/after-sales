@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { eventBus } from '../domain/core/eventBus';
 import { quotationEventStore } from '../domain/core/eventStore';
-import { onHoldQuotationCommandHandler } from '../domain/features/21_PutQuotationOnHold/commandHandler';
+import { onHoldQuotationCommandHandler } from '../domain/features/00_QuotationManagement/21_PutQuotationOnHold/commandHandler';
 
 /**
  * This subscriber listens for ChangeRequestRaised events.

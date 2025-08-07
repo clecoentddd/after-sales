@@ -1,10 +1,10 @@
 // Import necessary modules and functions
-import { initializeToDoCreatedJobToAssessChangeRequest } from '../domain/features/23b_PutJobOnHold/toDoCreatedJobToAssessChangeRequestProcessor.js.js';
+import { initializeToDoCreatedJobToAssessChangeRequest } from '../domain/features/00_JobManagement/23b_PutJobOnHold/toDoCreatedJobToAssessChangeRequestProcessor.js.js';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { CreatedJobAssignedToChangeRequestEvent } from '../domain/events/CreatedJobAssignedToChangeRequestEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
-import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_ToDoChangeRequestProcessManager/todoListManager.js';
+import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/00_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager.js';
 import { reconstructJobState } from '../domain/entities/Job/aggregate';
 
 describe('To-Do List Processing - Status Change Scenario', () => {

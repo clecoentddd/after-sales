@@ -1,13 +1,13 @@
 // src/tests/assignJobToChangeRequestSuccess.test.js
 
-import { initializeAssignStartedJobToChangeRequestProcessor } from '../domain/features/29a_SetupJobChangeRequestAssessmentTodoList/initializeAssignStartedJobToChangeRequestProcessor';
+import { initializeAssignStartedJobToChangeRequestProcessor } from '../domain/features/00_JobManagement/29a_SetupJobChangeRequestAssessmentTodoList/initializeAssignStartedJobToChangeRequestProcessor';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { ChangeRequestRaisedEvent } from '../domain/events/changeRequestRaisedEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { JobStartedEvent } from '../domain/events/jobStartedEvent';
-import { AssignStartedJobToChangeRequestCommand } from '../domain/features/29a_SetupJobChangeRequestAssessmentTodoList/assignStartedJobToChangeRequestCommand';
-import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/99_ToDoChangeRequestProcessManager/todoListManager';
+import { AssignStartedJobToChangeRequestCommand } from '../domain/features/00_JobManagement/29a_SetupJobChangeRequestAssessmentTodoList/assignStartedJobToChangeRequestCommand';
+import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/00_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager';
 
 describe('Assign Job to Change Request - Success Scenario', () => {
   const jobId = 'job-123';

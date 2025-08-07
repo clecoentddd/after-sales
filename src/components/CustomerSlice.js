@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { createCustomerCommandHandler } from '../domain/features/03_CreateCustomer/commandHandler';
+import { createCustomerCommandHandler } from '../domain/features/00_CustomerManagement/03_CreateCustomer/commandHandler';
 
 function CustomerSlice({ customers, customerEvents, organizations }) {
   const [customerName, setCustomerName] = useState('');

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { createRequestCommandHandler } from '../domain/features/05_CreateRequest/commandHandler';
+import { createRequestCommandHandler } from '../domain/features/00_RequestManagement/05_CreateRequest/commandHandler';
 
 function RequestSlice({ requests, requestEvents, customers }) {
   const [requestTitle, setRequestTitle] = useState('');

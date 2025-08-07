@@ -1,7 +1,7 @@
 // src/domain/features/onHoldQuotation/__tests__/onHoldQuotationCommandHandler.test.js
 
-import { onHoldQuotationCommandHandler } from '../domain/features/21_PutQuotationOnHold/commandHandler';
-import { PutQuotationOnHoldCommand } from '../domain/features/21_PutQuotationOnHold/commands';
+import { onHoldQuotationCommandHandler } from '../domain/features/00_QuotationManagement/21_PutQuotationOnHold/commandHandler';
+import { PutQuotationOnHoldCommand } from '../domain/features/00_QuotationManagement/21_PutQuotationOnHold/commands';
 import { quotationEventStore } from '../domain/core/eventStore';
 
 describe('OnHoldQuotationCommandHandler', () => {

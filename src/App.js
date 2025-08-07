@@ -1,14 +1,14 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
-import { useOrganizationSlice } from './domain/features/02_OrganisationListProjection/useOrganizationSlice';
-import { useCustomerSlice } from './domain/features/04_CustomerListProjection/useCustomerSlice';
-import { useRequestSlice } from './domain/features/06_RequestListProjection/useRequestSlice';
-import { useQuotationSlice } from './domain/features/08_QuotationListProjection/useQuotationSlice';
-import { useQuotationApprovalSlice } from './domain/features/10_QuotationsApprovedList/useQuotationApprovalSlice';
-import { useRepairJobSlice } from './domain/features/RepairJobListProjection//useRepairJobSlice';
-import { useInvoicingSlice } from './domain/features/18_InvoicesListProjection/UseInvoicingSlice';
-import { useChangeRequestSlice } from './domain/features/20_ChangeRequestList/useChangeRequestSlice';
+import { useOrganizationSlice } from './domain/features/00_Organisation Management/02_OrganisationListProjection/useOrganizationSlice.js';
+import { useCustomerSlice } from './domain/features/00_CustomerManagement/04_CustomerListProjection/useCustomerSlice';
+import { useRequestSlice } from './domain/features/00_RequestManagement/06_RequestListProjection/useRequestSlice';
+import { useQuotationSlice } from './domain/features/00_QuotationManagement/08_QuotationListProjection/useQuotationSlice';
+import { useQuotationApprovalSlice } from './domain/features/00_QuotationManagement/useQuotationApprovalSlice';
+import { useRepairJobSlice } from './domain/features/00_JobManagement/RepairJobListProjection/useRepairJobSlice';
+import { useInvoicingSlice } from './domain/features/00_InvoiceManagement/18_InvoicesListProjection/UseInvoicingSlice';
+import { useChangeRequestSlice } from './domain/features/00_RequestManagement/20_ChangeRequestList/useChangeRequestSlice';
 
 import OrganizationSlice from './components/OrganizationSlice';
 import CustomerSlice from './components/CustomerSlice';
@@ -25,19 +25,19 @@ import EventsPage from './EventsPage';  // import your new EventsPage
 import LiveModelPage from './LiveModelPage'; // Assuming you have a LiveModelPage component
 import ToDoListPage from './ToDoChangeRequestProcessPage'; // Assuming you have a ToDoListPage component
 
-import { initializeQuotationEventHandler } from './domain/features/07_CreateQuotation/eventHandler';
-import { initializeCreateJobEventHandler } from './domain/features/11_CreateJobAutomation/eventHandler';
-import { initializeInvoiceFromJobCompletionHandler } from './domain/features/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
+import { initializeQuotationEventHandler } from './domain/features/00_QuotationManagement/07_CreateQuotation/eventHandler';
+import { initializeCreateJobEventHandler } from './domain/features/00_JobManagement/11_CreateJobAutomation/eventHandler';
+import { initializeInvoiceFromJobCompletionHandler } from './domain/features/00_InvoiceManagement/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
 // import { initializeAssignJobToChangeRequestProcessor } from './domain/features/99_changeRequestToJobReactionProcessor/initializeAssignJobToChangeRequestProcessor';
-import { initializeAssignCreatedJobToChangeRequestProcessor } from './domain/features/23a_SetTodoToPutJobOnHold/initializeAssignCreatedJobToChangeRequestProcessor';
-import { initializeAssignStartedJobToChangeRequestProcessor } from './domain/features/29a_SetupJobChangeRequestAssessmentTodoList/initializeAssignStartedJobToChangeRequestProcessor';
-import { initializeAssignCompleteJobToChangeRequestProcessor } from './domain/features/32a_SetUpToDoClosedJobsChangeRquestProcess/initializeAssignCompleteJobToChangeRequestProcessor';
-import { initializeChangeRequestDecisionTreeHandler } from './domain/features/19a_ChangeRequestDecisionTree/eventHandler';
-import {initializeCompleteJobEventHandler } from './domain/features/27_CloseRequest/eventHandler';
+import { initializeAssignCreatedJobToChangeRequestProcessor } from './domain/features/00_JobManagement/23a_SetTodoToPutJobOnHold/initializeAssignCreatedJobToChangeRequestProcessor';
+import { initializeAssignStartedJobToChangeRequestProcessor } from './domain/features/00_JobManagement/29a_SetupJobChangeRequestAssessmentTodoList/initializeAssignStartedJobToChangeRequestProcessor';
+import { initializeAssignCompleteJobToChangeRequestProcessor } from './domain/features/00_JobManagement/32a_SetUpToDoClosedJobsChangeRquestProcess/initializeAssignCompleteJobToChangeRequestProcessor';
+import { initializeChangeRequestDecisionTreeHandler } from './domain/features/00_RequestManagement/19a_ChangeRequestDecisionTree/eventHandler';
+import {initializeCompleteJobEventHandler } from './domain/features/00_RequestManagement/27_CloseRequest/eventHandler';
 // to do list for jon change request
-import { initializeToDoCreatedJobToAssessChangeRequest } from './domain/features/23b_PutJobOnHold/toDoCreatedJobToAssessChangeRequestProcessor.js.js';
-import { initializeToDoStartedJobToAssessChangeRequest } from './domain/features/29b_JobChangeRequestAssessment/toDoStartedJobToAssessChangeRequestProcessor.js';
-import { initializeToDoCompleteJobToAssessChangeRequest } from './domain/features/32b_CompleteJobChangeRequestAssessment/toDoCompleteJobToAssessChangeRequestProcessor.js';
+import { initializeToDoCreatedJobToAssessChangeRequest } from './domain/features/00_JobManagement/23b_PutJobOnHold/toDoCreatedJobToAssessChangeRequestProcessor.js.js';
+import { initializeToDoStartedJobToAssessChangeRequest } from './domain/features/00_JobManagement/29b_JobChangeRequestAssessment/toDoStartedJobToAssessChangeRequestProcessor.js';
+import { initializeToDoCompleteJobToAssessChangeRequest } from './domain/features/00_JobManagement/32b_CompleteJobChangeRequestAssessment/toDoCompleteJobToAssessChangeRequestProcessor.js';
 
 
 import { useEffect } from 'react';

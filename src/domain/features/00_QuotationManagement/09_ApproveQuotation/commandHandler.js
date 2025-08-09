@@ -37,7 +37,7 @@ export const quotationApprovalCommandHandler = {
 
     // 💡 Enrich domain event before publishing
     const enrichedEvent = {
-      type: 'QuotationApproved',
+      type: 'QuotationHasBeenApproved',
       quotationId: aggregate.quotationId,
           data: {
             requestId: aggregate.requestId,
@@ -54,6 +54,7 @@ export const quotationApprovalCommandHandler = {
     console.log('[QuotationApprovalCommandHandler] Generated QuotationApprovedEvent EnrichEvent:', enrichedEvent);
 
     quotationEventStore.append(event);      // Store original domain event
+    eventBus.publish(event);  // only for local projection updates
     eventBus.publish(enrichedEvent);        // Publish enriched event
 
     return { success: true, event: enrichedEvent };

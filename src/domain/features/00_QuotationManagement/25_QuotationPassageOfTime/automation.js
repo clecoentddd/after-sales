@@ -25,13 +25,13 @@ export const putQuotationOnHoldAutomaticallyIfPendingApproval = (quotationId, he
     console.log(`[QuotationHoldingAutomation] Quotation ${quotationId} is in status '${quotationToConsider.status}'. Dispatching PutQuotationOnHoldCommand.`);
     
     // Dispatch the command to put the quotation on hold
-    onHoldQuotationCommandHandler.handle(
+   /*onHoldQuotationCommandHandler.handle(
       PutQuotationOnHoldCommand(
         quotationId,
         heldByUserId,
         'Automatic hold: Quotation not approved within expected timeframe (or other automation reason).'
       )
-    );
+    );*/
   } else {
     console.log(`[QuotationHoldingAutomation] Quotation ${quotationId} not found or not in 'Draft'/'Pending' status (Current: ${quotationToConsider?.status || 'Not Found'}). Skipping automatic hold.`);
   }

@@ -16,6 +16,7 @@ export const createCustomerCommandHandler = {
       const event = CustomerAggregate.create(createCommand);
       customerEventStore.append(event);
       eventBus.publish(event);
+      
       return { success: true, event };
     } catch (error) {
       console.warn(`[CustomerCommandHandler] Failed to create customer: ${error.message}`);

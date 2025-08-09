@@ -1,11 +1,13 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
-import { useOrganizationSlice } from './domain/features/00_Organisation Management/02_OrganisationListProjection/useOrganizationSlice.js';
-import { useCustomerSlice } from './domain/features/00_CustomerManagement/04_CustomerListProjection/useCustomerSlice';
+// Projections
+import { queryCustomersProjection } from './domain/features/02_CustomerManagement/CustomerListProjection/customerProjectionHandler';
+import { queryQuotationsProjection } from './domain/features/00_QuotationManagement/08_QuotationListProjection/quotationProjectionHandler';
+
+import { useProjectionOrganizationList } from './domain/features/01_OrganizationManagement/02_OrganizationListProjection/projectionOrganizationList';
+import { useCustomerSlice } from './domain/features/02_CustomerManagement/CustomerListProjection/useCustomerSlice';
 import { useRequestSlice } from './domain/features/00_RequestManagement/06_RequestListProjection/useRequestSlice';
-import { useQuotationSlice } from './domain/features/00_QuotationManagement/08_QuotationListProjection/useQuotationSlice';
-import { useQuotationApprovalSlice } from './domain/features/00_QuotationManagement/useQuotationApprovalSlice';
 import { useRepairJobSlice } from './domain/features/00_JobManagement/RepairJobListProjection/useRepairJobSlice';
 import { useInvoicingSlice } from './domain/features/00_InvoiceManagement/18_InvoicesListProjection/UseInvoicingSlice';
 import { useChangeRequestSlice } from './domain/features/00_RequestManagement/20_ChangeRequestList/useChangeRequestSlice';
@@ -19,7 +21,7 @@ import RepairJobSlice from './components/RepairJobSlice';
 import InvoicingSlice from './components/InvoicingSlice';
 import ChangeRequestSlice from './components/ChangeRequestSlice';
 import QuotationSubscriberToChangeRequest from './components/QuotationSubscriberToChangeRequest';
-import QuotationApprovalMonitor from './components/QuotationApprovalMonitor';
+// import QuotationApprovalMonitor from './components/QuotationApprovalMonitor';
 
 import EventsPage from './EventsPage';  // import your new EventsPage
 import LiveModelPage from './LiveModelPage'; // Assuming you have a LiveModelPage component
@@ -46,12 +48,15 @@ import { useEffect } from 'react';
 function App() {
   const currentUserId = 'user-alice-123';
 
-  const { organizations, orgEvents } = useOrganizationSlice();
-  const { customers, customerEvents } = useCustomerSlice();
+  // customers projection
+  const customers = queryCustomersProjection();
+  const quotations = queryQuotationsProjection();
+
+  const { organizations, orgEvents } = useProjectionOrganizationList();
+
   const { requests, requestEvents } = useRequestSlice();
-  const { quotations, quotationEvents } = useQuotationSlice();
-  console.log('Quotations in App.js:', quotations);
-  const { approvedQuotations, approvalEvents } = useQuotationApprovalSlice();
+  
+  
   const { jobs, jobEvents } = useRepairJobSlice();
   const { invoices, invoiceEvents } = useInvoicingSlice();
   const { changeRequests, changeRequestEvents } = useChangeRequestSlice();
@@ -92,35 +97,29 @@ function App() {
             path="/"
             element={
               <div className="aggregate-blocks">
-                <OrganizationSlice organizations={organizations} orgEvents={orgEvents} />
-                <CustomerSlice customers={customers} customerEvents={customerEvents} organizations={organizations} />
+                <OrganizationSlice
+                   organizations={organizations} 
+                   orgEvents={orgEvents} />
+                <CustomerSlice customers={customers} organizations={organizations}/>
                 <RequestSlice requests={requests} requestEvents={requestEvents} customers={customers} />
                 <QuotationSlice
-                  quotations={quotations}
-                  quotationEvents={quotationEvents}
-                  approvedQuotations={approvedQuotations}
-                  customers={customers}
-                  requests={requests}
-                  currentUserId={currentUserId}
-                />
-                <QuotationApprovalSlice
-                  approvedQuotations={approvedQuotations}
-                  approvalEvents={approvalEvents}
-                  quotations={quotations}
-                  customers={customers}
+                    customers={customers}
+                    requests={requests}
+                    currentUserId={currentUserId}
                 />
                 <RepairJobSlice
                   jobs={jobs}
                   jobEvents={jobEvents}
                   customers={customers}
-                  requests={requests}
                   quotations={quotations}
+                  requests={requests}
                   currentUserId={currentUserId}
                 />
                 <InvoicingSlice
                   invoices={invoices}
                   invoiceEvents={invoiceEvents}
                   customers={customers}
+                  quotations={quotations}
                   jobs={jobs}
                 />
                 <ChangeRequestSlice
@@ -130,8 +129,6 @@ function App() {
                   currentUserId={currentUserId}
                 />
 
-                <QuotationSubscriberToChangeRequest />
-                <QuotationApprovalMonitor currentUserId={currentUserId} quotations={quotations} />
               </div>
             }
           />

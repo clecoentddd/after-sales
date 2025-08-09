@@ -1,47 +1,107 @@
 import React from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
+import { useCustomerSlice } from '../domain/features/02_CustomerManagement/CustomerListProjection/useCustomerSlice';
+import { useRequestSlice } from '../domain/features/00_RequestManagement/06_RequestListProjection/useRequestSlice';
 
-function QuotationApprovalSlice({ approvedQuotations, approvalEvents, quotations, customers }) {
-return (
-  <div className="aggregate-block">
-    <h2>Quotation Approval List</h2>
-    <div className="aggregate-columns">
+// Utility function to process quotation approval details
+function queryQuotationApprovalDetails(approval, requests, customers) {
+  if (!approval) {
+    console.error('Invalid approval object:', approval);
+    return {
+      quotationId: 'Unknown ID',
+      requestTitle: 'Unknown Title',
+      customerName: 'Unknown Customer',
+      estimatedAmount: 'Unknown Amount',
+      currency: 'Unknown Currency'
+    };
+  }
 
-      <div className="aggregate-column first-column">
-        <h3>Approved Quotation (via Quotation Actions)</h3>
-        <p>Approve quotations by clicking the 'Approve Quotation' button in the Quotation block above.</p>
+  // Log the approval requestId and available requests
+  console.log('Finding request for approval requestId:', approval.requestId);
+  console.log('Available requests:', requests.map(req => req.requestId || req.id));
+
+  // Find the request associated with the quotation
+  const request = requests.find(req => {
+    const reqId = req.requestId || req.id; // Check both possible locations for requestId
+    const match = reqId === approval.requestId;
+    if (match) {
+      console.log('Found matching request:', req);
+    }
+    return match;
+  });
+
+  console.log('Found request:', request);
+
+  // Find the customer associated with the request
+  const customer = request ? customers.find(cust => {
+    const match = cust.customerId === (request.customerId || request.data?.customerId);
+    if (match) {
+      console.log('Found matching customer:', cust);
+    }
+    return match;
+  }) : null;
+
+  console.log('Found customer:', customer);
+
+  // Return the enriched details needed for rendering
+  return {
+    quotationId: approval.quotationId || 'Unknown ID',
+    requestTitle: request?.title || request?.data?.title || 'Unknown Title',
+    customerName: customer?.name || 'Unknown Customer',
+    estimatedAmount: approval.quotationDetails?.estimatedAmount || approval.data?.quotationDetails?.estimatedAmount || 'Unknown Amount',
+    currency: approval.quotationDetails?.currency || approval.data?.quotationDetails?.currency || 'Unknown Currency'
+  };
+}
+
+// Custom Hook to fetch necessary data
+function useQueryQuotationApprovalDetails() {
+  const { customers } = useCustomerSlice();
+  const { requests } = useRequestSlice();
+
+  return { customers, requests };
+}
+
+function QuotationApprovalSlice({ approvedQuotations, approvalEvents }) {
+  const { customers, requests } = useQueryQuotationApprovalDetails();
+
+  return (
+    <div className="aggregate-block">
+      <h2>Quotation Approval List</h2>
+      <div className="aggregate-columns">
+        <div className="aggregate-column first-column">
+          <h3>Approved Quotations</h3>
+          <p>These quotes are sent automatically to Job Management with quotation details</p>
+        </div>
+        <div className="aggregate-column second-column">
+          <ReadModelDisplay
+            items={approvedQuotations}
+            idKey="quotationId"
+            renderDetails={(approval) => {
+              console.log('Rendering approval with ID:', approval.quotationId);
+
+              // Use the utility function to get enriched details
+              const details = queryQuotationApprovalDetails(approval, requests, customers);
+
+              return (
+                <>
+                  <strong>Quotation Approved: {details.requestTitle}</strong>
+                  <small>
+                    Quotation ID: {details.quotationId} <br />
+                    For: {details.customerName} <br />
+                    Amount: {details.estimatedAmount} {details.currency}
+                  </small>
+                </>
+              );
+            }}
+          />
+        </div>
+        <div className="aggregate-column third-column">
+          <EventLogDisplay events={approvalEvents} />
+        </div>
       </div>
-
-      <div className="aggregate-column second-column">
-        <ReadModelDisplay
-          items={approvedQuotations}
-          idKey="quotationId"
-          renderDetails={(approval) => {
-            const approvedQuotation = quotations.find(q => q.quotationId === approval.quotationId);
-            const customer = approvedQuotation ? customers.find(c => c.customerId === approvedQuotation.customerId) : null;
-            return (
-              <>
-                <strong>Quotation Approved: {approvedQuotation?.quotationDetails.title.slice(0, 40)}...</strong>
-                <small>
-                  Quotation ID: {approval.quotationId}... <br />
-                  Approved by: {approval.approvedByUserId} <br />
-                  For: {customer?.name || 'Unknown Customer'}
-                </small>
-              </>
-            );
-          }}
-        />
-      </div>
-
-      <div className="aggregate-column third-column">
-        <EventLogDisplay events={approvalEvents} />
-      </div>
-
     </div>
-  </div>
-);
-
+  );
 }
 
 export default QuotationApprovalSlice;

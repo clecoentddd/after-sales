@@ -14,7 +14,7 @@ export const createQuotationCommandHandler = {
     console.log(`[CreateQuotationCommandHandler] Handling quotation for request: ${input.requestId}`);
 
     const quotationId = uuidv4();
-    const command = CreateQuotationCommand(quotationId, input.requestId, input.customerId, input.requestDetails);
+    const command = CreateQuotationCommand(quotationId, input.requestId, input.changeRequestId, input.customerId, input.requestDetails);
 
     const event = QuotationAggregate.create(command);
 

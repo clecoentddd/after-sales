@@ -15,7 +15,7 @@ let isCreateJobEventHandlerInitialized = false;
 export const initializeCreateJobEventHandler = () => {
   if (isCreateJobEventHandlerInitialized) return;
 
-  eventBus.subscribe('QuotationApproved', (event) => {
+  eventBus.subscribe('QuotationHasBeenApproved', (event) => {
     console.log(`[CreateJobEventHandler] Received QuotationApproved event:`, event);
 
     const command = new CreateJobFromApprovedQuotationCommand({

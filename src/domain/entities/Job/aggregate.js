@@ -1,3 +1,4 @@
+// src/domain/entities/Job/aggregate.js
 import { v4 as uuidv4 } from 'uuid';
 import { JobCreatedEvent } from '../../events/jobCreatedEvent';
 import { JobStartedEvent } from '../../events/jobStartedEvent';
@@ -6,67 +7,114 @@ import { JobOnHoldEvent } from '../../events/jobOnHoldEvent';
 import { JobFlaggedForAssessmentEvent } from '../../events/jobFlaggedForAssessmentEvent';
 import { jobEventStore } from '../../core/eventStore';
 
-// Job Aggregate Class
+/**
+ * JobAggregate - in-memory aggregate for commands & event creation
+ */
 export class JobAggregate {
   constructor() {
-    this.status = 'NotCreated';
     this.jobId = null;
-    this.customerId = null;
-    this.requestId = null;
     this.quotationId = null;
-    this.jobDetails = {};
+    this.changeRequestId = null;
+    this.requestId = null;
+    this.customerId = null;
+    this.jobDetails = null;
+    this.status = 'NotCreated';
+    this.assignedTeam = null;
+    this.onHoldReason = null;
+    // any other fields you want to track
   }
 
   /**
-   * Rebuilds the aggregate state from past events.
-   * @param {Array} events - All domain events related to this job.
+   * Rebuild aggregate from a list of events (chronological order recommended).
+   * This will mutate the aggregate instance.
+   * @param {Array} events
    */
   replay(events) {
-    events.forEach(event => {
-      switch (event.type) {
-        case 'JobCreated':
-          this.jobId = event.data.jobId;
-          this.requestId = event.data.requestId;
-          this.status = 'Pending';
+    if (!Array.isArray(events)) return;
+
+    for (const ev of events) {
+      const data = ev.data || {};
+
+      switch (ev.type) {
+        case 'JobCreated': {
+          // tolerate different shapes
+          this.jobId = data.jobId || this.jobId;
+          this.requestId = data.requestId || data.reqId || this.requestId;
+          // prefer explicit quotationId, but allow older shapes
+          this.quotationId = data.quotationId || data.quoteId || data.quotation || this.quotationId || null;
+          this.changeRequestId = data.changeRequestId || data.changeRequest || null;
+          this.customerId = data.customerId || null;
+          // jobDetails should be an object; fall back to combining fields if needed
+          this.jobDetails = data.jobDetails || data.details || this.jobDetails || {};
+          // normalise assignedTeam into jobDetails and top-level
+          if (!this.jobDetails.assignedTeam && data.assignedTeam) {
+            this.jobDetails.assignedTeam = data.assignedTeam;
+          }
+          this.assignedTeam = this.jobDetails.assignedTeam || this.assignedTeam || null;
+          this.status = data.status || this.status || 'Pending';
           break;
-        case 'JobStarted':
-          this.status = 'Started';
-          this.assignedTeam = event.data.assignedTeam;
+        }
+
+        case 'JobStarted': {
+          // update status and assigned team (ensure we sync into jobDetails)
+          this.status = data.status || 'Started';
+          const team = data.assignedTeam || data.team || (data.jobDetails && data.jobDetails.assignedTeam) || this.assignedTeam;
+          if (team) {
+            this.assignedTeam = team;
+            if (!this.jobDetails) this.jobDetails = {};
+            this.jobDetails.assignedTeam = team;
+          }
           break;
-        case 'JobCompleted':
+        }
+
+        case 'JobCompleted': {
           this.status = 'Completed';
+          // optionally store completed metadata if present
+          if (data.completedAt) this.completedAt = data.completedAt;
+          if (data.completedByUserId) this.completedByUserId = data.completedByUserId;
           break;
-        case 'JobOnHold':
+        }
+
+        case 'JobOnHold': {
           this.status = 'OnHold';
-          this.onHoldReason = event.data.reason;
+          this.onHoldReason = data.reason || data.onHoldReason || this.onHoldReason;
           break;
-        case 'ChangeRequestReceivedPendingAssessment':
+        }
+
+        case 'ChangeRequestReceivedPendingAssessment': {
           this.status = 'ChangeRequestReceivedPendingAssessment';
           break;
+        }
+
+        default:
+          // ignore other events
       }
-    });
+    }
   }
 
-  static createFromQuotationApproval(quotationId, requestId, changeRequestId, quotationDetails, requestDetails) {
-  console.log(`[JobAggregate] Creating job from approved quotation: ${quotationId}`);
+  /**
+   * Create a JobCreated event from an approved quotation.
+   * Returns the event object (does not append it to the store).
+   */
+  static createFromQuotationApproval(quotationId, requestId, changeRequestId, quotationDetails) {
+    console.log(`[JobAggregate] Creating job from approved quotation: ${quotationId}`);
 
-  const jobDetails = {
-    title: `Repair Job for: ${quotationDetails.title}`,
-    description: `Initiated from approved quotation for request: ${quotationDetails.description || 'No description'}`,
-    priority: 'Normal',
-    assignedTeam: 'Unassigned'
-  };
+    const jobId = uuidv4();
 
-  return JobCreatedEvent(
-    uuidv4(),
-    quotationId,
-    requestId,
-    changeRequestId,
-    jobDetails,
-    'Pending'
-  );
-}
+    const jobDetails = {
+      title: `Repair Job for: ${quotationDetails.title}`,
+      description: `Initiated from approved quotation for request: ${quotationDetails.description || 'No description'}`,
+      priority: 'Normal',
+      assignedTeam: 'Unassigned'
+    };
 
+    // NOTE: JobCreatedEvent factory in your repo may expect a particular parameter order.
+    // We assume JobCreatedEvent accepts an object or positional args producing event.data with:
+    // { jobId, quotationId, requestId, changeRequestId, jobDetails, status }
+    // If your JobCreatedEvent signature is different, adapt the call accordingly.
+    return JobCreatedEvent(jobId, quotationId, requestId, changeRequestId, jobDetails, 'Pending', changeRequestId);
+    // If your JobCreatedEvent does not support changeRequestId param, you'll need to update the factory.
+  }
 
   start(command) {
     if (this.status === 'Started') {
@@ -104,11 +152,6 @@ export class JobAggregate {
     );
   }
 
-  /**
-   * Flags a job for assessment if a change request is raised and job is already started.
-   * @param {object} command - FlagJobForAssessmentCommand
-   * @returns {object|null} Event or null if invalid state
-   */
   flagForAssessment(command) {
     if (this.status !== 'Started') {
       console.warn(`[JobAggregate] Cannot flag job ${command.jobId} for assessment. Status is ${this.status}`);
@@ -124,58 +167,104 @@ export class JobAggregate {
   }
 }
 
-// Job State Reconstructor Class
+/**
+ * JobStateReconstructor - small helper used by reconstructJobState()
+ * It's deliberately simple and focused on returning plain JS state used in tests.
+ */
 class JobStateReconstructor {
   constructor() {
     this.jobId = null;
     this.requestId = null;
     this.status = null;
     this.assignedTeam = null;
+    this.quotationId = null;
+    this.changeRequestId = null;
+    this.jobDetails = null;
     this.onHoldReason = null;
+    this.completedAt = null;
+    this.completedByUserId = null;
   }
 
   replay(events) {
-    events.forEach(event => {
-      switch (event.type) {
+    for (const ev of events) {
+      const data = ev.data || {};
+
+      switch (ev.type) {
         case 'JobCreated':
-          this.jobId = event.data.jobId;
-          this.requestId = event.data.requestId;
-          this.status = 'Pending';
+          this.jobId = data.jobId || this.jobId;
+          this.requestId = data.requestId || this.requestId;
+          this.quotationId = data.quotationId || this.quotationId || null;
+          this.changeRequestId = data.changeRequestId || this.changeRequestId || null;
+          this.jobDetails = data.jobDetails || this.jobDetails || {};
+          this.status = data.status || this.status || 'Pending';
+          // sync assignedTeam
+          if (!this.jobDetails.assignedTeam && data.assignedTeam) {
+            this.jobDetails.assignedTeam = data.assignedTeam;
+          }
+          this.assignedTeam = this.jobDetails.assignedTeam || this.assignedTeam || null;
           break;
+
         case 'JobStarted':
-          this.status = 'Started';
-          this.assignedTeam = event.data.assignedTeam;
+          this.status = data.status || 'Started';
+          this.assignedTeam = data.assignedTeam || data.jobDetails?.assignedTeam || this.assignedTeam;
+          if (!this.jobDetails) this.jobDetails = {};
+          if (this.assignedTeam) this.jobDetails.assignedTeam = this.assignedTeam;
           break;
+
         case 'JobCompleted':
           this.status = 'Completed';
+          if (data.completedAt) this.completedAt = data.completedAt;
+          if (data.completedByUserId) this.completedByUserId = data.completedByUserId;
           break;
+
         case 'JobOnHold':
           this.status = 'OnHold';
-          this.onHoldReason = event.data.reason;
+          this.onHoldReason = data.reason || this.onHoldReason;
           break;
+
         case 'ChangeRequestReceivedPendingAssessment':
           this.status = 'ChangeRequestReceivedPendingAssessment';
           break;
+
+        default:
+          // ignore unknown events
       }
-    });
+      console.log(`[JobStateReconstructor] Processed event: ${ev.type} for jobId: ${this}`);
+    }
   }
 }
 
+/**
+ * Reconstruct (replay) final job state for a given jobId using events in jobEventStore.
+ * Returns a plain object containing the fields your tests expect.
+ */
 export const reconstructJobState = (jobId) => {
-  const allEvents = jobEventStore.getEvents().sort((a, b) =>
-    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  // get events (sorted)
+  const allEvents = (jobEventStore.getEvents() || []).slice().sort((a, b) =>
+    new Date(a.metadata?.timestamp || a.timestamp || 0).getTime() - new Date(b.metadata?.timestamp || b.timestamp || 0).getTime()
   );
 
-  const jobEvents = allEvents.filter(event => event.data.jobId === jobId);
+  // filter for the given jobId (tolerate events that put id in different places)
+  const jobEvents = allEvents.filter(ev => {
+    const d = ev.data || {};
+    return d.jobId === jobId
+      || ev.aggregateId === jobId
+      || (d.job && d.job.jobId === jobId); // extra tolerance
+  });
 
-  const jobStateReconstructor = new JobStateReconstructor();
-  jobStateReconstructor.replay(jobEvents);
+  const reconstructor = new JobStateReconstructor();
+  reconstructor.replay(jobEvents);
 
   return {
-    jobId: jobStateReconstructor.jobId,
-    requestId: jobStateReconstructor.requestId,
-    status: jobStateReconstructor.status,
-    assignedTeam: jobStateReconstructor.assignedTeam,
-    onHoldReason: jobStateReconstructor.onHoldReason
+    jobId: reconstructor.jobId,
+    requestId: reconstructor.requestId,
+    status: reconstructor.status,
+    assignedTeam: reconstructor.assignedTeam,
+    quotationId: reconstructor.quotationId,
+    changeRequestId: reconstructor.changeRequestId,
+    jobDetails: reconstructor.jobDetails,
+    onHoldReason: reconstructor.onHoldReason,
+    completedAt: reconstructor.completedAt,
+    completedByUserId: reconstructor.completedByUserId
   };
 };

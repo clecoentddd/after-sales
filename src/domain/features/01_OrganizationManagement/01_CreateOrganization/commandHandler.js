@@ -1,17 +1,17 @@
-import { CreateOrganizationCommand } from './commands';
-import { OrganizationAggregate } from '@entities/Organization/aggregate';
+import { CreateorganizationCommand } from './commands';
+import { organizationAggregate } from '@entities/Organization/aggregate';
 import { organizationEventStore } from '@core/eventStore';
 import { eventBus } from '@core/eventBus';
 import { v4 as uuidv4 } from 'uuid';
 
 export const organizationCommandHandler = {
   handle(name) {
-    console.log(`[OrganizationCommandHandler] Handling creation of: ${name}`);
+    console.log(`[organizationCommandHandler] Handling creation of: ${name}`);
 
     const organizationId = uuidv4();
-    const command = CreateOrganizationCommand(organizationId, name);
+    const command = CreateorganizationCommand(organizationId, name);
 
-    const event = OrganizationAggregate.create(command);
+    const event = organizationAggregate.create(command);
     organizationEventStore.append(event);
     eventBus.publish(event);
 

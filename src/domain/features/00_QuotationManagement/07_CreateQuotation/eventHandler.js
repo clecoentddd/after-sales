@@ -6,10 +6,18 @@ let isEventHandlerInitialized = false;
 
 export const initializeQuotationEventHandler = () => {
   if (isEventHandlerInitialized) return;
-  console.log('[QuotationEventHandler] Initializing event handler for RequestRaised events...');  eventBus.subscribe('RequestRaised', (event) => {
-    const { requestId, customerId, requestDetails } = event.data;
-    createQuotationCommandHandler.handle({ requestId, customerId, requestDetails });
+  console.log('[QuotationEventHandler] Initializing event handler for RequestRaised events...');  
+  eventBus.subscribe('RequestRaised', (event) => {
+  const requestId = event.aggregateId;
+  const { customerId, requestDetails, changeRequestId } = event.data;
+  
+  createQuotationCommandHandler.handle({
+    requestId,
+    changeRequestId,
+    customerId,
+    requestDetails
   });
+});
 
   isEventHandlerInitialized = true;
   console.log('[QuotationEventHandler] Subscribed to RequestRaised.');

@@ -26,7 +26,8 @@ export class RequestAggregate {
     switch (event.type) {
       case 'RequestRaised':
         this.state = {
-          requestId: event.data.requestId,
+          requestId: event.aggregateId,
+          changeRequestId: event.data.changeRequestId,
           customerId: event.data.customerId,
           requestDetails: event.data.requestDetails,
           status: event.data.status,
@@ -71,6 +72,7 @@ export class RequestAggregate {
 
     return RequestRaisedEvent({
       requestId: command.requestId,
+      changeRequestId: command.changeRequestId,
       versionId: 1,
       customerId: command.customerId,
       requestDetails: command.requestDetails,

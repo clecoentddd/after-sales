@@ -8,34 +8,43 @@ import DecisionProjectionUI from '../domain/features/00_RequestManagement/19a_Ch
 function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, currentUserId }) {
   const [selectedRequestId, setSelectedRequestId] = useState('');
   const [changeDescription, setChangeDescription] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleChangeRequestRaised = (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
+
     if (!selectedRequestId || !changeDescription.trim()) {
-      console.warn("Please select a request and provide a description for the change.");
+      setError("Please select a request and provide a description for the change.");
       return;
     }
 
     const result = changeRequestCommandHandler.handle(
-      RaiseChangeRequestCommand(
+      new RaiseChangeRequestCommand(
         selectedRequestId,
         currentUserId,
         changeDescription.trim()
       )
     );
-    if (!result.success) {
-      alert(result.error); // Or set it in state and show in the UI
-    }
 
-    setSelectedRequestId('');
-    setChangeDescription('');
+    if (!result.success) {
+      setError(result.error);
+    } else {
+      setSuccess("Change request raised successfully!");
+      setSelectedRequestId('');
+      setChangeDescription('');
+    }
   };
 
   return (
     <div className="aggregate-block">
       <h2>Change Request Management</h2>
-      <div className="aggregate-columns">
+      {error && <div className="error-message">{error}</div>}
+      {success && <div className="success-message">{success}</div>}
 
+      <div className="aggregate-columns">
         <div className="aggregate-column first-column">
           <h3>Select a request</h3>
           <form onSubmit={handleChangeRequestRaised} className="command-form">
@@ -45,14 +54,11 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
               required
             >
               <option value="">Select Request to Change</option>
-              {requests.map(request => {
-                // console.log('[ChangeRequestSlice] Rendering request option with ID:', request?.requestId);
-                return (
-                  <option key={request.requestId} value={request.requestId}>
-                    {request.requestDetails.title} (ID: {request.requestId || 'Unknown ID'})
-                  </option>
-                );
-              })}
+              {requests.map(request => (
+                <option key={request.requestId} value={request.requestId}>
+                  {request.requestDetails.title} (ID: {request.requestId || 'Unknown ID'})
+                </option>
+              ))}
             </select>
             <textarea
               value={changeDescription}
@@ -64,21 +70,18 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
             <button type="submit">Raise Change Request</button>
           </form>
         </div>
-
         <div className="aggregate-column second-column">
           <ReadModelDisplay
             items={changeRequests}
             idKey="changeRequestId"
             renderDetails={(changeReq) => {
               const originalRequest = requests.find(req => req.requestId === changeReq.requestId);
-
               return (
                 <>
-                  {console.log('[ChangeRequestSlice] Rendering change request for:', changeReq?.requestId)}
-<strong>Change for: {originalRequest?.requestDetails.title || 'Unknown Title'}</strong>
-<small>
-  Request ID: {changeReq.requestId || 'Missing ID'} <br />
-  Description: {changeReq.description || 'No description'} <br />
+                  <strong>Change for: {originalRequest?.requestDetails.title || 'Unknown Title'}</strong>
+                  <small>
+                    Request ID: {changeReq.requestId || 'Missing ID'} <br />
+                    Description: {changeReq.description || 'No description'} <br />
                     Raised by: {changeReq.changedByUserId || 'N/A'} <br />
                     Status: {changeReq.status || 'N/A'}
                   </small>
@@ -87,12 +90,10 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
             }}
           />
         </div>
-
         <div className="aggregate-column third-column">
           <EventLogDisplay events={changeRequestEvents} />
         </div>
       </div>
-
       <DecisionProjectionUI />
     </div>
   );

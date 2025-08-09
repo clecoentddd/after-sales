@@ -8,9 +8,10 @@ export const QuotationCreatedEvent = ({
 }) => ({
   type: 'QuotationCreated',
   aggregateId: quotationId,
+  aggregateType: 'Quotation',
   data: {
     requestId,
-    changeRequestId, // ✅ FIX: Include this!
+    changeRequestId,
     customerId,
     quotationDetails,
     status,

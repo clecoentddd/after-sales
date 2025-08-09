@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
 import { RaiseRequestCommandHandler } from '../domain/features/00_RequestManagement/05_RaiseRequest/commandHandler';
+import { useCustomerProjection } from '../domain/features/02_CustomerManagement/CustomerListProjection/useCustomerProjection';
 
-function RequestSlice({ requests, requestEvents, customers }) {
+function RequestSlice({ requests, requestEvents }) {
+  const { customers } = useCustomerProjection();
+
   const [requestTitle, setRequestTitle] = useState('');
   const [requestDescription, setRequestDescription] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState('');

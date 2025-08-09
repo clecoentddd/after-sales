@@ -1,9 +1,9 @@
 export const CustomerCreatedEvent = (customerId, name, organizationId) => ({
   type: 'CustomerCreated',
+  aggregateId: customerId,
   data: {
-    customerId,
+    organizationId,
     name,
-    organizationId
   },
   metadata: {
     timestamp: new Date().toISOString()

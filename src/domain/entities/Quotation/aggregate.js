@@ -45,7 +45,12 @@ export class QuotationAggregate {
     console.log('[QuotationAggregate] Events sorted by timestamp:', sorted);
 
     for (const event of sorted) {
-      console.log(`[QuotationAggregate] Applying event type: ${event.type}, aggregateId: ${event.aggregateId}`);
+      console.log(`[QuotationAggregate] Applying event type: ${event.type}, aggregateId: ${event.metadata?.aggregateId || event.aggregateId}`);
+
+      // Optional: enforce aggregateType check if you want safety
+      if (event.metadata?.aggregateType && event.metadata.aggregateType !== 'Quotation') {
+        throw new Error(`[QuotationAggregate] Unexpected aggregateType: ${event.metadata.aggregateType}`);
+      }
 
       switch (event.type) {
         case 'QuotationCreated': {
@@ -58,7 +63,7 @@ export class QuotationAggregate {
           } = event.data;
 
           console.log('[QuotationAggregate] Creating aggregate from QuotationCreated event:', {
-            aggregateId: event.aggregateId,
+            aggregateId: event.metadata?.aggregateId || event.aggregateId,
             requestId,
             changeRequestId,
             customerId,
@@ -124,15 +129,23 @@ export class QuotationAggregate {
   static create(command) {
     console.log('[QuotationAggregate] Create called with command:', command);
 
+    // Generate random operations
+const quotationOperations = generateRandomOperations();
+
+// Calculate the total estimated amount from operations
+const totalEstimatedAmount = quotationOperations.reduce((sum, operation) => sum + operation.amount, 0).toFixed(2);
+
+
     const createdEvent = QuotationCreatedEvent({
       quotationId: command.quotationId,
       requestId: command.requestId,
       changeRequestId: command.changeRequestId,
       customerId: command.customerId,
       quotationDetails: {
-        title: command.title || 'Default Title',
-        estimatedAmount: command.estimatedAmount || '1000.00',
-        currency: 'USD',
+        title: command?.requestDetails?.title || 'Default Title - Should Request Title',
+        estimatedAmount: totalEstimatedAmount,
+        currency: 'CHF',
+        operations: quotationOperations,
         validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       },
       status: 'Draft',
@@ -154,4 +167,40 @@ export class QuotationAggregate {
     console.log('[QuotationAggregate] getCurrentState:', state);
     return state;
   }
+}
+
+// Function to generate random operations
+function generateRandomOperations() {
+  const operationsList = [
+    'Cleaning',
+    'Polishing',
+    'Disassembling',
+    'Change Parts',
+    'Inspection',
+    'Lubrication',
+    'Calibration',
+    'Testing',
+    'Painting',
+    'Adjustment'
+  ];
+
+  // Randomly select 3 to 7 operations
+  const numberOfOperations = Math.floor(Math.random() * 5) + 3;
+  const selectedOperations = [];
+
+  for (let i = 0; i < numberOfOperations; i++) {
+    const randomIndex = Math.floor(Math.random() * operationsList.length);
+    const operation = operationsList[randomIndex];
+
+    // Ensure no duplicate operations
+    if (!selectedOperations.some(op => op.operation === operation)) {
+      const amount = (Math.random() * 1500 + 500).toFixed(2); // Random amount between 500 and 2000
+      selectedOperations.push({
+        operation,
+        amount: parseFloat(amount) // Store as number for summation
+      });
+    }
+  }
+
+  return selectedOperations;
 }

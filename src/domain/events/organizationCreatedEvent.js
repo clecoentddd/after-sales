@@ -1,7 +1,8 @@
-export const OrganizationCreatedEvent = (organizationId, name) => ({
+export const organizationCreatedEvent = (organizationId, name) => ({
   type: 'OrganizationCreated',
+  aggregateId: organizationId,
+  aggregateType: 'Organization',
   data: {
-    organizationId,
     name
   },
   metadata: {

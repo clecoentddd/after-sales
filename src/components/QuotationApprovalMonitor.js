@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { eventBus } from '../domain/core/eventBus';
+import { eventBus } from '@core/eventBus';
 // NEW: Import the automation function for putting quotations on hold
 import { putQuotationOnHoldAutomaticallyIfPendingApproval } from '../domain/features/00_QuotationManagement/25_QuotationPassageOfTime/automation'; 
 

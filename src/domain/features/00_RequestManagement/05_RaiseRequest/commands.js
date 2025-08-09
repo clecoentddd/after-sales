@@ -1,14 +1,14 @@
 export const RaiseRequestCommand = (
   requestId,
+  changeRequestId,
   customerId,
   requestDetails,
-  changeRequestId = null,
   versionId = 1
 ) => ({
   type: 'RaiseRequest', // Command type identifier
   requestId,
+  changeRequestId,
   customerId,
   requestDetails,
-  changeRequestId,
   versionId
 });

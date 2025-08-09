@@ -7,10 +7,11 @@
  * @param {string} customerId
  * @param {object} requestDetails
  */
-export const CreateQuotationCommand = (quotationId, requestId, customerId, requestDetails) => ({
+export const CreateQuotationCommand = (quotationId, requestId, changeRequestId, customerId, requestDetails) => ({
   type: 'CreateQuotation',
   quotationId,
   requestId,
+  changeRequestId,
   customerId,
   requestDetails
 });

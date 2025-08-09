@@ -9,14 +9,14 @@ export const RaiseRequestCommandHandler = {
     console.log(`[RaiseRequestCommandHandler] Handling command:`, command);
 
     const requestId = uuidv4();
-    const changeRequestId = null; // No changeRequest for initial creation
+    const changeRequestId = uuidv4();
     const versionId = 1; // Initial version
 
     const createCommand = RaiseRequestCommand(
       requestId,
+      changeRequestId,
       command.customerId,
       command.requestDetails,
-      changeRequestId,
       versionId
     );
 
@@ -24,6 +24,7 @@ export const RaiseRequestCommandHandler = {
       const event = RequestAggregate.create(createCommand);
       requestEventStore.append(event);
       eventBus.publish(event);
+      console.log(`[RaiseRequestCommandHandler] Request created successfully with ID: ${event}`);
       return { success: true, event };
     } catch (error) {
       console.warn(`[RaiseRequestCommandHandler] Failed to create request: ${error.message}`);

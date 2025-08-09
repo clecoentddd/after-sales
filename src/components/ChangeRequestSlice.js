@@ -4,23 +4,25 @@ import EventLogDisplay from './EventLogDisplay';
 import { changeRequestCommandHandler } from '../domain/features/00_RequestManagement/19_RaiseChangeRequest/commandHandler';
 import { RaiseChangeRequestCommand } from '../domain/features/00_RequestManagement/19_RaiseChangeRequest/commands';
 import DecisionProjectionUI from '../domain/features/00_RequestManagement/19a_ChangeRequestDecisionTree/ui';
+import { queryRequestsProjection } from '../domain/features/00_RequestManagement/shared/requestProjectionDB'; // Adjust the import path as necessary
 
-function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, currentUserId }) {
+function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId }) {
   const [selectedRequestId, setSelectedRequestId] = useState('');
   const [changeDescription, setChangeDescription] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Use the query function to get the requests data
+  const requests = queryRequestsProjection();
+
   const handleChangeRequestRaised = (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
-
     if (!selectedRequestId || !changeDescription.trim()) {
       setError("Please select a request and provide a description for the change.");
       return;
     }
-
     const result = changeRequestCommandHandler.handle(
       new RaiseChangeRequestCommand(
         selectedRequestId,
@@ -28,7 +30,6 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
         changeDescription.trim()
       )
     );
-
     if (!result.success) {
       setError(result.error);
     } else {
@@ -43,7 +44,6 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
       <h2>Change Request Management</h2>
       {error && <div className="error-message">{error}</div>}
       {success && <div className="success-message">{success}</div>}
-
       <div className="aggregate-columns">
         <div className="aggregate-column first-column">
           <h3>Select a request</h3>
@@ -54,7 +54,7 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, requests, cur
               required
             >
               <option value="">Select Request to Change</option>
-              {requests.map(request => (
+              {Array.isArray(requests) && requests.map(request => (
                 <option key={request.requestId} value={request.requestId}>
                   {request.requestDetails.title} (ID: {request.requestId || 'Unknown ID'})
                 </option>

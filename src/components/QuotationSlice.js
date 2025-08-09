@@ -17,10 +17,9 @@ function QuotationSlice({ customers, requests, currentUserId }) {
   console.log('[QuotationSlice] Rendering QuotationSlice component');
 
   const { quotations: projectedQuotations } = useQuotationProjection();
-  const { quotationEvents } = useQuotationEvents();
   const [quotations, setQuotations] = useState([]);
 
-
+  const { quotationEvents } = useQuotationEvents();
     // Sync local state with projection data
     useEffect(() => {
       setQuotations(projectedQuotations);

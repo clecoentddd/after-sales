@@ -1,15 +1,43 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
 import { RaiseRequestCommandHandler } from '../domain/features/00_RequestManagement/05_RaiseRequest/commandHandler';
 import { useCustomerProjection } from '../domain/features/02_CustomerManagement/CustomerListProjection/useCustomerProjection';
+import { useRequestEvents } from '../domain/features/00_RequestManagement/requestManagementStream';
+import { useRequestProjection } from '../domain/features/00_RequestManagement/shared/useRequestProjection';
+import { rebuildRequestProjection } from '../domain/features/00_RequestManagement/shared/rebuildRequestProjection';
 
-function RequestSlice({ requests, requestEvents }) {
+function RequestSlice() {
   const { customers } = useCustomerProjection();
 
   const [requestTitle, setRequestTitle] = useState('');
   const [requestDescription, setRequestDescription] = useState('');
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const { requests: projectedRequests } = useRequestProjection();
+
+    const { requestEvents } = useRequestEvents();
+
+    React.useEffect(() => {
+      console.log('[RequestSlice] requestEvents updated:', requestEvents);
+    }, [requestEvents]);
+
+    // Handling rebuild projection
+    const [requests, setRequests] = useState([]);
+     useEffect(() => {
+        setRequests(projectedRequests);
+      }, [projectedRequests]);
+
+    const handleRebuild = async () => {
+        console.log('[RequestSlice] Rebuild button clicked');
+        setRequests([]); // Clear the customers array immediately
+    
+        // Wait for a short period to show the empty state
+        await new Promise(resolve => setTimeout(resolve, 500));
+    
+        // Rebuild the projection
+        const rebuiltRequests = await rebuildRequestProjection();
+        setRequests(rebuiltRequests);
+      };
 
   const handleRaiseRequest = (e) => {
     e.preventDefault();
@@ -34,7 +62,23 @@ function RequestSlice({ requests, requestEvents }) {
 
   return (
     <div className="aggregate-block">
-      <h2>Request Management</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ margin: 0 }}>Request Management</h2>
+        <button
+          onClick={handleRebuild}
+          style={{
+            fontSize: '0.85rem',
+            padding: '2px 8px',
+            background: 'none',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            color: '#555'
+          }}
+        >
+          🔄 Rebuild
+        </button>
+      </div>
       <div className="aggregate-columns">
         <div className="aggregate-column first-column">
           <h3>Raise a request</h3>
@@ -78,7 +122,7 @@ function RequestSlice({ requests, requestEvents }) {
               );
               return (
                 <>
-                  <strong>{request.requestDetails.title}</strong>
+                  <strong>{request.title}</strong>
                   <small>
                     For: {customer?.name || 'Unknown Customer'} <br />
                     Status: {request.status}

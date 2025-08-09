@@ -6,8 +6,7 @@ import { queryCustomersProjection } from './domain/features/02_CustomerManagemen
 import { queryQuotationsProjection } from './domain/features/00_QuotationManagement/shared/quotationProjectionDB';
 
 import { useProjectionOrganizationList } from './domain/features/01_OrganizationManagement/02_OrganizationListProjection/projectionOrganizationList';
-import { useCustomerSlice } from './domain/features/02_CustomerManagement/CustomerListProjection/useCustomerSlice';
-import { useRequestSlice } from './domain/features/00_RequestManagement/06_RequestListProjection/useRequestSlice';
+
 import { useRepairJobSlice } from './domain/features/00_JobManagement/RepairJobListProjection/useRepairJobSlice';
 import { useInvoicingSlice } from './domain/features/00_InvoiceManagement/18_InvoicesListProjection/UseInvoicingSlice';
 import { useChangeRequestSlice } from './domain/features/00_RequestManagement/20_ChangeRequestList/useChangeRequestSlice';
@@ -16,7 +15,6 @@ import OrganizationSlice from './components/OrganizationSlice';
 import CustomerSlice from './components/CustomerSlice';
 import RequestSlice from './components/RequestSlice';
 import QuotationSlice from './components/QuotationSlice';
-import QuotationApprovalSlice from './components/QuotationApprovalSlice';
 import RepairJobSlice from './components/RepairJobSlice';
 import InvoicingSlice from './components/InvoicingSlice';
 import ChangeRequestSlice from './components/ChangeRequestSlice';
@@ -28,6 +26,8 @@ import LiveModelPage from './LiveModelPage'; // Assuming you have a LiveModelPag
 import ToDoListPage from './ToDoChangeRequestProcessPage'; // Assuming you have a ToDoListPage component
 
 import { globalQuotationInit } from './domain/features/00_QuotationManagement/shared/globalQuotationInit';
+import { globalRequestInit } from '@features/00_RequestManagement/shared/globalRequestInit';
+
 import { initializeCreateJobEventHandler } from './domain/features/00_JobManagement/11_CreateJobAutomation/eventHandler';
 import { initializeInvoiceFromJobCompletionHandler } from './domain/features/00_InvoiceManagement/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
 
@@ -44,6 +44,7 @@ import { initializeToDoCompleteJobToAssessChangeRequest } from './domain/feature
 
 
 import { useEffect } from 'react';
+import { queryRequestsProjection } from '@domain/features/00_RequestManagement/shared/requestProjectionDB';
 
 function App() {
   const currentUserId = 'user-alice-123';
@@ -51,11 +52,9 @@ function App() {
   // customers projection
   const customers = queryCustomersProjection();
   const quotations = queryQuotationsProjection();
+  const requests = queryRequestsProjection
 
-  const { organizations, orgEvents } = useProjectionOrganizationList();
-
-  const { requests, requestEvents } = useRequestSlice();
-  
+  const { organizations, orgEvents } = useProjectionOrganizationList();  
   
   const { jobs, jobEvents } = useRepairJobSlice();
   const { invoices, invoiceEvents } = useInvoicingSlice();
@@ -64,6 +63,7 @@ function App() {
   // Initialize event handlers only once
   useEffect(() => {
     globalQuotationInit();
+    globalRequestInit();
     initializeCreateJobEventHandler();
     initializeInvoiceFromJobCompletionHandler();
 
@@ -101,7 +101,7 @@ function App() {
                    organizations={organizations} 
                    orgEvents={orgEvents} />
                 <CustomerSlice customers={customers} organizations={organizations}/>
-                <RequestSlice requests={requests} requestEvents={requestEvents} customers={customers} />
+                <RequestSlice requests={requests} customers={customers} />
                 <QuotationSlice
                     customers={customers}
                     requests={requests}

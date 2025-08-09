@@ -22,12 +22,17 @@ export const initializeInvoiceFromJobCompletionHandler = () => {
   eventBus.subscribe('JobCompleted', (event) => {
     console.log(`[CompleteJobEventHandler] Received JobCompleted event:`, event);
 
-    const { jobId, completedByUserId, completionDetails } = event.data;
+    const jobId = event.aggregateId; // Use aggregateId for job ID
+    if (!jobId) {
+      console.error(`[CompleteJobEventHandler] JobCompleted event missing jobId. Cannot create invoice.`);
+      return;
+    }
+    const { completedByUserId, completionDetails } = event.data;
 
     // To create an invoice, we need to gather information from various sources (read models/event stores)
     const allJobCreationEvents = jobEventStore.getEvents();
     const jobCreated = allJobCreationEvents
-      .filter(e => e.type === 'JobCreated' && e.data.jobId === jobId)
+      .filter(e => e.type === 'JobCreated' && e.aggregate === jobId)
       .map(e => e.data)
       .at(0);
 

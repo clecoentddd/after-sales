@@ -1,7 +1,8 @@
 export const JobCreatedEvent = (jobId, quotationId, requestId, changeRequestId, jobDetails, status = 'Pending') => ({
   type: 'JobCreated',
+  aggregateId: jobId,
+  aggregateType: 'Job',
   data: {
-    jobId,
     quotationId,
     requestId,
     changeRequestId,

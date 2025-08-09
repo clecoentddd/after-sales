@@ -13,7 +13,7 @@ export const completeJobCommandHandler = {
         // Rehydrate aggregate from event history
         const events = jobEventStore
           .getEvents()
-          .filter(e => e.data.jobId === command.jobId);
+          .filter(e => e.aggregateId === command.jobId);
 
         const aggregate = new JobAggregate();
         aggregate.replay(events);

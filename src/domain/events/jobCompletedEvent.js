@@ -10,11 +10,13 @@
  * @param {object} completionDetails - Optional details about the job completion.
  * @returns {object} The JobCompletedEvent object.
  */
-export const JobCompletedEvent = (jobId, requestId, completedByUserId, completionDetails = {}) => ({
+export const JobCompletedEvent = (jobId, requestId, changeRequestId, completedByUserId, completionDetails = {}) => ({
   type: 'JobCompleted',
+  aggregateId: jobId,
+  aggregateType: 'Job',
   data: {
-    jobId,
     requestId, // Now correctly using the function parameter
+    changeRequestId,
     completedByUserId,
     completionDetails,
     completedAt: new Date().toISOString(),

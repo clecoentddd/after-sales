@@ -3,8 +3,9 @@ export const JobStartedEvent = (jobId, requestId, assignedTeam, startedByUserId)
 
   return {
     type: 'JobStarted',
+    aggregateId: jobId,
+    aggregateType: 'Job',
     data: {
-      jobId,
       requestId,
       assignedTeam,
       startedByUserId,

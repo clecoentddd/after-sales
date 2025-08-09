@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { jobEventStore } from '@core/eventStore';
-
 import { eventBus } from '@core/eventBus';
 
 export function useRepairJobSlice() {
@@ -8,14 +7,12 @@ export function useRepairJobSlice() {
   const [repairJobEvents, setRepairJobEvents] = useState([]);
 
   useEffect(() => {
-    const events = [
-      ...(jobEventStore.getEvents() || []),
-    ];
-
+    const events = [...(jobEventStore.getEvents() || [])];
     const jobMap = new Map();
 
     for (const event of events) {
-      const { jobId, ...data } = event.data;
+      const jobId = event.aggregateId; // Use aggregateId as jobId
+      const data = event.data;
 
       switch (event.type) {
         case 'JobCreated':
@@ -36,7 +33,7 @@ export function useRepairJobSlice() {
             jobMap.get(jobId).status = 'OnHold';
           }
           break;
-          case 'ChangeRequestReceivedPendingAssessment':
+        case 'ChangeRequestReceivedPendingAssessment':
           if (jobMap.has(jobId)) {
             jobMap.get(jobId).status = 'ChangeRequestReceivedPendingAssessment';
           }
@@ -51,45 +48,34 @@ export function useRepairJobSlice() {
   }, []);
 
   useEffect(() => {
+    const handleJobCreated = (event) => {
+      const jobId = event.aggregateId;
+      setRepairJobs(prev => [...prev, { jobId, ...event.data }]);
+      setRepairJobEvents(prev => [...prev, event]);
+    };
+
+    const handleJobStatusChange = (event) => {
+      const jobId = event.aggregateId;
+      setRepairJobs(prev =>
+        prev.map(job =>
+          job.jobId === jobId
+            ? { ...job, status: event.type === 'JobStarted' ? event.data.status : event.type === 'JobCompleted' ? 'Completed' : 'OnHold' }
+            : job
+        )
+      );
+      setRepairJobEvents(prev => [...prev, event]);
+    };
+
     const unsubscribers = [
-      eventBus.subscribe('JobCreated', (event) => {
-         setRepairJobs(prev => [...prev, { ...event.data }]);
-        setRepairJobEvents(prev => [...prev, event]);
-      }),
-      eventBus.subscribe('JobStarted', (event) => {
+      eventBus.subscribe('JobCreated', handleJobCreated),
+      eventBus.subscribe('JobStarted', handleJobStatusChange),
+      eventBus.subscribe('JobCompleted', handleJobStatusChange),
+      eventBus.subscribe('JobOnHold', handleJobStatusChange),
+      eventBus.subscribe('ChangeRequestReceivedPendingAssessment', (event) => {
+        const jobId = event.aggregateId;
         setRepairJobs(prev =>
           prev.map(job =>
-            job.jobId === event.data.jobId
-              ? { ...job, status: event.data.status }
-              : job
-          )
-        );
-        setRepairJobEvents(prev => [...prev, event]);
-      }),
-      eventBus.subscribe('JobCompleted', (event) => {
-        setRepairJobs(prev =>
-          prev.map(job =>
-            job.jobId === event.data.jobId
-              ? { ...job, status: 'Completed' }
-              : job
-          )
-        );
-        setRepairJobEvents(prev => [...prev, event]);
-      }),
-      eventBus.subscribe('JobOnHold', (event) => {
-        setRepairJobs(prev =>
-          prev.map(job =>
-            job.jobId === event.data.jobId
-              ? { ...job, status: 'OnHold' }
-              : job
-          )
-        );
-        setRepairJobEvents(prev => [...prev, event]);
-      }),
-       eventBus.subscribe('ChangeRequestReceivedPendingAssessment', (event) => {
-        setRepairJobs(prev =>
-          prev.map(job =>
-            job.jobId === event.data.jobId
+            job.jobId === jobId
               ? { ...job, status: 'ChangeRequestReceivedPendingAssessment' }
               : job
           )

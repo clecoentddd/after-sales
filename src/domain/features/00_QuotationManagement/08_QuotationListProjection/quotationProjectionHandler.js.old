@@ -1,5 +1,5 @@
 import { eventBus } from '@core/eventBus';
-import { insertNewQuotation, updateExistingQuotationStatus } from './quotationProjectionUtils';
+import { insertNewQuotation, updateExistingQuotationStatus } from '../shared/quotationProjectionUtils';
 
 let quotations = [];
 let isEventHandlerInitialized = false;

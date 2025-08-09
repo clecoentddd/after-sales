@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 // Projections
 import { queryCustomersProjection } from './domain/features/02_CustomerManagement/CustomerListProjection/customerProjectionHandler';
-import { queryQuotationsProjection } from './domain/features/00_QuotationManagement/08_QuotationListProjection/quotationProjectionHandler';
+import { queryQuotationsProjection } from './domain/features/00_QuotationManagement/shared/quotationProjectionDB';
 
 import { useProjectionOrganizationList } from './domain/features/01_OrganizationManagement/02_OrganizationListProjection/projectionOrganizationList';
 import { useCustomerSlice } from './domain/features/02_CustomerManagement/CustomerListProjection/useCustomerSlice';
@@ -27,7 +27,7 @@ import EventsPage from './EventsPage';  // import your new EventsPage
 import LiveModelPage from './LiveModelPage'; // Assuming you have a LiveModelPage component
 import ToDoListPage from './ToDoChangeRequestProcessPage'; // Assuming you have a ToDoListPage component
 
-import { initializeQuotationEventHandler } from './domain/features/00_QuotationManagement/07_CreateQuotation/eventHandler';
+import { globalQuotationInit } from './domain/features/00_QuotationManagement/shared/globalQuotationInit';
 import { initializeCreateJobEventHandler } from './domain/features/00_JobManagement/11_CreateJobAutomation/eventHandler';
 import { initializeInvoiceFromJobCompletionHandler } from './domain/features/00_InvoiceManagement/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
 
@@ -63,7 +63,7 @@ function App() {
 
   // Initialize event handlers only once
   useEffect(() => {
-    initializeQuotationEventHandler();
+    globalQuotationInit();
     initializeCreateJobEventHandler();
     initializeInvoiceFromJobCompletionHandler();
 

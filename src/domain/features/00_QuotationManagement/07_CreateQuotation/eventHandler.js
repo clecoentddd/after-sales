@@ -4,7 +4,7 @@ import { createQuotationCommandHandler } from './commandHandler';
 
 let isEventHandlerInitialized = false;
 
-export const initializeQuotationEventHandler = () => {
+export const initializeQuotationRequestRaisedEventHandler = () => {
   if (isEventHandlerInitialized) return;
   console.log('[QuotationEventHandler] Initializing event handler for RequestRaised events...');  
   eventBus.subscribe('RequestRaised', (event) => {

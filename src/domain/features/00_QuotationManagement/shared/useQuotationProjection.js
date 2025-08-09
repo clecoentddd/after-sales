@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { eventBus } from '@core/eventBus';
-import {
-  initializeQuotationProjectionEventHandler,
-  queryQuotationsProjection
-} from './quotationProjectionHandler';
+import {globalQuotationInit} from './globalQuotationInit';
+import { queryQuotationsProjection } from './quotationProjectionDB';
 
 export function useQuotationProjection() {
   // ✅ Initialize projection handler once
-  initializeQuotationProjectionEventHandler();
+  globalQuotationInit();
 
   // Projection state
   const [quotations, setQuotations] = useState(queryQuotationsProjection());

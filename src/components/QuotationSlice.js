@@ -3,9 +3,9 @@ import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
 import { quotationApprovalCommandHandler } from '../domain/features/00_QuotationManagement/09_ApproveQuotation/commandHandler';
 import { ApproveQuotationCommand } from '../domain/features/00_QuotationManagement/09_ApproveQuotation/commands';
-import { useQuotationProjection } from '../domain/features/00_QuotationManagement/08_QuotationListProjection/useQuotationProjection';
+import { useQuotationProjection } from '../domain/features/00_QuotationManagement/shared/useQuotationProjection.js';
 import { useQuotationEvents } from '../domain/features/00_QuotationManagement/quotationManagementStream';
-import { rebuildQuotationProjection } from '../domain/features/00_QuotationManagement/08_QuotationListProjection/rebuildQuotationProjection';
+import { rebuildQuotationProjection } from '../domain/features/00_QuotationManagement/shared/rebuildQuotationProjection';
 const OriginalApproveQuotationCommand = ApproveQuotationCommand;
 
 const ApproveQuotationCommandWithLog = function(...args) {

@@ -2,7 +2,7 @@
 // Defines events related to the Invoicing domain.
 
 /**
- * Factory function for creating an InvoiceCreatedEvent.
+ * Factory function for creating an InvoiceRaisedEvent.
  * This event signifies that a new invoice has been generated.
  * @param {string} invoiceId - Unique ID of the created invoice.
  * @param {string} jobId - The ID of the job for which the invoice was created.
@@ -11,12 +11,12 @@
  * @param {number} amount - The total amount of the invoice.
  * @param {string} currency - The currency of the invoice amount.
  * @param {string} description - A description for the invoice.
- * @returns {object} The InvoiceCreatedEvent object.
+ * @returns {object} The InvoiceRaisedEvent object.
  */
-export const InvoiceCreatedEvent = (invoiceId, jobId, quotationId, customerId, amount, currency, description) => ({
-  type: 'InvoiceCreated', // Event type identifier
+export const InvoiceRaisedEvent = (invoiceId, jobId, quotationId, customerId, amount, currency, description) => ({
+  type: 'InvoiceRaised', // Event type identifier
+  aggregateId: invoiceId,
   data: {
-    invoiceId,
     jobId,
     quotationId,
     customerId,

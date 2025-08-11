@@ -54,11 +54,19 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId
               required
             >
               <option value="">Select Request to Change</option>
-              {Array.isArray(requests) && requests.map(request => (
-                <option key={request.requestId} value={request.requestId}>
-                  {request.requestDetails.title} (ID: {request.requestId || 'Unknown ID'})
-                </option>
-              ))}
+              {Array.isArray(requests) ? (
+                requests.length > 0 ? (
+                  requests.map(request => (
+                    <option key={request.requestId} value={request.requestId}>
+                      {request.requestDetails?.title || 'Unknown Title'} (ID: {request.requestId || 'Unknown ID'})
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>No requests available</option>
+                )
+              ) : (
+                <option value="" disabled>Request Projection is not available (system error)</option>
+              )}
             </select>
             <textarea
               value={changeDescription}
@@ -75,10 +83,10 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId
             items={changeRequests}
             idKey="changeRequestId"
             renderDetails={(changeReq) => {
-              const originalRequest = requests.find(req => req.requestId === changeReq.requestId);
+              const originalRequest = Array.isArray(requests) ? requests.find(req => req.requestId === changeReq.requestId) : null;
               return (
                 <>
-                  <strong>Change for: {originalRequest?.requestDetails.title || 'Unknown Title'}</strong>
+                  <strong>Change for: {originalRequest?.requestDetails?.title || 'Unknown Title'}</strong>
                   <small>
                     Request ID: {changeReq.requestId || 'Missing ID'} <br />
                     Description: {changeReq.description || 'No description'} <br />

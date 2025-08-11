@@ -27,16 +27,17 @@ import ToDoListPage from './ToDoChangeRequestProcessPage'; // Assuming you have 
 
 import { globalQuotationInit } from './domain/features/00_QuotationManagement/shared/globalQuotationInit';
 import { globalRequestInit } from '@features/00_RequestManagement/shared/globalRequestInit';
+import { globalInvoiceInit } from '@features/00_InvoiceManagement/shared/globalInvoiceInit';
 
-import { initializeCreateJobEventHandler } from './domain/features/00_JobManagement/11_CreateJobAutomation/eventHandler';
-import { initializeInvoiceFromJobCompletionHandler } from './domain/features/00_InvoiceManagement/17_CreateInnvoice/initializeInvoiceFromJobCompletion';
 
-import { initializeAssignCreatedJobToChangeRequestProcessor } from './domain/features/00_JobManagement/23a_SetTodoToPutJobOnHold/initializeAssignCreatedJobToChangeRequestProcessor';
+import { initializeCreateJobEventHandler } from '@features/00_JobManagement/11_CreateJobAutomation/eventHandler';
 
-import { initializeAssignStartedJobToChangeRequestProcessor } from './domain/features/00_JobManagement/29a_SetupJobChangeRequestAssessmentTodoList/initializeAssignStartedJobToChangeRequestProcessor';
-import { initializeAssignCompleteJobToChangeRequestProcessor } from './domain/features/00_JobManagement/32a_SetUpToDoClosedJobsChangeRquestProcess/initializeAssignCompleteJobToChangeRequestProcessor';
-import { initializeChangeRequestDecisionTreeHandler } from './domain/features/00_RequestManagement/19a_ChangeRequestDecisionTree/eventHandler';
-import {initializeCompleteJobEventHandler } from './domain/features/00_RequestManagement/27_CloseRequest/eventHandler';
+import { initializeAssignCreatedJobToChangeRequestProcessor } from '@features/00_JobManagement/23a_SetTodoToPutJobOnHold/initializeAssignCreatedJobToChangeRequestProcessor';
+import { initializeAssignStartedJobToChangeRequestProcessor } from '@features/00_JobManagement/29a_SetupJobChangeRequestAssessmentTodoList/initializeAssignStartedJobToChangeRequestProcessor';
+import { initializeAssignCompleteJobToChangeRequestProcessor } from '@features/00_JobManagement/32a_SetUpToDoClosedJobsChangeRquestProcess/initializeAssignCompleteJobToChangeRequestProcessor';
+
+import { initializeChangeRequestDecisionTreeHandler } from '@features/00_RequestManagement/19a_ChangeRequestDecisionTree/eventHandler';
+import { initializeCompleteJobEventHandler } from '@features/00_RequestManagement/27_CloseRequest/eventHandler';
 // to do list for jon change request
 import { initializeToDoCreatedJobToAssessChangeRequest } from './domain/features/00_JobManagement/23b_PutJobOnHold/toDoCreatedJobToAssessChangeRequestProcessor.js.js';
 import { initializeToDoStartedJobToAssessChangeRequest } from './domain/features/00_JobManagement/29b_JobChangeRequestAssessment/toDoStartedJobToAssessChangeRequestProcessor.js';
@@ -64,8 +65,8 @@ function App() {
   useEffect(() => {
     globalQuotationInit();
     globalRequestInit();
+    globalInvoiceInit();
     initializeCreateJobEventHandler();
-    initializeInvoiceFromJobCompletionHandler();
 
     initializeChangeRequestDecisionTreeHandler();
     initializeCompleteJobEventHandler();

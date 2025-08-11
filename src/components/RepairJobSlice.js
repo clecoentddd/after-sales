@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { startJobCommandHandler } from '../domain/features/00_JobManagement/13_ StartJob/commandHandler';
-import { StartJobCommand } from '../domain/features/00_JobManagement/13_ StartJob/commands';
-import { completeJobCommandHandler } from '../domain/features/00_JobManagement/15_CompleteJob/commandHandler';
-import { CompleteJobCommand } from '../domain/features/00_JobManagement/15_CompleteJob/commands';
+import { startJobCommandHandler } from '@features/00_JobManagement/13_StartJob/commandHandler';
+import { StartJobCommand } from '@features/00_JobManagement/13_StartJob/commands';
+import { completeJobCommandHandler } from '@features/00_JobManagement/15_CompleteJob/commandHandler';
+import { CompleteJobCommand } from '@features/00_JobManagement/15_CompleteJob/commands';
 
 function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, currentUserId }) {
   const [selectedTeam, setSelectedTeam] = useState('Team_A'); // Default team
@@ -15,29 +15,24 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
       console.warn("Please select a team before starting the job.");
       return;
     }
-
     const jobToStart = jobs.find(job => job.jobId === jobId);
     console.log('[RepairJobSlice] Job to start:', jobToStart);
-
     if (!jobToStart) {
       console.warn(`Job with ID ${jobId} not found.`);
       return;
     }
-
     if (jobToStart.status !== 'Pending') {
       console.warn(`Job ${jobId} is already ${jobToStart.status}.`);
       return;
     }
-
     startJobCommandHandler.handle(
-      StartJobCommand(
-        jobToStart.jobId,
-        jobToStart.requestId,
-        selectedTeam,
-        currentUserId
-      )
-    );
-
+  StartJobCommand(
+    jobToStart.jobId,
+    jobToStart.requestId,
+    selectedTeam,
+    currentUserId
+  )
+);
     console.log('[RepairJobSlice] StartJobCommand dispatched:', {
       jobId: jobToStart.jobId,
       requestId: jobToStart.requestId,
@@ -49,20 +44,16 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
   const handleCompleteJob = (jobId) => {
     console.log('[RepairJobSlice] Attempting to complete job:', jobId);
     if (!jobId) return;
-
     const jobToComplete = jobs.find(job => job.jobId === jobId);
     console.log('[RepairJobSlice] Job to complete:', jobToComplete);
-
     if (!jobToComplete) {
       console.warn(`Job with ID ${jobId} not found.`);
       return;
     }
-
     if (jobToComplete.status !== 'Started') {
       console.warn(`Job ${jobId} cannot be completed as its status is ${jobToComplete.status}. Only 'Started' jobs can be completed.`);
       return;
     }
-
     completeJobCommandHandler.handle(
       CompleteJobCommand(
         jobToComplete.jobId,
@@ -74,7 +65,6 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
         }
       )
     );
-
     console.log('[RepairJobSlice] CompleteJobCommand dispatched:', {
       jobId: jobToComplete.jobId,
       requestId: jobToComplete.requestId,
@@ -84,7 +74,6 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
 
   // Detailed logs for debugging
   console.log('[RepairJobSlice] Render with jobs:', jobs);
-
   if (jobs) {
     jobs.forEach(job => {
       console.log(
@@ -94,7 +83,6 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
   } else {
     console.warn('[RepairJobSlice] jobs is undefined or null');
   }
-
   console.log('[RepairJobSlice] Render with jobEvents:', jobEvents);
 
   const actionableJobs = (jobs || []).filter(job => {
@@ -102,7 +90,6 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
     console.log(`[RepairJobSlice] Filtering job ${job.jobId}: status=${job.status}, actionable=${isActionable}`);
     return isActionable && job.jobId; // Ensure jobId exists
   });
-
   console.log('[RepairJobSlice] Jobs filtered for actions:', actionableJobs);
 
   return (
@@ -158,14 +145,15 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
             idKey="jobId"
             renderDetails={(job) => {
               const customer = customers.find(c => c.customerId === job.customerId);
-              const request = requests.find(r => r.requestId === job.requestId);
+              const request = Array.isArray(requests) ? requests.find(r => r.requestId === job.requestId) : null;
               const quotation = quotations.find(q => q.quotationId === job.quotationId);
+
               return (
                 <>
                   <strong>{job.jobDetails?.title || 'Untitled'}</strong>
                   <small>
                     For: {customer?.name || 'Unknown Customer'} <br />
-                    From Request: {request?.requestDetails?.title?.slice(0, 20) || 'N/A'}... <br />
+                    From Request: {request ? request.requestDetails?.title?.slice(0, 20) : 'Request Projection is not available (system error)'}... <br />
                     From Quotation: {quotation?.quotationDetails?.title?.slice(0, 20) || 'N/A'}... <br />
                     Status: {job.status} {job.jobDetails?.assignedTeam && `(${job.jobDetails.assignedTeam})`}
                   </small>
@@ -183,4 +171,3 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
 }
 
 export default RepairJobSlice;
-

@@ -6,36 +6,39 @@ import { ApproveQuotationCommand } from '../domain/features/00_QuotationManageme
 import { useQuotationProjection } from '../domain/features/00_QuotationManagement/shared/useQuotationProjection.js';
 import { useQuotationEvents } from '../domain/features/00_QuotationManagement/quotationManagementStream';
 import { rebuildQuotationProjection } from '../domain/features/00_QuotationManagement/shared/rebuildQuotationProjection';
-const OriginalApproveQuotationCommand = ApproveQuotationCommand;
+import { queryRequestsProjection } from '../domain/features/00_RequestManagement/shared/requestProjectionDB';
 
+const OriginalApproveQuotationCommand = ApproveQuotationCommand;
 const ApproveQuotationCommandWithLog = function(...args) {
   console.log('[QuotationSlice] Creating ApproveQuotationCommand with args:', args);
   return new OriginalApproveQuotationCommand(...args);
 };
 
-function QuotationSlice({ customers, requests, currentUserId }) {
+function QuotationSlice({ customers, currentUserId }) {
   console.log('[QuotationSlice] Rendering QuotationSlice component');
-
   const { quotations: projectedQuotations } = useQuotationProjection();
   const [quotations, setQuotations] = useState([]);
-
   const { quotationEvents } = useQuotationEvents();
-    // Sync local state with projection data
-    useEffect(() => {
-      setQuotations(projectedQuotations);
-    }, [projectedQuotations]);
 
-    const handleRebuild = async () => {
-      console.log('[QuotationSlice] Rebuild button clicked');
-      setQuotations([]); // Clear the customers array immediately
-  
-      // Wait for a short period to show the empty state
-      await new Promise(resolve => setTimeout(resolve, 500));
-  
-      // Rebuild the projection
-      const rebuiltQuotations = await rebuildQuotationProjection();
-      setQuotations(rebuiltQuotations);
-    };
+  // Fetch requests data using queryRequestsProjection
+  const requests = queryRequestsProjection();
+
+  // Sync local state with projection data
+  useEffect(() => {
+    setQuotations(projectedQuotations);
+  }, [projectedQuotations]);
+
+  const handleRebuild = async () => {
+    console.log('[QuotationSlice] Rebuild button clicked');
+    setQuotations([]); // Clear the quotations array immediately
+
+    // Wait for a short period to show the empty state
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Rebuild the projection
+    const rebuiltQuotations = await rebuildQuotationProjection();
+    setQuotations(rebuiltQuotations);
+  };
 
   // Log whenever quotations change
   React.useEffect(() => {
@@ -50,7 +53,6 @@ function QuotationSlice({ customers, requests, currentUserId }) {
   const handleApproveQuotation = (quotationId) => {
     console.log('[QuotationSlice] Attempting to approve quotation:', quotationId);
     if (!quotationId) return;
-
     const currentQuotation = quotations.find(q => q.quotationId === quotationId);
     if (currentQuotation && currentQuotation.status === 'Approved') {
       console.warn(`Quotation ${quotationId} is already approved.`);
@@ -60,7 +62,6 @@ function QuotationSlice({ customers, requests, currentUserId }) {
       console.warn(`Quotation ${quotationId} is on hold and cannot be approved directly. Resolve hold first.`);
       return;
     }
-
     quotationApprovalCommandHandler.handle(
       ApproveQuotationCommandWithLog({
         quotationId,
@@ -123,19 +124,22 @@ function QuotationSlice({ customers, requests, currentUserId }) {
             renderDetails={(quotation) => {
               console.log('[QuotationSlice] Rendering details for quotation:', quotation);
               console.log('[QuotationSlice] Customers projection:', customers);
-
               const customer = customers.find(c => c.customerId === quotation.customerId);
               console.log('[QuotationSlice] Matched customer:', customer);
+
+              // Find the request associated with the quotation
               const request = requests.find(r => r.requestId === quotation.requestId);
               console.log('[QuotationSlice] Matched request:', request);
+
               return (
                 <>
                   <strong>{quotation.quotationDetails?.title}</strong>
+                  <strong>{request ? `Request: ${request?.title || 'Unknown Title'}` : 'RequestId : Request projection is not available (system error)'}</strong>
                   <small>
                     For: {customer?.name || 'Unknown Customer'} <br />
                     Amount: {quotation.estimatedAmount} {quotation.quotationDetails?.currency} <br />
                     Status: {quotation.status}
-                    {quotation.status === 'OnHold' && ` (Reason: ${quotation.onHoldReason || 'N/A'})`}
+                    {quotation.status === 'OnHold' && ` (Reason: ${quotation.onHoldReason || 'N/A'})`} <br />
                   </small>
                 </>
               );

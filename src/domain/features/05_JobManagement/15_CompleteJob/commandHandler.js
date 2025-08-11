@@ -3,6 +3,7 @@
 import { eventBus } from '@core/eventBus';
 import { jobEventStore } from '@core/eventStore';
 import { JobAggregate } from '@entities/Job/aggregate'; // shared aggregate
+import { jobCompletedEnrichedEvent } from '@domain/events/jobCompletedEnrichedEvent';
 
 export const completeJobCommandHandler = {
   handle(command) {
@@ -29,6 +30,9 @@ export const completeJobCommandHandler = {
 
         jobEventStore.append(event);
         eventBus.publish(event);
+
+        const enrichedEvent = jobCompletedEnrichedEvent(aggregate, command.userId);
+        eventBus.publish(enrichedEvent);
 
         return { success: true, event };
       }

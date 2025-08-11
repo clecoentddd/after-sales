@@ -7,7 +7,7 @@ let isEventHandlerInitialized = false;
 export const initializeQuotationRequestRaisedEventHandler = () => {
   if (isEventHandlerInitialized) return;
   console.log('[QuotationEventHandler] Initializing event handler for RequestRaised events...');  
-  eventBus.subscribe('RequestRaised--1', (event) => {
+  eventBus.subscribe('RequestRaised', (event) => {
   const requestId = event.aggregateId;
   const { customerId, requestDetails, changeRequestId } = event.data;
   

@@ -8,7 +8,9 @@ export function RequestRaisedEvent({ requestId, changeRequestId, versionId, cust
       customerId,
       requestDetails,
       status,
-      timestamp: new Date().toISOString()
-    }
+    },
+    metadata: {
+    timestamp: new Date().toISOString(),
+    },
   };
 }

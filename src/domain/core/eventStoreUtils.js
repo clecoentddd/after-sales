@@ -9,21 +9,48 @@ import {
 
 export function getEventsFromStores(stores) {
   let allEvents = [];
+
   stores.forEach(store => {
     allEvents = allEvents.concat(store.getEvents());
   });
 
-  // Check for missing or invalid metadata.timestamp and log them
+  // Log the total number of events collected
+  console.log(`[getEventsFromStores] Total events collected: ${allEvents.length}`);
+
+  // Check for missing or invalid fields and log them
   allEvents.forEach((event, index) => {
-    if (!event.metadata || !event.metadata.timestamp) {
+    if (!event.type) {
+      console.warn(`[getEventsFromStores] Event at index ${index} is missing type:`, event);
+    }
+
+    if (!event.metadata) {
+      console.warn(`[getEventsFromStores] Event at index ${index} is missing metadata:`, event);
+    } else if (!event.metadata.timestamp) {
       console.warn(`[getEventsFromStores] Event at index ${index} is missing metadata.timestamp:`, event);
+    } else {
+      // Check if the timestamp is a valid date
+      const timestampDate = new Date(event.metadata.timestamp);
+      if (isNaN(timestampDate.getTime())) {
+        console.warn(`[getEventsFromStores] Event at index ${index} has an invalid metadata.timestamp:`, event);
+      }
+    }
+
+    // Check if the event data is present and valid
+    if (!event.data) {
+      console.warn(`[getEventsFromStores] Event at index ${index} is missing data:`, event);
     }
   });
-  
+
   // Optionally, sort events by timestamp if order matters
-  allEvents.sort((a, b) => new Date(a.metadata.timestamp) - new Date(b.metadata.timestamp));
+  allEvents.sort((a, b) => {
+    const dateA = new Date(a.metadata.timestamp);
+    const dateB = new Date(b.metadata.timestamp);
+    return dateA - dateB;
+  });
+
   return allEvents;
 }
+
 
 export function getAllEvents() {
   const stores = [

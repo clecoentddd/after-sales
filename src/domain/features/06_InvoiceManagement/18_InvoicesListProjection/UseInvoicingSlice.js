@@ -9,13 +9,14 @@ export function useInvoicingSlice() {
   // Load initial invoices from event store
   useEffect(() => {
     const events = invoiceEventStore.getEvents();
-    setInvoices(events.filter(e => e.type === 'InvoiceCreated').map(e => e.data));
+    setInvoices(events.filter(e => e.type === 'InvoiceRaised').map(e => e.data));
     setInvoiceEvents(events);
   }, []);
 
   // Subscribe to InvoiceCreated events for real-time updates
   useEffect(() => {
-    const unsubscribe = eventBus.subscribe('InvoiceCreated', (event) => {
+    const unsubscribe = eventBus.subscribe('InvoiceRaised', (event) => {
+      console.log('useInvoiceSlice... subscribing');
       setInvoices(prev => [...prev, event.data]);
       setInvoiceEvents(prev => [...prev, event]);
     });

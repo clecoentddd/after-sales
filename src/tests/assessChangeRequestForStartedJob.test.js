@@ -12,7 +12,7 @@ describe('To-Do List Processing - Started Status Scenario', () => {
   const customerId = 'customer-123';
   const requestId = 'req-123';
   const quotationId = 'quotation-123';
-  const jobDetails = { description: 'Fix broken screen', type: 'Repair', assignedTeam: 'Tech Team' };
+  const details = { description: 'Fix broken screen', type: 'Repair', assignedTeam: 'Tech Team' };
   const changeRequestId = 'change-123';
   const userId = 'user-123';
   const description = 'Some change request';
@@ -23,11 +23,11 @@ describe('To-Do List Processing - Started Status Scenario', () => {
     initializeToDoStartedJobToAssessChangeRequest();
 
     // Create and store a JobCreated event to simulate an existing job
-    const jobCreatedEvent = JobCreatedEvent(jobId, customerId, requestId, quotationId, jobDetails, 'Pending');
+    const jobCreatedEvent = JobCreatedEvent(jobId, customerId, requestId, quotationId, details, 'Pending');
     jobEventStore.append(jobCreatedEvent);
 
     // Create and store a JobStarted event to transition the job to 'Started'
-    const jobStartedEvent = JobStartedEvent(jobId, requestId, jobDetails.assignedTeam, userId);
+    const jobStartedEvent = JobStartedEvent(jobId, requestId, details.assignedTeam, userId);
     jobEventStore.append(jobStartedEvent);
 
     // Add a todo item with status 'No'

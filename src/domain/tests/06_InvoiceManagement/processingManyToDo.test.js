@@ -31,7 +31,7 @@ describe('Todo Item Completion', () => {
           estimatedAmount: 1000,
           currency: 'USD'
         },
-        jobDetails: {
+        details: {
           title: 'Test Job 1'
         }
       }
@@ -49,7 +49,7 @@ describe('Todo Item Completion', () => {
           estimatedAmount: 2000,
           currency: 'EUR'
         },
-        jobDetails: {
+        details: {
           title: 'Test Job 2'
         }
       }

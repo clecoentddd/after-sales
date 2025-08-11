@@ -135,9 +135,9 @@ const checkDataAvailability = (data) => {
     { name: 'jobId' },
     { name: 'quotationId' },
     { name: 'customerId' },
-    { name: 'quotationDetails.estimatedAmount', display: 'amount' },
-    { name: 'quotationDetails.currency', display: 'currency' },
-    { name: 'jobDetails.title', display: 'description' }
+    { name: 'details.amount', display: 'amount' },
+    { name: 'details.currency', display: 'currency' },
+    { name: 'details.description', display: 'description' }
   ];
 
   const dataMissing = [];
@@ -169,7 +169,7 @@ const checkDataAvailability = (data) => {
         customerId: data.customerId,
         amount: data.quotationDetails.estimatedAmount,
         currency: data.quotationDetails.currency,
-        description: data.jobDetails.title
+        description: data.details.title
       }
     };
     console.log('[checkDataAvailability] All required data available:', result);

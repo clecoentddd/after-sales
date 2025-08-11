@@ -1,11 +1,11 @@
-export const JobCreatedEvent = (jobId, quotationId, requestId, changeRequestId, jobDetails, status = 'Pending') => ({
+export const JobCreatedEvent = (jobId, requestId, changeRequestId,quotationId, jobDetails, status = 'Pending') => ({
   type: 'JobCreated',
   aggregateId: jobId,
   aggregateType: 'Job',
   data: {
-    quotationId,
     requestId,
     changeRequestId,
+    quotationId,
     jobDetails,
     status
   },

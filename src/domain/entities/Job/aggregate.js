@@ -16,7 +16,7 @@ export class JobAggregate {
     this.changeRequestId = null;
     this.requestId = null;
     this.customerId = null;
-    this.jobDetails = null;
+    this.details = null;
     this.status = 'NotCreated';
     this.assignedTeam = null;
     this.onHoldReason = null;
@@ -44,22 +44,22 @@ export class JobAggregate {
         this.quotationId = data.quotationId || data.quoteId || data.quotation || this.quotationId || null;
         this.changeRequestId = data.changeRequestId || data.changeRequest || null;
         this.customerId = data.customerId || null;
-        this.jobDetails = data.jobDetails || data.details || this.jobDetails || {};
-        if (!this.jobDetails.assignedTeam && data.assignedTeam) {
-          this.jobDetails.assignedTeam = data.assignedTeam;
+        this.details = data.details || data.details || this.details || {};
+        if (!this.details.assignedTeam && data.assignedTeam) {
+          this.details.assignedTeam = data.assignedTeam;
         }
-        this.assignedTeam = this.jobDetails.assignedTeam || this.assignedTeam || null;
+        this.assignedTeam = this.details.assignedTeam || this.assignedTeam || null;
         this.status = data.status || this.status || 'Pending';
         break;
       }
       case 'JobStarted': {
         console.log(`[JobAggregate] Handling JobStarted event for jobId: ${ev.aggregateId}`);
         this.status = data.status || 'Started';
-        const team = data.assignedTeam || data.team || (data.jobDetails && data.jobDetails.assignedTeam) || this.assignedTeam;
+        const team = data.assignedTeam || data.team || (data.details && data.details.assignedTeam) || this.assignedTeam;
         if (team) {
           this.assignedTeam = team;
-          if (!this.jobDetails) this.jobDetails = {};
-          this.jobDetails.assignedTeam = team;
+          if (!this.details) this.details = {};
+          this.details.assignedTeam = team;
         }
         break;
       }
@@ -91,16 +91,48 @@ export class JobAggregate {
    * Create a JobCreated event from an approved quotation.
    * Returns the event object (does not append it to the store).
    */
-  static createFromQuotationApproval(quotationId, requestId, changeRequestId, quotationDetails) {
-    console.log(`[JobAggregate] Creating job from approved quotation: ${quotationId}`);
+  static createJobFromQuotationApproval(requestId, changeRequestId, quotationId, quotationDetails) {
+     console.log(`[JobAggregate] Creating job from approved quotation: ${quotationId}`, quotationDetails);
+    console.log('Quotation Details:', JSON.stringify(quotationDetails, null, 2));
+    
+     if (!quotationDetails) {
+        console.error('Quotation details is undefined or null');
+        throw new Error('[createJobFromQuotationApproval] Invalid quotation details provided');
+      }
+
+    if (!quotationDetails.title) {
+      console.error('Quotation title is missing');
+      throw new Error('[createJobFromQuotationApproval] Invalid quotation details provided');
+    }
+
+    if (!quotationDetails.operations) {
+      console.error('Quotation operations are missing');
+      throw new Error('[createJobFromQuotationApproval] Invalid quotation details provided');
+    }
+
+    if (!quotationDetails.currency) {
+      console.error('Quotation currency is missing');
+      throw new Error('[createJobFromQuotationApproval] Invalid quotation details provided');
+    }
+
+    if (quotationDetails.estimatedAmount === undefined) {
+      console.error('Quotation estimatedAmount is missing');
+      throw new Error('[createJobFromQuotationApproval] Invalid quotation details provided');
+    }
+
     const jobId = uuidv4();
     const jobDetails = {
       title: `Repair Job for: ${quotationDetails.title}`,
-      description: `Initiated from approved quotation for request: ${quotationDetails.description || 'No description'}`,
+      description: quotationDetails.operations,
       priority: 'Normal',
-      assignedTeam: 'Unassigned'
+      assignedTeam: 'Unassigned',
+      currency: quotationDetails.currency,
+      amount: quotationDetails.estimatedAmount
     };
-    return JobCreatedEvent(jobId, quotationId, requestId, changeRequestId, jobDetails, 'Pending', changeRequestId);
+    console.log('[createJobFromQuotationApproval] Job Details:', jobDetails);
+    const stopEvent = JobCreatedEvent(jobId, requestId, changeRequestId, quotationId, jobDetails, 'Pending');
+    console.log("Stop event:", JSON.stringify(stopEvent, null, 2));
+    return stopEvent;
   }
 
   start(command) {
@@ -183,7 +215,7 @@ export const reconstructJobState = (jobId) => {
     assignedTeam: jobAggregate.assignedTeam,
     quotationId: jobAggregate.quotationId,
     changeRequestId: jobAggregate.changeRequestId,
-    jobDetails: jobAggregate.jobDetails,
+    details: jobAggregate.details,
     onHoldReason: jobAggregate.onHoldReason,
     completedAt: jobAggregate.completedAt,
     completedByUserId: jobAggregate.completedByUserId

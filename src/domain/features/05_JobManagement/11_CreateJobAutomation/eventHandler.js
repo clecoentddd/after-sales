@@ -19,9 +19,9 @@ export const initializeCreateJobEventHandler = () => {
     console.log(`[CreateJobEventHandler] Received QuotationApproved event:`, event);
 
     const command = new CreateJobFromApprovedQuotationCommand({
-      quotationId: event.quotationId,
       requestId: event.data.requestId,
       changeRequestId: event.data.changeRequestId,
+      quotationId: event.quotationId,
       quotationDetails: event.data.quotationDetails
     });
 

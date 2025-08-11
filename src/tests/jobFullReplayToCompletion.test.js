@@ -11,7 +11,7 @@ describe('Repair job projection replay', () => {
           quotationId: 'd9ed9727-983a-4f0d-a2b0-ce4c56e7c1f2',
           requestId: '4b5e02b8-070d-4f0e-9be7-ee1ba35d7e22',
           changeRequestId: '0784afb0-1528-47f2-b0d0-fbd21b3756f8',
-          jobDetails: {
+          details: {
             title: 'Repair Job for: REQ2',
             description: 'Initiated from approved quotation for request: No description',
             priority: 'Normal',
@@ -53,7 +53,7 @@ describe('Repair job projection replay', () => {
 
     expect(jobs).toHaveLength(1);
     expect(jobs[0].status).toBe('Completed');
-    expect(jobs[0].jobDetails.title).toBe('Repair Job for: REQ2');
-    expect(jobs[0].jobDetails.assignedTeam).toBe('Team_A');
+    expect(jobs[0].details.title).toBe('Repair Job for: REQ2');
+    expect(jobs[0].details.assignedTeam).toBe('Team_A');
   });
 });

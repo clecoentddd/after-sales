@@ -15,7 +15,7 @@ describe('Job aggregate replay', () => {
 
     // ---- Step 1: Create job from quotation approval ----
     const aggregate = new JobAggregate();
-    const createEvent = JobAggregate.createFromQuotationApproval(
+    const createEvent = JobAggregate.createJobFromQuotationApproval(
       quotationId,
       requestId,
       changeRequestId,
@@ -54,7 +54,7 @@ describe('Job aggregate replay', () => {
     expect(finalState.assignedTeam).toBe('Team_A');
     expect(finalState.quotationId).toBe(quotationId);
     expect(finalState.changeRequestId).toBe(changeRequestId);
-    expect(finalState.jobDetails).toEqual(expect.objectContaining({
+    expect(finalState.details).toEqual(expect.objectContaining({
       title: 'Repair Job for: REQ2'
     }));
   });

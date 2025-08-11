@@ -14,7 +14,7 @@ const mockAggregate = {
   quotationDetails: { title: 'Sample Quotation', amount: 1000 },
   status: 'Approved',
   customerId: 'cust123',
-  jobDetails: { title: 'Sample Job' },
+  details: { title: 'Sample Job' },
 };
 
 const userId = 'user456';

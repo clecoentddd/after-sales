@@ -8,11 +8,8 @@ export const jobCompletedEnrichedEvent = (aggregate, userId) => {
     data: {
       requestId: aggregate.requestId,
       changeRequestId: aggregate.changeRequestId,
-      quotationId: aggregate.quotationId,
-      quotationDetails: aggregate.quotationDetails,
-      quotationStatus: aggregate.status,
       customerId: aggregate.customerId,
-      jobDetails: aggregate.jobDetails,
+      details: aggregate.details,
       approvedByUserId: userId,
       approvedAt: new Date().toISOString(),
     },

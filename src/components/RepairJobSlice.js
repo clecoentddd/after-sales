@@ -77,7 +77,7 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
   if (jobs) {
     jobs.forEach(job => {
       console.log(
-        `[RepairJobSlice] Job ID: ${job.jobId}, Status: "${job.status}", Title: "${job.jobDetails?.title}", Assigned Team: "${job.jobDetails?.assignedTeam || 'None'}"`
+        `[RepairJobSlice] Job ID: ${job.jobId}, Status: "${job.status}", Title: "${job.details?.title}", Assigned Team: "${job.details?.assignedTeam || 'None'}"`
       );
     });
   } else {
@@ -120,7 +120,7 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
                       onClick={() => handleStartJob(job.jobId)}
                       className="start-button"
                     >
-                      Start Job {job.jobDetails?.title ? job.jobDetails.title.slice(0, 80) : 'Untitled'}...
+                      Start Job {job.details?.title ? job.details.title.slice(0, 80) : 'Untitled'}...
                     </button>
                   )}
                   {job.status === 'Started' && (
@@ -128,7 +128,7 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
                       onClick={() => handleCompleteJob(job.jobId)}
                       className="complete-button"
                     >
-                      Complete Job {job.jobDetails?.title ? job.jobDetails.title.slice(0, 80) : 'Untitled'}...
+                      Complete Job {job.details?.title ? job.details.title.slice(0, 80) : 'Untitled'}...
                     </button>
                   )}
                   <small>Current Status: {job.status}</small>
@@ -150,12 +150,12 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
 
               return (
                 <>
-                  <strong>{job.jobDetails?.title || 'Untitled'}</strong>
+                  <strong>{job.details?.title || 'Untitled'}</strong>
                   <small>
                     For: {customer?.name || 'Unknown Customer'} <br />
                     From Request: {request ? request.requestDetails?.title?.slice(0, 20) : 'Request Projection is not available (system error)'}... <br />
                     From Quotation: {quotation?.quotationDetails?.title?.slice(0, 20) || 'N/A'}... <br />
-                    Status: {job.status} {job.jobDetails?.assignedTeam && `(${job.jobDetails.assignedTeam})`}
+                    Status: {job.status} {job.details?.assignedTeam && `(${job.details.assignedTeam})`}
                   </small>
                 </>
               );

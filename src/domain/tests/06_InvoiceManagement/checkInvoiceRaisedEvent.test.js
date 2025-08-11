@@ -30,7 +30,7 @@ test('should process an added todo item and check the InvoiceRaised event', asyn
         estimatedAmount: 1000,
         currency: 'USD'
       },
-      jobDetails: {
+      details: {
         title: 'Test Job 1'
       }
     }

@@ -3,7 +3,6 @@
 import { jobEventStore } from '@core/eventStore';
 import { eventBus } from '@core/eventBus';
 import { JobAggregate } from '@entities/Job/aggregate'; // Import the JobAggregate
-import { CreateJobFromApprovedQuotationCommand } from './commands';
 
 export const createJobCommandHandler = {
   handle(command) {
@@ -14,10 +13,10 @@ export const createJobCommandHandler = {
 
     console.log(`[CreateJobCommandHandler] Handling command: ${command.type}`, command);
 
-    const jobCreatedEvent = JobAggregate.createFromQuotationApproval(
-      command.quotationId,
+    const jobCreatedEvent = JobAggregate.createJobFromQuotationApproval(
       command.requestId,
       command.changeRequestId,
+      command.quotationId,
       command.quotationDetails
     );
 

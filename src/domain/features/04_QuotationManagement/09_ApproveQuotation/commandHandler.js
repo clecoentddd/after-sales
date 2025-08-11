@@ -1,7 +1,8 @@
+// src/domain/features/Quotation/commandHandler.js
 import { eventBus } from '@core/eventBus';
 import { quotationEventStore } from '@core/eventStore';
 import { QuotationAggregate } from '@entities/Quotation/aggregate';
-import { type } from '@testing-library/user-event/dist/type';
+import { quotationApprovedEnrichedEvent } from '@events/quotationApprovedEnrichedEvent';
 
 export const quotationApprovalCommandHandler = {
   handle(command) {
@@ -14,6 +15,7 @@ export const quotationApprovalCommandHandler = {
 
     const events = quotationEventStore.loadEvents(command.quotationId);
     const aggregate = QuotationAggregate.replay(events);
+
     console.log(`[QuotationApprovalCommandHandler] Replayed aggregate state:`, aggregate);
 
     if (!aggregate || aggregate.status === 'NOT_CREATED') {
@@ -25,6 +27,7 @@ export const quotationApprovalCommandHandler = {
     }
 
     const event = aggregate.approve(command);
+
     if (!event) {
       return {
         success: false,
@@ -35,27 +38,14 @@ export const quotationApprovalCommandHandler = {
       };
     }
 
-    // 💡 Enrich domain event before publishing
-    const enrichedEvent = {
-      type: 'QuotationHasBeenApproved',
-      quotationId: aggregate.quotationId,
-          data: {
-            requestId: aggregate.requestId,
-            changeRequestId: aggregate.changeRequestId,
-            quotationDetails: aggregate.quotationDetails,
-            quotationStatus: aggregate.status,
-            approvedByUserId: command.userId,
-            approvedAt: new Date().toISOString(),
-          },
-          metadata: {
-            timestamp: new Date().toISOString(),
-          },
-      };
+    // Create the enriched quotation event
+    const enrichedEvent = quotationApprovedEnrichedEvent(aggregate, command.userId);
+
     console.log('[QuotationApprovalCommandHandler] Generated QuotationApprovedEvent EnrichEvent:', enrichedEvent);
 
-    quotationEventStore.append(event);      // Store original domain event
-    eventBus.publish(event);  // only for local projection updates
-    eventBus.publish(enrichedEvent);        // Publish enriched event
+    quotationEventStore.append(event); // Store original domain event
+    eventBus.publish(event); // Only for local projection updates
+    eventBus.publish(enrichedEvent); // Publish enriched event
 
     return { success: true, event: enrichedEvent };
   }

@@ -4,7 +4,6 @@ class EventBus {
   }
 
   publish(event) {
-    console.log(`[eventBus] Publishing event:`, event);
     const handlers = this.subscriptions.get(event.type) || [];
     handlers.forEach(handler => handler(event));
   }

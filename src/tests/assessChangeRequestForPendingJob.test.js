@@ -12,7 +12,7 @@ describe('To-Do List Processing - Status Change Scenario', () => {
   const customerId = 'customer-123';
   const requestId = 'req-123';
   const quotationId = 'quotation-123';
-  const jobDetails = { description: 'Fix broken screen', type: 'Repair', assignedTeam: 'Tech Team' };
+  const details = { description: 'Fix broken screen', type: 'Repair', assignedTeam: 'Tech Team' };
   const changeRequestId = 'change-123';
   const userId = 'user-123';
   const description = 'Some change request';
@@ -24,7 +24,7 @@ describe('To-Do List Processing - Status Change Scenario', () => {
     initializeToDoCreatedJobToAssessChangeRequest();
 
     // Create and store a JobCreated event to simulate an existing job with status 'Pending'
-    const jobCreatedEvent = JobCreatedEvent(jobId, customerId, requestId, quotationId, jobDetails, 'Pending');
+    const jobCreatedEvent = JobCreatedEvent(jobId, customerId, requestId, quotationId, details, 'Pending');
     jobEventStore.append(jobCreatedEvent);
 
     // Add a todo item with status TO_BE_ASSESSED to simulate an existing item

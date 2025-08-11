@@ -15,7 +15,7 @@ describe('Assign Job to Change Request - Success Scenario', () => {
   const customerId = 'customer-123';
   const requestId = 'req-123';
   const quotationId = 'quotation-123';
-  const jobDetails = { description: 'Fix broken screen', type: 'Repair', assignedTeam: 'Tech Team' };
+  const details = { description: 'Fix broken screen', type: 'Repair', assignedTeam: 'Tech Team' };
   const changeRequestId = 'change-123';
   const userId = 'user-123';
 
@@ -25,10 +25,10 @@ describe('Assign Job to Change Request - Success Scenario', () => {
     initializeAssignCompleteJobToChangeRequestProcessor();
 
     // Create and store a JobCreated event to simulate an existing job
-    const jobCreatedEvent = JobCreatedEvent(jobId, customerId, requestId, quotationId, jobDetails, 'Pending');
+    const jobCreatedEvent = JobCreatedEvent(jobId, customerId, requestId, quotationId, details, 'Pending');
     jobEventStore.append(jobCreatedEvent);
 
-    const jobStartedEvent = JobStartedEvent(jobId, requestId, jobDetails.assignedTeam, userId);
+    const jobStartedEvent = JobStartedEvent(jobId, requestId, details.assignedTeam, userId);
     jobEventStore.append(jobStartedEvent);
 
     const jobCompletedEvent = JobCompletedEvent(jobId, requestId, userId, { details: 'Job completed successfully' });

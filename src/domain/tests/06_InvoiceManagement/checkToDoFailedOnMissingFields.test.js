@@ -30,7 +30,7 @@ describe('Invoice Processing', () => {
           estimatedAmount: 1000,
           // currency is intentionally missing
         },
-        jobDetails: {
+        details: {
           title: 'Test Job 1'
         }
       }

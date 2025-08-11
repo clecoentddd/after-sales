@@ -25,7 +25,7 @@ function InvoicingSlice({ invoices, invoiceEvents, customers, jobs }) {
                 <strong>Invoice for: {invoice.description}</strong>
                 <small>
                   Customer: {customer?.name || 'Unknown'} <br />
-                  Job: {relatedJob?.jobDetails.title.slice(0, 20)}... <br />
+                  Job: {relatedJob?.details.title.slice(0, 20)}... <br />
                   Amount: {invoice.amount} {invoice.currency} <br />
                   Status: {invoice.status}
                 </small>

@@ -32,7 +32,7 @@ describe('Todo Item Completion', () => {
         estimatedAmount: 1987,
         currency: 'CHF'
       },
-      jobDetails: {
+      details: {
         title: 'Test Job 123'
       }
       }

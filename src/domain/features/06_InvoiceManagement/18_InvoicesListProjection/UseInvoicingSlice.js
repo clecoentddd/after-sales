@@ -8,21 +8,55 @@ export function useInvoicingSlice() {
 
   // Load initial invoices from event store
   useEffect(() => {
-    const events = invoiceEventStore.getEvents();
-    setInvoices(events.filter(e => e.type === 'InvoiceRaised').map(e => e.data));
-    setInvoiceEvents(events);
+    console.log('[useInvoicingSlice] Loading initial invoices and events...');
+    try {
+      const events = invoiceEventStore.getEvents();
+      console.log('[useInvoicingSlice] Initial events loaded:', events);
+
+      const initialInvoices = events.filter(e => e.type === 'InvoiceRaised').map(e => e.data);
+      console.log('[useInvoicingSlice] Initial invoices:', initialInvoices);
+
+      setInvoices(initialInvoices);
+      setInvoiceEvents(events);
+    } catch (error) {
+      console.error('[useInvoicingSlice] Failed to load initial invoices:', error);
+    }
   }, []);
 
   // Subscribe to InvoiceCreated events for real-time updates
   useEffect(() => {
-    const unsubscribe = eventBus.subscribe('InvoiceRaised', (event) => {
-      console.log('useInvoiceSlice... subscribing');
-      setInvoices(prev => [...prev, event.data]);
-      setInvoiceEvents(prev => [...prev, event]);
-    });
+    console.log('[useInvoicingSlice] Setting up event subscriptions...');
+
+    const handleInvoiceRaised = (event) => {
+      console.log('[useInvoicingSlice] InvoiceRaised event received:', event);
+      setInvoices(prev => {
+        const updatedInvoices = [...prev, event.data];
+        console.log('[useInvoicingSlice] Updated invoices:', updatedInvoices);
+        return updatedInvoices;
+      });
+      setInvoiceEvents(prev => {
+        const updatedEvents = [...prev, event];
+        console.log('[useInvoicingSlice] Updated invoice events:', updatedEvents);
+        return updatedEvents;
+      });
+    };
+
+    const handleInvoiceFailed = (event) => {
+      console.log('[useInvoicingSlice] invoiceToRaiseToDoItemFailed event received:', event);
+      setInvoiceEvents(prev => {
+        const updatedEvents = [...prev, event];
+        console.log('[useInvoicingSlice] Updated invoice events:', updatedEvents);
+        return updatedEvents;
+      });
+    };
+
+    const unsubscribe1 = eventBus.subscribe('InvoiceRaised', handleInvoiceRaised);
+    const unsubscribe2 = eventBus.subscribe('invoiceToRaiseToDoItemFailed', handleInvoiceFailed);
 
     return () => {
-      unsubscribe();
+      console.log('[useInvoicingSlice] Cleaning up event subscriptions...');
+      unsubscribe1();
+      unsubscribe2();
     };
   }, []);
 

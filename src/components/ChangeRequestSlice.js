@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { changeRequestCommandHandler } from '../domain/features/00_RequestManagement/19_RaiseChangeRequest/commandHandler';
-import { RaiseChangeRequestCommand } from '../domain/features/00_RequestManagement/19_RaiseChangeRequest/commands';
-import DecisionProjectionUI from '../domain/features/00_RequestManagement/19a_ChangeRequestDecisionTree/ui';
-import { queryRequestsProjection } from '../domain/features/00_RequestManagement/shared/requestProjectionDB'; // Adjust the import path as necessary
+import { changeRequestCommandHandler } from '../domain/features/03_RequestManagement/19_RaiseChangeRequest/commandHandler';
+import { RaiseChangeRequestCommand } from '../domain/features/03_RequestManagement/19_RaiseChangeRequest/commands';
+import DecisionProjectionUI from '../domain/features/03_RequestManagement/19a_ChangeRequestDecisionTree/ui';
+import { queryRequestsProjection } from '../domain/features/03_RequestManagement/shared/requestProjectionDB'; // Adjust the import path as necessary
 
 function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId }) {
   const [selectedRequestId, setSelectedRequestId] = useState('');

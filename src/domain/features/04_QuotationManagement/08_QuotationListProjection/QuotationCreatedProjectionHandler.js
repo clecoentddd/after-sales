@@ -1,4 +1,4 @@
-// domain/features/00_QuotationManagement/08_QuotationListProjection/QuotationCreatedProjectionHandler.js
+// domain/features/04_QuotationManagement/08_QuotationListProjection/QuotationCreatedProjectionHandler.js
 import { eventBus } from '@core/eventBus';
 import { insertNewQuotation } from '../shared/quotationProjectionUtils';
 import { queryQuotationsProjection, setQuotationsProjection } from '../shared/quotationProjectionDB';

@@ -1,8 +1,8 @@
-import { buildLiveModel } from '../../features/00_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
-import { createInvoiceToDoItemAddedEvent } from '../../features/00_InvoiceManagement/01_InvoicesToRaise/createInvoiceToDoItemAddedEvent';
-import { initializeInvoiceProcessHandler } from '../../features/00_InvoiceManagement/03_InvoicesProcessing/toDoProcessor';
+import { buildLiveModel } from '../../features/06_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
+import { createInvoiceToDoItemAddedEvent } from '../../features/06_InvoiceManagement/01_InvoicesToRaise/createInvoiceToDoItemAddedEvent';
+import { initializeInvoiceProcessHandler } from '../../features/06_InvoiceManagement/03_InvoicesProcessing/toDoProcessor';
 import { invoiceEventStore } from '@core/eventStore';
-import { clearToDos, queryToDosProjection } from '../../features/00_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
+import { clearToDos, queryToDosProjection } from '../../features/06_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
 import { v4 as uuidv4 } from 'uuid';
 import { eventBus } from '@core/eventBus';
 
@@ -55,13 +55,13 @@ describe('Todo Item Completion', () => {
       }
     };
 
-    // 1. Create two todo events with ToDoComplete: false
+    // 1. Create two todo events with toDoComplete: false
     const todoEvent1 = createInvoiceToDoItemAddedEvent(todoId1, mockJobEvent1);
     const todoEvent2 = createInvoiceToDoItemAddedEvent(todoId2, mockJobEvent2);
 
-    // Verify both events are created with ToDoComplete: false
-    expect(todoEvent1.data.ToDoComplete).toBe(false);
-    expect(todoEvent2.data.ToDoComplete).toBe(false);
+    // Verify both events are created with toDoComplete: false
+    expect(todoEvent1.data.toDoComplete).toBe(false);
+    expect(todoEvent2.data.toDoComplete).toBe(false);
 
     // 2. Add both to event store and rebuild model (both are incomplete)
     invoiceEventStore.append(todoEvent1);
@@ -71,7 +71,7 @@ describe('Todo Item Completion', () => {
     // Verify both todos exist and are incomplete
     let todos = queryToDosProjection();
     expect(todos).toHaveLength(2);
-    expect(todos.every(t => !t.ToDoComplete)).toBe(true);
+    expect(todos.every(t => !t.toDoComplete)).toBe(true);
 
     // 3. ONLY PUBLISH the first todo event (this should trigger processing)
     eventBus.publish(todoEvent1);
@@ -94,8 +94,8 @@ describe('Todo Item Completion', () => {
     const processedJob2Todo = todos.find(t => t.jobId === 'job2');
     console.log('Raw data for processedJob2Todo:', processedJob2Todo);
 
-    expect(processedJob1Todo.ToDoComplete).toBe(true); // Published event was processed
-    expect(processedJob2Todo.ToDoComplete).toBe(true); // Unpublished event remains incomplete
+    expect(processedJob1Todo.toDoComplete).toBe(true); // Published event was processed
+    expect(processedJob2Todo.toDoComplete).toBe(true); // Unpublished event remains incomplete
 
     // Verify only one close event was created
     const allEvents = invoiceEventStore.getEvents();

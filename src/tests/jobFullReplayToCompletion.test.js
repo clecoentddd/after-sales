@@ -1,5 +1,5 @@
 // src/hooks/repairJobProjection.test.js
-import { buildRepairJobs } from '../domain/features/00_JobManagement/RepairJobListProjection/repairJobProjection';
+import { buildRepairJobs } from '../domain/features/05_JobManagement/RepairJobListProjection/repairJobProjection';
 
 describe('Repair job projection replay', () => {
   it('should produce Completed status after replaying events', () => {

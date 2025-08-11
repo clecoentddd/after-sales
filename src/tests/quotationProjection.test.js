@@ -1,6 +1,6 @@
 // tests/quotationProjection.test.js
 import { quotationEventStore } from '@core/eventStore';
-import { buildQuotations } from '../domain/features/00_QuotationManagement/08_QuotationListProjection/useQuotationSlice.js.old';
+import { buildQuotations } from '../domain/features/04_QuotationManagement/08_QuotationListProjection/useQuotationSlice.js.old';
 
 // Helper to create a QuotationCreated event
 const createQuotationCreatedEvent = (command) => ({

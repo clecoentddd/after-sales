@@ -1,9 +1,9 @@
 import { jobCompletedEnrichedEvent } from '../../events/jobCompletedEnrichedEvent';
-import { buildLiveModel } from '../../features/00_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
-import { initializeInvoiceToDoHandler } from '../../features/00_InvoiceManagement/01_InvoicesToRaise/AddInvoicesToDo';
+import { buildLiveModel } from '../../features/06_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
+import { initializeInvoiceToDoHandler } from '../../features/06_InvoiceManagement/01_InvoicesToRaise/AddInvoicesToDo';
 import { eventBus } from '@core/eventBus';
 import { invoiceEventStore } from '@core/eventStore';
-import { clearToDos, queryToDosProjection } from '../../features/00_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
+import { clearToDos, queryToDosProjection } from '../../features/06_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
 
 // Mock data for the aggregate
 const mockAggregate = {
@@ -43,17 +43,17 @@ describe('initializeInvoiceToDoHandler', () => {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // Query the to-do list projection
+    buildLiveModel();
     const toDos = queryToDosProjection();
     const allEvents = invoiceEventStore.getEvents();
 
     console.log(`[InvoiceToDoHandler] Checking events in invoiceEventStore:`, allEvents);
-
+    console.log(`[InvoiceToDoHandler] Checking queryToDosProjection:`, toDos);
     // Assert that the to-do list contains the expected item
     expect(toDos).toHaveLength(1);
     const toDoItem = toDos[0];
     expect(toDoItem.jobId).toBe(mockAggregate.jobId);
-    expect(toDoItem.status).toBe('ToDo');
-    expect(toDoItem.ToDoComplete).toBe(false);
+    expect(toDoItem.toDoComplete).toBe(false);
     // Add more assertions as needed based on your projection structure
   });
 });

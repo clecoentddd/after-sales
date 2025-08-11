@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { startJobCommandHandler } from '@features/00_JobManagement/13_StartJob/commandHandler';
-import { StartJobCommand } from '@features/00_JobManagement/13_StartJob/commands';
-import { completeJobCommandHandler } from '@features/00_JobManagement/15_CompleteJob/commandHandler';
-import { CompleteJobCommand } from '@features/00_JobManagement/15_CompleteJob/commands';
+import { startJobCommandHandler } from '@features/05_JobManagement/13_StartJob/commandHandler';
+import { StartJobCommand } from '@features/05_JobManagement/13_StartJob/commands';
+import { completeJobCommandHandler } from '@features/05_JobManagement/15_CompleteJob/commandHandler';
+import { CompleteJobCommand } from '@features/05_JobManagement/15_CompleteJob/commands';
 
 function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, currentUserId }) {
   const [selectedTeam, setSelectedTeam] = useState('Team_A'); // Default team

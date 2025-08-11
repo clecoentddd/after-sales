@@ -1,4 +1,4 @@
-// domain/features/00_QuotationManagement/08_QuotationListProjection/globalQuotationInit.js
+// domain/features/04_QuotationManagement/08_QuotationListProjection/globalQuotationInit.js
 
 import { initializeQuotationCreatedProjectionHandler } from '../08_QuotationListProjection/QuotationCreatedProjectionHandler';
 import { initializeQuotationApprovedProjectionHandler } from '../10_UpdateProjectionOnApproval/QuotationApprovedProjectionHandler';

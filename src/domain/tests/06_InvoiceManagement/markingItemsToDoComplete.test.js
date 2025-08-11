@@ -1,10 +1,10 @@
-import { buildLiveModel } from '../../features/00_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
-import { createInvoiceToDoItemAddedEvent } from '../../features/00_InvoiceManagement/01_InvoicesToRaise/createInvoiceToDoItemAddedEvent';
-import { initializeInvoiceProcessHandler } from '../../features/00_InvoiceManagement/03_InvoicesProcessing/toDoProcessor';
-import { createInvoiceToDoItemClosedEvent } from '../../features/00_InvoiceManagement/03_InvoicesProcessing/createInvoiceToDoItemClosedEvent';
+import { buildLiveModel } from '../../features/06_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
+import { createInvoiceToDoItemAddedEvent } from '../../features/06_InvoiceManagement/01_InvoicesToRaise/createInvoiceToDoItemAddedEvent';
+import { initializeInvoiceProcessHandler } from '../../features/06_InvoiceManagement/03_InvoicesProcessing/toDoProcessor';
+import { createInvoiceToDoItemClosedEvent } from '../../features/06_InvoiceManagement/03_InvoicesProcessing/createInvoiceToDoItemClosedEvent';
 import { eventBus } from '@core/eventBus';
 import { invoiceEventStore } from '@core/eventStore';
-import { clearToDos, queryToDosProjection, getIncompleteToDoItems } from '../../features/00_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
+import { clearToDos, queryToDosProjection, getIncompleteToDoItems } from '../../features/06_InvoiceManagement/02_ProjectionRaisingInvoicesToDo/liveModel';
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -28,17 +28,21 @@ describe('Todo Item Completion', () => {
         quotationId: 'quote456',
         customerId: 'cust789',
         requestId: 'req101',
-        amount: 1000,
-        currency: 'USD',
-        description: 'Test Job'
+        quotationDetails: {
+        estimatedAmount: 1987,
+        currency: 'CHF'
+      },
+      jobDetails: {
+        title: 'Test Job 123'
+      }
       }
     };
 
-    // 1. Create todo event with ToDoComplete: false
+    // 1. Create todo event with toDoComplete: false
     const todoAddedEvent = createInvoiceToDoItemAddedEvent(todoId, mockJobEvent);
     
-    // Verify the event is created with ToDoComplete: false
-    expect(todoAddedEvent.data.ToDoComplete).toBe(false);
+    // Verify the event is created with toDoComplete: false
+    expect(todoAddedEvent.data.toDoComplete).toBe(false);
     
     // 2. Append and publish the todo event - this triggers the processor
     invoiceEventStore.append(todoAddedEvent);
@@ -53,13 +57,13 @@ describe('Todo Item Completion', () => {
     // 4. Verify todo is now marked complete by the processor
     const todos = queryToDosProjection();
     expect(todos).toHaveLength(1);
-    expect(todos[0].ToDoComplete).toBe(true);
+    expect(todos[0].toDoComplete).toBe(true);
     
     // Verify the processor created a close event
     const allEvents = invoiceEventStore.getEvents();
     const closeEvents = allEvents.filter(e => e.type === 'invoiceToRaiseToDoItemClosed');
     expect(closeEvents).toHaveLength(1);
-    expect(closeEvents[0].data.ToDoComplete).toBe(true);
+    expect(closeEvents[0].data.toDoComplete).toBe(true);
     
     console.log(`[Test] Todo ${todoId} automatically completed by processor`);
   });

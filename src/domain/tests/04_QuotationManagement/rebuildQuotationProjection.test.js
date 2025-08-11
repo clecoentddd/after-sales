@@ -1,4 +1,4 @@
-import { rebuildQuotationProjection } from '../../features/00_QuotationManagement/shared/rebuildQuotationProjection';
+import { rebuildQuotationProjection } from '../../features/04_QuotationManagement/shared/rebuildQuotationProjection';
 import { quotationEventStore } from '@core/eventStore';
 
 describe('Quotation projection rebuild', () => {

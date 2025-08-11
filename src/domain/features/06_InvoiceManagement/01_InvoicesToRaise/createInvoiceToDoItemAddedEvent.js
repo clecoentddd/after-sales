@@ -5,7 +5,7 @@ export const createInvoiceToDoItemAddedEvent = (aggregateId, sourceEvent) => ({
   data: {
     jobId: sourceEvent.aggregateId,
     payload: sourceEvent.data,
-    ToDoComplete: false,
+    toDoComplete: false,
   },
   metadata: {
     timestamp: new Date().toISOString(),

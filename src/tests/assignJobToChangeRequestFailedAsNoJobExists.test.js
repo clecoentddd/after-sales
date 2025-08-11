@@ -1,6 +1,6 @@
 // src/tests/assignJobToChangeRequestFailedAsNoJobExists.test.js
 
-import { initializeAssignJobToChangeRequestProcessor } from '../domain/features/00_JobManagement/99_ToDoChangeRequestProcessManager/initializeAssignJobToChangeRequestProcessor';
+import { initializeAssignJobToChangeRequestProcessor } from '../domain/features/05_JobManagement/99_ToDoChangeRequestProcessManager/initializeAssignJobToChangeRequestProcessor';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { ChangeRequestRaisedEvent } from '../domain/events/changeRequestRaisedEvent';

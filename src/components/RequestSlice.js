@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { RaiseRequestCommandHandler } from '../domain/features/00_RequestManagement/05_RaiseRequest/commandHandler';
+import { RaiseRequestCommandHandler } from '../domain/features/03_RequestManagement/05_RaiseRequest/commandHandler';
 import { useCustomerProjection } from '../domain/features/02_CustomerManagement/CustomerListProjection/useCustomerProjection';
-import { useRequestEvents } from '../domain/features/00_RequestManagement/requestManagementStream';
-import { useRequestProjection } from '../domain/features/00_RequestManagement/shared/useRequestProjection';
-import { rebuildRequestProjection } from '../domain/features/00_RequestManagement/shared/rebuildRequestProjection';
+import { useRequestEvents } from '../domain/features/03_RequestManagement/requestManagementStream';
+import { useRequestProjection } from '../domain/features/03_RequestManagement/shared/useRequestProjection';
+import { rebuildRequestProjection } from '../domain/features/03_RequestManagement/shared/rebuildRequestProjection';
 
 function RequestSlice() {
   const { customers } = useCustomerProjection();

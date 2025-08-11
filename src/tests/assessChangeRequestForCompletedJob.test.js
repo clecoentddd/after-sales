@@ -6,11 +6,11 @@ import { JobCompletedEvent } from '../domain/events/jobCompletedEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { JobStartedEvent } from '../domain/events/jobStartedEvent';
 
-import { initializeToDoCompleteJobToAssessChangeRequest } from '../domain/features/00_JobManagement/32b_CompleteJobChangeRequestAssessment/toDoCompleteJobToAssessChangeRequestProcessor';
+import { initializeToDoCompleteJobToAssessChangeRequest } from '../domain/features/05_JobManagement/32b_CompleteJobChangeRequestAssessment/toDoCompleteJobToAssessChangeRequestProcessor';
 
 
 import { CompleteJobAssignedToChangeRequestEvent } from '../domain/events/CompleteJobAssignedToChangeRequestEvent';
-import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/00_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager';
+import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/05_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager';
 
 describe('To-Do List Processing - Completed Status Scenario', () => {
   const jobId = 'job-123';

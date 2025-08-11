@@ -9,7 +9,10 @@ export const buildLiveModel = () => {
 
   // Retrieve all events from the invoiceEventStore where aggregateType is 'InvoiceToDo'
   const invoiceToDoEvents = invoiceEventStore.getEvents()
-    .filter(event => event.aggregateType === 'InvoiceToDo');
+
+  // Log all events with full details
+    console.log('[ToDoModel] All events from invoiceStore:', JSON.stringify(invoiceToDoEvents, null, 2));
+    invoiceToDoEvents.filter(event => event.aggregateType === 'InvoiceToDo');
 
   console.log(`[ToDoModel] Found ${invoiceToDoEvents.length} InvoiceToDo events to replay`);
   
@@ -35,12 +38,12 @@ invoiceToDoEvents.forEach((event, index) => {
         tempLiveModelState[aggregateId] = {
           aggregateId,
           jobId: data.jobId, // Include jobId from the event data
-          ToDoComplete: false
+          toDoComplete: false
         };
       }
     } else if (type === 'invoiceToRaiseToDoItemClosed') {
       if (tempLiveModelState[aggregateId]) {
-        tempLiveModelState[aggregateId].ToDoComplete = true;
+        tempLiveModelState[aggregateId].toDoComplete = true;
       }
     }
   });
@@ -50,7 +53,7 @@ invoiceToDoEvents.forEach((event, index) => {
 
   // Extract IDs of incomplete to-do items
   const incompleteToDoIds = Object.keys(liveModelState)
-    .filter(aggregateId => !liveModelState[aggregateId].ToDoComplete);
+    .filter(aggregateId => !liveModelState[aggregateId].toDoComplete);
 
   console.log(`[ToDoModel] Found ${incompleteToDoIds.length} incomplete todo items`);
   return incompleteToDoIds;
@@ -58,12 +61,16 @@ invoiceToDoEvents.forEach((event, index) => {
 
 // Function to query all to-do items from the live model
 export const queryToDosProjection = () => {
+  console.log('[queryToDosProjection] Entering function');
+
   const allItems = Object.entries(liveModelState).map(([aggregateId, toDoItem]) => ({
     aggregateId,
     ...toDoItem
   }));
 
   console.log(`[ToDoModel] Retrieved all ${allItems.length} todo items from projection`);
+  console.log('[queryToDosProjection] Retrieved todo items:', allItems);
+
   return allItems;
 };
 

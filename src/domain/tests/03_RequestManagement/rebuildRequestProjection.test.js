@@ -1,10 +1,10 @@
 // tests/rebuildRequestProjection.test.js
 import { requestEventStore } from '@core/eventStore';
-import { rebuildRequestProjection } from '../../features/00_RequestManagement/shared/rebuildRequestProjection';
+import { rebuildRequestProjection } from '../../features/03_RequestManagement/shared/rebuildRequestProjection';
 import {
   clearRequests,
   queryRequestsProjection
-} from '../../features/00_RequestManagement/shared/requestProjectionDB';
+} from '../../features/03_RequestManagement/shared/requestProjectionDB';
 import { RequestClosedEvent } from '../../events/requestClosedEvent';
 import { RequestRaisedEvent } from '../../events/requestRaisedEvent';
 

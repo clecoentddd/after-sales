@@ -2,7 +2,7 @@ import React from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
 import { useCustomerSlice } from '../domain/features/02_CustomerManagement/CustomerListProjection/useCustomerSlice';
-import { useRequestSlice } from '../domain/features/00_RequestManagement/06_RequestListProjection/useRequestSlice.js.old';
+import { useRequestSlice } from '../domain/features/03_RequestManagement/06_RequestListProjection/useRequestSlice.js.old';
 
 // Utility function to process quotation approval details
 function queryQuotationApprovalDetails(approval, requests, customers) {

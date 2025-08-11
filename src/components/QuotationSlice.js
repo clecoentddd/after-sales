@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { quotationApprovalCommandHandler } from '../domain/features/00_QuotationManagement/09_ApproveQuotation/commandHandler';
-import { ApproveQuotationCommand } from '../domain/features/00_QuotationManagement/09_ApproveQuotation/commands';
-import { useQuotationProjection } from '../domain/features/00_QuotationManagement/shared/useQuotationProjection.js';
-import { useQuotationEvents } from '../domain/features/00_QuotationManagement/quotationManagementStream';
-import { rebuildQuotationProjection } from '../domain/features/00_QuotationManagement/shared/rebuildQuotationProjection';
-import { queryRequestsProjection } from '../domain/features/00_RequestManagement/shared/requestProjectionDB';
+import { quotationApprovalCommandHandler } from '../domain/features/04_QuotationManagement/09_ApproveQuotation/commandHandler';
+import { ApproveQuotationCommand } from '../domain/features/04_QuotationManagement/09_ApproveQuotation/commands';
+import { useQuotationProjection } from '../domain/features/04_QuotationManagement/shared/useQuotationProjection.js';
+import { useQuotationEvents } from '../domain/features/04_QuotationManagement/quotationManagementStream';
+import { rebuildQuotationProjection } from '../domain/features/04_QuotationManagement/shared/rebuildQuotationProjection';
+import { queryRequestsProjection } from '../domain/features/03_RequestManagement/shared/requestProjectionDB';
 
 const OriginalApproveQuotationCommand = ApproveQuotationCommand;
 const ApproveQuotationCommandWithLog = function(...args) {

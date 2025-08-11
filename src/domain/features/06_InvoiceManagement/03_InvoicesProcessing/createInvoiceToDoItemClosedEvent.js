@@ -3,7 +3,7 @@ export const createInvoiceToDoItemClosedEvent = (aggregateId, data = {}) => ({
   aggregateId,
   aggregateType: 'InvoiceToDo',
   data: {
-    ToDoComplete: true,
+    toDoComplete: true,
     completedAt: new Date().toISOString(),
   },
   metadata: {

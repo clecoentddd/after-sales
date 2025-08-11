@@ -1,4 +1,4 @@
-// src/domain/features/00_RequestManagement/shared/rebuildRequestProjection.js
+// src/domain/features/03_RequestManagement/shared/rebuildRequestProjection.js
 
 import { requestEventStore } from '@core/eventStore';
 import { clearRequests } from './requestProjectionDB';

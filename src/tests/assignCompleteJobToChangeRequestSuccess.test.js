@@ -1,14 +1,14 @@
 // src/tests/assignJobToChangeRequestSuccess.test.js
 
-import { initializeAssignCompleteJobToChangeRequestProcessor } from '../domain/features/00_JobManagement/32a_SetUpToDoClosedJobsChangeRquestProcess/initializeAssignCompleteJobToChangeRequestProcessor';
+import { initializeAssignCompleteJobToChangeRequestProcessor } from '../domain/features/05_JobManagement/32a_SetUpToDoClosedJobsChangeRquestProcess/initializeAssignCompleteJobToChangeRequestProcessor';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
 import { ChangeRequestRaisedEvent } from '../domain/events/changeRequestRaisedEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { JobStartedEvent } from '../domain/events/jobStartedEvent';
 import { JobCompletedEvent } from '../domain/events/jobCompletedEvent';
-import { AssignStartedJobToChangeRequestCommand } from '../domain/features/00_JobManagement/29a_SetupJobChangeRequestAssessmentTodoList/assignStartedJobToChangeRequestCommand';
-import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/00_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager';
+import { AssignStartedJobToChangeRequestCommand } from '../domain/features/05_JobManagement/29a_SetupJobChangeRequestAssessmentTodoList/assignStartedJobToChangeRequestCommand';
+import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/05_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager';
 
 describe('Assign Job to Change Request - Success Scenario', () => {
   const jobId = 'job-123';

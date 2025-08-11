@@ -3,13 +3,13 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 // Projections
 import { queryCustomersProjection } from './domain/features/02_CustomerManagement/CustomerListProjection/customerProjectionHandler';
-import { queryQuotationsProjection } from './domain/features/00_QuotationManagement/shared/quotationProjectionDB';
+import { queryQuotationsProjection } from './domain/features/04_QuotationManagement/shared/quotationProjectionDB';
 
 import { useProjectionOrganizationList } from './domain/features/01_OrganizationManagement/02_OrganizationListProjection/projectionOrganizationList';
 
-import { useRepairJobSlice } from './domain/features/00_JobManagement/RepairJobListProjection/useRepairJobSlice';
-import { useInvoicingSlice } from './domain/features/00_InvoiceManagement/18_InvoicesListProjection/UseInvoicingSlice';
-import { useChangeRequestSlice } from './domain/features/00_RequestManagement/20_ChangeRequestList/useChangeRequestSlice';
+import { useRepairJobSlice } from './domain/features/05_JobManagement/RepairJobListProjection/useRepairJobSlice';
+import { useInvoicingSlice } from './domain/features/06_InvoiceManagement/18_InvoicesListProjection/UseInvoicingSlice';
+import { useChangeRequestSlice } from './domain/features/03_RequestManagement/20_ChangeRequestList/useChangeRequestSlice';
 
 import OrganizationSlice from './components/OrganizationSlice';
 import CustomerSlice from './components/CustomerSlice';
@@ -25,27 +25,27 @@ import EventsPage from './EventsPage';  // import your new EventsPage
 import LiveModelPage from './LiveModelPage'; // Assuming you have a LiveModelPage component
 import ToDoListPage from './ToDoChangeRequestProcessPage'; // Assuming you have a ToDoListPage component
 
-import { globalQuotationInit } from './domain/features/00_QuotationManagement/shared/globalQuotationInit';
-import { globalRequestInit } from '@features/00_RequestManagement/shared/globalRequestInit';
-import { globalInvoiceInit } from '@features/00_InvoiceManagement/shared/globalInvoiceInit';
+import { globalQuotationInit } from './domain/features/04_QuotationManagement/shared/globalQuotationInit';
+import { globalRequestInit } from '@features/03_RequestManagement/shared/globalRequestInit';
+import { globalInvoiceInit } from '@features/06_InvoiceManagement/shared/globalInvoiceInit';
 
 
-import { initializeCreateJobEventHandler } from '@features/00_JobManagement/11_CreateJobAutomation/eventHandler';
+import { initializeCreateJobEventHandler } from '@features/05_JobManagement/11_CreateJobAutomation/eventHandler';
 
-import { initializeAssignCreatedJobToChangeRequestProcessor } from '@features/00_JobManagement/23a_SetTodoToPutJobOnHold/initializeAssignCreatedJobToChangeRequestProcessor';
-import { initializeAssignStartedJobToChangeRequestProcessor } from '@features/00_JobManagement/29a_SetupJobChangeRequestAssessmentTodoList/initializeAssignStartedJobToChangeRequestProcessor';
-import { initializeAssignCompleteJobToChangeRequestProcessor } from '@features/00_JobManagement/32a_SetUpToDoClosedJobsChangeRquestProcess/initializeAssignCompleteJobToChangeRequestProcessor';
+import { initializeAssignCreatedJobToChangeRequestProcessor } from '@features/05_JobManagement/23a_SetTodoToPutJobOnHold/initializeAssignCreatedJobToChangeRequestProcessor';
+import { initializeAssignStartedJobToChangeRequestProcessor } from '@features/05_JobManagement/29a_SetupJobChangeRequestAssessmentTodoList/initializeAssignStartedJobToChangeRequestProcessor';
+import { initializeAssignCompleteJobToChangeRequestProcessor } from '@features/05_JobManagement/32a_SetUpToDoClosedJobsChangeRquestProcess/initializeAssignCompleteJobToChangeRequestProcessor';
 
-import { initializeChangeRequestDecisionTreeHandler } from '@features/00_RequestManagement/19a_ChangeRequestDecisionTree/eventHandler';
-import { initializeCompleteJobEventHandler } from '@features/00_RequestManagement/27_CloseRequest/eventHandler';
+import { initializeChangeRequestDecisionTreeHandler } from '@features/03_RequestManagement/19a_ChangeRequestDecisionTree/eventHandler';
+import { initializeCompleteJobEventHandler } from '@features/03_RequestManagement/27_CloseRequest/eventHandler';
 // to do list for jon change request
-import { initializeToDoCreatedJobToAssessChangeRequest } from './domain/features/00_JobManagement/23b_PutJobOnHold/toDoCreatedJobToAssessChangeRequestProcessor.js.js';
-import { initializeToDoStartedJobToAssessChangeRequest } from './domain/features/00_JobManagement/29b_JobChangeRequestAssessment/toDoStartedJobToAssessChangeRequestProcessor.js';
-import { initializeToDoCompleteJobToAssessChangeRequest } from './domain/features/00_JobManagement/32b_CompleteJobChangeRequestAssessment/toDoCompleteJobToAssessChangeRequestProcessor.js';
+import { initializeToDoCreatedJobToAssessChangeRequest } from './domain/features/05_JobManagement/23b_PutJobOnHold/toDoCreatedJobToAssessChangeRequestProcessor.js.js';
+import { initializeToDoStartedJobToAssessChangeRequest } from './domain/features/05_JobManagement/29b_JobChangeRequestAssessment/toDoStartedJobToAssessChangeRequestProcessor.js';
+import { initializeToDoCompleteJobToAssessChangeRequest } from './domain/features/05_JobManagement/32b_CompleteJobChangeRequestAssessment/toDoCompleteJobToAssessChangeRequestProcessor.js';
 
 
 import { useEffect } from 'react';
-import { queryRequestsProjection } from '@domain/features/00_RequestManagement/shared/requestProjectionDB';
+import { queryRequestsProjection } from '@domain/features/03_RequestManagement/shared/requestProjectionDB';
 
 function App() {
   const currentUserId = 'user-alice-123';

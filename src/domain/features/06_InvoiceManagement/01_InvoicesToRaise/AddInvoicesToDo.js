@@ -28,7 +28,7 @@ export const initializeInvoiceToDoHandler = () => {
     const invoiceToDoItemAddedEvent = createInvoiceToDoItemAddedEvent(todoItemId, event);
 
     console.log(`[InvoiceToDoHandler] Creating todo item ${todoItemId} for job ${jobId}`);
-    console.log(`[InvoiceToDoHandler] Todo event payload:`, invoiceToDoItemAddedEvent.data.payload);
+    console.log(`[InvoiceToDoHandler] Todo event payload:`, invoiceToDoItemAddedEvent);
 
     // Store and publish the event
     invoiceEventStore.append(invoiceToDoItemAddedEvent);

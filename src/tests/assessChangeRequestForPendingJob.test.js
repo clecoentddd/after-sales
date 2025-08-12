@@ -5,7 +5,7 @@ import { jobEventStore } from '../domain/core/eventStore';
 import { CreatedJobAssignedToChangeRequestEvent } from '../domain/events/CreatedJobAssignedToChangeRequestEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/05_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager.js';
-import { reconstructJobState } from '../domain/entities/Job/aggregate';
+import { reconstructJobState } from '../domain/entities/Job/repository';
 
 describe('To-Do List Processing - Status Change Scenario', () => {
   const jobId = 'job-123';

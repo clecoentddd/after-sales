@@ -1,40 +1,53 @@
-// src/domain/features/15_CompleteJob/commandHandler.js
-
 import { eventBus } from '@core/eventBus';
-import { jobEventStore } from '@core/eventStore';
-import { JobAggregate } from '@entities/Job/aggregate'; // shared aggregate
-import { jobCompletedEnrichedEvent } from '@domain/events/jobCompletedEnrichedEvent';
+import { JobRepository } from '@entities/Job/repository';
+import { jobCompletedEnrichedEvent } from '@events/jobCompletedEnrichedEvent';
+
+const jobRepository = new JobRepository();
 
 export const completeJobCommandHandler = {
-  handle(command) {
+  async handle(command) {
     console.log(`[CompleteJobCommandHandler] Handling command: ${command.type}`, command);
 
     switch (command.type) {
       case 'CompleteJob': {
-        // Rehydrate aggregate from event history
-        const events = jobEventStore
-          .getEvents()
-          .filter(e => e.aggregateId === command.jobId);
+        // Load aggregate (replay hidden inside repository)
+        const job = await jobRepository.getById(command.jobId);
+        console.log("[completeJobCommandHandler] jobRepository Job is", job);
 
-        const aggregate = new JobAggregate();
-        aggregate.replay(events);
-
-        const event = aggregate.complete(command);
-        if (!event) {
+        // Let aggregate decide whether it can complete
+        const jobCompletedEvent = job.complete(command);
+        if (!jobCompletedEvent) {
           return {
             success: false,
             message: `Job ${command.jobId} is already completed.`,
             code: 'JOB_ALREADY_COMPLETED'
           };
         }
+           // Log the jobCompletedEvent with formatted JSON
+        console.log("[CompleteJobCommandHandler] Job completed event:", JSON.stringify(jobCompletedEvent, null, 2));
 
-        jobEventStore.append(event);
-        eventBus.publish(event);
+        // Apply the event to the aggregate to update its state
+        job.apply(jobCompletedEvent);
 
-        const enrichedEvent = jobCompletedEnrichedEvent(aggregate, command.userId);
+        // Publish minimal ES event
+        eventBus.publish(jobCompletedEvent);
+
+        // Build and publish enriched event from aggregate state
+        // Build and publish enriched event with explicit parameters
+
+        const enrichedEvent = jobCompletedEnrichedEvent({
+          jobId: job.jobId,
+          requestId: job.requestId,
+          changeRequestId: job.changeRequestId,
+          quotationId: job.quotationId,
+          completionDetails: job.completionDetails,
+          jobDetails: job.jobDetails,
+          completedByUserId: job.completedByUserId,
+          completedAt: job.completedAt
+        });
         eventBus.publish(enrichedEvent);
 
-        return { success: true, event };
+        return { success: true, event: jobCompletedEvent };
       }
 
       default:

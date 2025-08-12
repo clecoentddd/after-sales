@@ -54,21 +54,22 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
       console.warn(`Job ${jobId} cannot be completed as its status is ${jobToComplete.status}. Only 'Started' jobs can be completed.`);
       return;
     }
-    completeJobCommandHandler.handle(
-      CompleteJobCommand(
-        jobToComplete.jobId,
-        jobToComplete.requestId,
-        jobToComplete.changeRequestId,
-        currentUserId,
-        {
-          notes: `Job completed by ${currentUserId} at ${new Date().toLocaleString()}`
-        }
-      )
-    );
+
+   // Define the parameters explicitly
+    const completedByUserId = "manager-john-456";
+    const completionDetails = {
+      notes: `Cleaning & Polishing including for free`
+    };
+
+    // Create the command using the explicitly defined parameters
+    const command = CompleteJobCommand(jobId, completedByUserId, completionDetails);
+
+    completeJobCommandHandler.handle(command);
+
     console.log('[RepairJobSlice] CompleteJobCommand dispatched:', {
-      jobId: jobToComplete.jobId,
-      requestId: jobToComplete.requestId,
-      currentUserId
+      jobId: command.jobId,
+      completionDetails: command.completionDetails,
+      completedByUserId: command.completedByUserId,
     });
   };
 
@@ -150,11 +151,10 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
 
               return (
                 <>
-                  <strong>{job.details?.title || 'Untitled'}</strong>
+                  <strong>{job.jobDetails?.title || 'Untitled'}</strong>
                   <small>
-                    For: {customer?.name || 'Unknown Customer'} <br />
                     From Request: {request ? request.requestDetails?.title?.slice(0, 20) : 'Request Projection is not available (system error)'}... <br />
-                    From Quotation: {quotation?.quotationDetails?.title?.slice(0, 20) || 'N/A'}... <br />
+                    From Quotation: {quotation?.quotationId?.slice(0, 20) || 'N/A'}... <br />
                     Status: {job.status} {job.details?.assignedTeam && `(${job.details.assignedTeam})`}
                   </small>
                 </>

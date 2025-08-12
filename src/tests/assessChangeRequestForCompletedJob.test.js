@@ -1,7 +1,7 @@
 // Import necessary modules and functions
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
-import { reconstructJobState } from '../domain/entities/Job/aggregate'; // Adjust the import path as needed
+import { reconstructJobState } from '../domain/entities/Job/repository'; // Adjust the import path as needed
 import { JobCompletedEvent } from '../domain/events/jobCompletedEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { JobStartedEvent } from '../domain/events/jobStartedEvent';

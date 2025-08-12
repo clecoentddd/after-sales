@@ -52,11 +52,13 @@ export function useInvoicingSlice() {
 
     const unsubscribe1 = eventBus.subscribe('InvoiceRaised', handleInvoiceRaised);
     const unsubscribe2 = eventBus.subscribe('invoiceToRaiseToDoItemFailed', handleInvoiceFailed);
+    const unsubscribe3 = eventBus.subscribe('invoiceToRaiseToDoItemAdded', handleInvoiceFailed);
 
     return () => {
       console.log('[useInvoicingSlice] Cleaning up event subscriptions...');
       unsubscribe1();
       unsubscribe2();
+      unsubscribe3();
     };
   }, []);
 

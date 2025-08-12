@@ -1,7 +1,7 @@
 import { eventBus } from '@core/eventBus';
 import { OnHoldJobCommandHandler } from './commandHandler';
 import { PutJobOnHoldCommand } from './commands';
-import { reconstructJobState } from '@entities/Job/aggregate';
+import { reconstructJobState } from '@entities/Job/repository';
 import { TODO_STATUS, todoList, updateTodoList } from '../99_ToDoChangeRequestProcessManager/todoListManager';
 import { TodoListUpdatedEvent } from '../99_ToDoChangeRequestProcessManager/events';
 

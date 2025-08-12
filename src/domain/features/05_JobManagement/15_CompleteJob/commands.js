@@ -9,7 +9,7 @@
  * @returns {object} A well-structured command object.
  * @throws {Error} If required fields are missing.
  */
-export const CompleteJobCommand = (jobId, requestId, changeRequestId, completedByUserId, completionDetails = {}) => {
+export const CompleteJobCommand = (jobId, completedByUserId, completionDetails = {}) => {
   if (!jobId || !completedByUserId) {
     throw new Error('CompleteJobCommand requires jobId and completedByUserId.');
   }
@@ -17,8 +17,6 @@ export const CompleteJobCommand = (jobId, requestId, changeRequestId, completedB
   return {
     type: 'CompleteJob',
     jobId,
-    requestId,
-    changeRequestId,
     completedBy: completedByUserId,
     completionDetails
   };

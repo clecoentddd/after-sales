@@ -9,7 +9,7 @@ import { AssignStartedJobToChangeRequestCommandHandler } from './assignStartedJo
 import { AssignStartedJobToChangeRequestCommand } from './assignStartedJobToChangeRequestCommand';
 import { StartedJobAssignedToChangeRequestEvent } from '@events/StartedJobAssignedToChangeRequestEvent';
 import { TODO_STATUS, todoList, updateTodoList } from '../99_ToDoChangeRequestProcessManager/todoListManager';
-import { reconstructJobState } from '@entities/Job/aggregate';
+import { reconstructJobState } from '@entities/Job/repository';
 
 const isEventProcessed = (eventId) => {
   const item = todoList.find(item => item.eventId === eventId);

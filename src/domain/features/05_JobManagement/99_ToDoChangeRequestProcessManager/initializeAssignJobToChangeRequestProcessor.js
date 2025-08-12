@@ -7,7 +7,7 @@ import { RejectChangeRequestAssignmentCommandHandler } from './commandHandler';
 import { RejectChangeRequestAssignmentCommand } from './commands';
 import { JobAssignedToChangeRequestEvent } from '@events/JobAssignedToChangeRequestEvent';
 import { TODO_STATUS, todoList, updateTodoList } from './todoListManager';
-import { reconstructJobState } from '@entities/Job/aggregate'; // Adjust the import path as needed
+import { reconstructJobState } from '@entities/Job/repository'; // Adjust the import path as needed
 
 const isEventProcessed = (eventId) => {
   const item = todoList.find(item => item.eventId === eventId);

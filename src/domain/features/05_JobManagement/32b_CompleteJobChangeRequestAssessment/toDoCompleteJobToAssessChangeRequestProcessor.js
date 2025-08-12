@@ -2,7 +2,7 @@ import { eventBus } from '@core/eventBus';
 import { RejectChangeRequestCommandHandler } from '../31_RejectJobOnChangeRequest/commandHandler';
 import { RejectChangeRequestCommand } from '../31_RejectJobOnChangeRequest/commands';
 import { IgnoreChangeRequestCommand } from '../32_IgnoreChangeRequest/commands';
-import { reconstructJobState } from '@entities/Job/aggregate';
+import { reconstructJobState } from '@entities/Job/repository';
 import { TODO_STATUS, todoList, updateTodoList } from '../99_ToDoChangeRequestProcessManager/todoListManager';
 import { TodoListUpdatedEvent } from '../99_ToDoChangeRequestProcessManager/events';
 

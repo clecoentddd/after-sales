@@ -1,5 +1,5 @@
 // src/hooks/repairJobProjection.test.js
-import { buildRepairJobs } from '../domain/features/05_JobManagement/RepairJobListProjection/repairJobProjection';
+import { useRepairJobSlice } from '../../features/05_JobManagement/RepairJobListProjection/useRepairJobSlice.js';
 
 describe('Repair job projection replay', () => {
   it('should produce Completed status after replaying events', () => {
@@ -49,7 +49,7 @@ describe('Repair job projection replay', () => {
       }
     ];
 
-    const jobs = buildRepairJobs(events);
+    const jobs = useRepairJobSlice(events);
 
     expect(jobs).toHaveLength(1);
     expect(jobs[0].status).toBe('Completed');

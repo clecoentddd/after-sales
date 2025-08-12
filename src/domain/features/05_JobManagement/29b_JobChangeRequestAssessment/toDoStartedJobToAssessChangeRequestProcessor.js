@@ -1,7 +1,7 @@
 import { eventBus } from '@core/eventBus';
 import { FlagJobForAssessmentCommandHandler } from './commandHandler';
 import { FlagJobForAssessmentCommand } from './commands';
-import { reconstructJobState } from '@entities/Job/aggregate';
+import { reconstructJobState } from '@entities/Job/repository';
 import { TODO_STATUS, todoList, updateTodoList } from '../99_ToDoChangeRequestProcessManager/todoListManager';
 import { TodoListUpdatedEvent } from '../99_ToDoChangeRequestProcessManager/events';
 

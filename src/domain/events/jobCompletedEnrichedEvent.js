@@ -1,6 +1,6 @@
 // src/domain/features/15_CompleteJob/events/jobCompletedEnrichedEvent.js
 
-export const jobCompletedEnrichedEvent = (aggregate, userId) => {
+export const jobCompletedEnrichedEvent = (aggregate) => {
   return {
     type: 'JobHasBeenCompleted',
     aggregateId: aggregate.jobId,
@@ -8,10 +8,11 @@ export const jobCompletedEnrichedEvent = (aggregate, userId) => {
     data: {
       requestId: aggregate.requestId,
       changeRequestId: aggregate.changeRequestId,
-      customerId: aggregate.customerId,
-      details: aggregate.details,
-      approvedByUserId: userId,
-      approvedAt: new Date().toISOString(),
+      quotationId: aggregate.quotationId,
+      completionDetails: aggregate.completionDetails,
+      jobDetails: aggregate.jobDetails,
+      completedByUserId: aggregate.completedByUserId,
+      completedAt: aggregate.completedAt,
     },
     metadata: {
       timestamp: new Date().toISOString(),

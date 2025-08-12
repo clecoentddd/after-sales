@@ -4,7 +4,7 @@ import { jobEventStore } from '../domain/core/eventStore';
 import { StartedJobAssignedToChangeRequestEvent } from '../domain/events/StartedJobAssignedToChangeRequestEvent';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/05_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager';
-import { reconstructJobState } from '../domain/entities/Job/aggregate'; // Adjust the import path as needed
+import { reconstructJobState } from '../domain/entities/Job/repository'; // Adjust the import path as needed
 import { JobStartedEvent } from '../domain/events/jobStartedEvent'; // Import the JobStartedEvent
 
 describe('To-Do List Processing - Started Status Scenario', () => {

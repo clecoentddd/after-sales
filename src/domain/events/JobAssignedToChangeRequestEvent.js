@@ -3,6 +3,7 @@
 export function JobAssignedToChangeRequestEvent(jobId, changeRequestId, userId, description) {
   return {
     type: 'JobAssignedToChangeRequest',
+    aggregateType: "Job",
     data: {
       jobId,
       changeRequestId,

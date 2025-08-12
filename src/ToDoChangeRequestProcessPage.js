@@ -7,7 +7,7 @@ function ToDoListPage() {
   const todoList = getTodoList();
   return (
     <div className="todo-column">
-      <h2>To-Do List</h2>
+      <h2>Change Request To-Do List</h2>
       <ul className="todo-list">
         {todoList.length === 0 ? (
           <li>No items found in the to-do list.</li>

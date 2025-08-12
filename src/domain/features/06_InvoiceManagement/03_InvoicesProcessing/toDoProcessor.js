@@ -71,6 +71,7 @@ const getTodoItemDetails = (aggregateId) => {
 
   const todoItemDetails = {
     aggregateId: event.aggregateId,
+    jobId: event.data.jobId,
     payload: event.data.payload,
     toDoComplete: event.data.toDoComplete
   };
@@ -80,24 +81,35 @@ const getTodoItemDetails = (aggregateId) => {
 };
 
 const processSingleTodoItem = (todo) => {
-  console.log(`[processSingleTodoItem] Entering function for todo item:`, todo);
-  console.log(`[InvoiceProcessHandler] Processing todo item: ${todo.aggregateId}`);
+  console.log('[processSingleTodoItem] Entering function for todo item:', todo);
 
+  // Log the jobId separately to ensure it's being captured correctly
+  console.log('[processSingleTodoItem] Job ID:', todo.jobId);
+
+  console.log('[InvoiceProcessHandler] Processing todo item:', todo.aggregateId);
+
+  // Check data availability
   const checkResult = checkDataAvailability(todo.payload);
-  console.log(`[processSingleTodoItem] Data availability check result:`, checkResult);
+  console.log('[processSingleTodoItem] Data availability check result:', checkResult);
 
   if (checkResult.result === "ok") {
-    console.log(`[InvoiceProcessHandler] Creating invoice for todo: ${todo.aggregateId}`);
+    // Log the jobId again to ensure it's available at this point
+    console.log('[InvoiceProcessHandler] Creating invoice for todo jobId:', todo.jobId);
+
+    // Ensure jobId is defined before proceeding
+    if (todo.jobId === undefined) {
+      console.error('[InvoiceProcessHandler] jobId is undefined, cannot create invoice.');
+      return;
+    }
 
     const invoiceToDoItemClosedEvent = createInvoiceToDoItemClosedEvent(todo.aggregateId, checkResult.dataPayload);
     const invoiceId = uuidv4();
-    const { jobId, quotationId, customerId, amount, currency, description } = checkResult.dataPayload;
+    const { quotationId, amount, currency, description } = checkResult.dataPayload;
 
     const invoiceRaisedEvent = InvoiceRaisedEvent(
       invoiceId,
-      jobId,
+      todo.jobId,
       quotationId,
-      customerId,
       amount,
       currency,
       description,
@@ -105,7 +117,7 @@ const processSingleTodoItem = (todo) => {
       'Pending' // status
     );
 
-    console.log(`[processSingleTodoItem] Created invoice raised event:`, invoiceRaisedEvent);
+    console.log('[processSingleTodoItem] Created invoice raised event:', invoiceRaisedEvent);
 
     invoiceEventStore.append(invoiceToDoItemClosedEvent);
     invoiceEventStore.append(invoiceRaisedEvent);
@@ -119,7 +131,7 @@ const processSingleTodoItem = (todo) => {
       dataMissing: checkResult.dataMissing
     });
 
-    console.log(`[processSingleTodoItem] Created invoice failed event:`, invoiceToDoItemFailedEvent);
+    console.log('[processSingleTodoItem] Created invoice failed event:', invoiceToDoItemFailedEvent);
 
     invoiceEventStore.append(invoiceToDoItemFailedEvent);
     eventBus.publish(invoiceToDoItemFailedEvent);
@@ -128,16 +140,16 @@ const processSingleTodoItem = (todo) => {
   }
 };
 
+
 const checkDataAvailability = (data) => {
   console.log('[checkDataAvailability] Entering function with data:', data);
 
   const requiredFields = [
-    { name: 'jobId' },
     { name: 'quotationId' },
-    { name: 'customerId' },
-    { name: 'details.amount', display: 'amount' },
-    { name: 'details.currency', display: 'currency' },
-    { name: 'details.description', display: 'description' }
+    { name: 'jobDetails.amount', display: 'amount' },
+    { name: 'jobDetails.currency', display: 'currency' },
+    { name: 'jobDetails.description', display: 'description' },
+    { name: 'jobDetails.title', display: 'title' }
   ];
 
   const dataMissing = [];
@@ -167,11 +179,13 @@ const checkDataAvailability = (data) => {
         jobId: data.jobId,
         quotationId: data.quotationId,
         customerId: data.customerId,
-        amount: data.quotationDetails.estimatedAmount,
-        currency: data.quotationDetails.currency,
-        description: data.details.title
+        amount: data.jobDetails.amount,
+        currency: data.jobDetails.currency,
+        description: data.jobDetails.description,
+        title: data.jobDetails.title
       }
     };
+
     console.log('[checkDataAvailability] All required data available:', result);
     return result;
   } else {
@@ -180,7 +194,9 @@ const checkDataAvailability = (data) => {
       dataMissing: dataMissing,
       dataPayload: data
     };
+
     console.log('[checkDataAvailability] Missing data found:', result);
     return result;
   }
 };
+

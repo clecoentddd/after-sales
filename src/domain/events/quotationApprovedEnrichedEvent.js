@@ -4,6 +4,7 @@ export const quotationApprovedEnrichedEvent = (aggregate, userId) => {
   return {
     type: 'QuotationHasBeenApproved',
     quotationId: aggregate.quotationId,
+    aggregateType: "Quotation",
     data: {
       requestId: aggregate.requestId,
       changeRequestId: aggregate.changeRequestId,

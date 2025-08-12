@@ -1,26 +1,69 @@
-import React from 'react';
-import { getAllEvents } from './domain/core/eventStoreUtils'; // or wherever you put the helper function
+import React, { useState, useEffect } from 'react';
+import { getAllEvents } from './domain/core/eventStoreUtils';
+import './EventsPage.css';
 
 function EventsPage() {
-  const events = getAllEvents();
+  const [events, setEvents] = useState([]);
+  const [aggregateTypeFilter, setAggregateTypeFilter] = useState('');
+  const [uniqueAggregateTypes, setUniqueAggregateTypes] = useState([]);
+
+  useEffect(() => {
+    const allEvents = getAllEvents();
+    setEvents(allEvents);
+    const types = [...new Set(allEvents.map(event => event.aggregateType).filter(Boolean))];
+    setUniqueAggregateTypes(types);
+  }, []);
+
+  const filteredEvents = aggregateTypeFilter
+    ? events.filter(event => event.aggregateType === aggregateTypeFilter)
+    : events;
 
   return (
-    <div className="aggregate-column">
-      <h2>All Events (with source)</h2>
-      <ul className="event-list">
-        {events.length === 0 ? (
-          <li>No events found.</li>
+    <div className="events-page">
+      <header className="events-header">
+        <h1>Event Stream</h1>
+        <div className="filter-container">
+          <label htmlFor="aggregateTypeFilter">Filter by Type:</label>
+          <select
+            id="aggregateTypeFilter"
+            value={aggregateTypeFilter}
+            onChange={(e) => setAggregateTypeFilter(e.target.value)}
+          >
+            <option value="">All Types</option>
+            {uniqueAggregateTypes.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+        </div>
+      </header>
+
+      <main className="events-container">
+        {filteredEvents.length === 0 ? (
+          <div className="no-events">No events found</div>
         ) : (
-          events.map((event, index) => (
-            <li key={event.eventId || index}>
-              <div><strong>Type:</strong> {event.type}</div>
-              <div><strong>Source:</strong> {event.source}</div>
-              <div><strong>Time:</strong> {new Date(event.timestamp).toLocaleString()}</div>
-              <pre>{JSON.stringify(event, null, 2)}</pre>
-            </li>
-          ))
+          <div className="events-grid">
+            {filteredEvents.map((event, index) => (
+              <div className="event-card" key={event.eventId || index}>
+                <div className="event-header">
+                  <div className="event-type">{event.type}</div>
+                  <div className="event-meta">
+                    {event.aggregateType && <span className="aggregate-type">{event.aggregateType}</span>}
+                    <span className="event-source">{event.source}</span>
+                    <span className="event-time">
+                      {event.timestamp ? new Date(event.timestamp).toLocaleString() : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+                <div className="event-content">
+                  <pre className="event-json">
+                    {JSON.stringify(event, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
-      </ul>
+      </main>
     </div>
   );
 }

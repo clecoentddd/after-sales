@@ -1,59 +1,69 @@
-// src/hooks/repairJobProjection.test.js
-import { useRepairJobSlice } from '../../features/05_JobManagement/RepairJobListProjection/useRepairJobSlice.js';
+import { JobCreatedEvent } from '../../events/jobCreatedEvent';
+import { JobStartedEvent } from '../../events/jobStartedEvent';
+import { JobCompletedEvent } from '../../events/jobCompletedEvent';
+import { jobCompletedEnrichedEvent } from '../../events/jobCompletedEnrichedEvent';
+import { jobEventStore } from '../../core/eventStore';
+import { JobAggregate } from '../../entities/Job/aggregate';
 
-describe('Repair job projection replay', () => {
-  it('should produce Completed status after replaying events', () => {
-    const events = [
-      {
-        type: 'JobCreated',
-        data: {
-          jobId: '22eb20d0-9dd4-4115-997c-8a0f5ec1a194',
-          quotationId: 'd9ed9727-983a-4f0d-a2b0-ce4c56e7c1f2',
-          requestId: '4b5e02b8-070d-4f0e-9be7-ee1ba35d7e22',
-          changeRequestId: '0784afb0-1528-47f2-b0d0-fbd21b3756f8',
-          details: {
-            title: 'Repair Job for: REQ2',
-            description: 'Initiated from approved quotation for request: No description',
-            priority: 'Normal',
-            assignedTeam: 'Unassigned'
-          },
-          status: 'Pending'
-        },
-        metadata: { timestamp: '2025-08-07T22:20:47.181Z' }
-      },
-      {
-        type: 'JobStarted',
-        data: {
-          jobId: '22eb20d0-9dd4-4115-997c-8a0f5ec1a194',
-          requestId: '4b5e02b8-070d-4f0e-9be7-ee1ba35d7e22',
-          assignedTeam: 'Team_A',
-          startedByUserId: 'user-alice-123',
-          startedAt: '2025-08-07T22:21:14.504Z',
-          status: 'Started'
-        },
-        metadata: { timestamp: '2025-08-07T22:21:14.504Z' }
-      },
-      {
-        type: 'JobCompleted',
-        data: {
-          jobId: '22eb20d0-9dd4-4115-997c-8a0f5ec1a194',
-          requestId: '4b5e02b8-070d-4f0e-9be7-ee1ba35d7e22',
-          completedByUserId: 'user-alice-123',
-          completionDetails: {
-            notes: 'Job completed by user-alice-123 at 08.08.2025, 00:21:16'
-          },
-          completedAt: '2025-08-07T22:21:16.919Z',
-          status: 'Completed'
-        },
-        metadata: { timestamp: '2025-08-07T22:21:16.919Z' }
-      }
-    ];
+// Mock data for the job
+const mockJobDetails = {
+  title: 'Repair Job for: REQ1',
+  description: [{ operation: 'op1' }, { operation: 'op2' }],
+  priority: 'Normal',
+  assignedTeam: 'Unassigned',
+  currency: 'CHF',
+  amount: '5000.00'
+};
 
-    const jobs = useRepairJobSlice(events);
+const jobId = 'job123';
+const requestId = 'request123';
+const changeRequestId = 'changeRequest123';
+const quotationId = 'quotation123';
+const userId = 'user123';
 
-    expect(jobs).toHaveLength(1);
-    expect(jobs[0].status).toBe('Completed');
-    expect(jobs[0].details.title).toBe('Repair Job for: REQ2');
-    expect(jobs[0].details.assignedTeam).toBe('Team_A');
+describe('Job Lifecycle Test Suite', () => {
+  beforeEach(() => {
+    // Clear the event store before each test
+    jobEventStore.clear();
+  });
+
+  it('should simulate job lifecycle and verify final state', () => {
+    // Step 1: Create a job
+    const jobCreatedEvent = JobCreatedEvent(jobId, requestId, changeRequestId, quotationId, mockJobDetails);
+    jobEventStore.append(jobCreatedEvent);
+
+    // Step 2: Replay events to get the current state of the aggregate
+    let events = jobEventStore.getEvents().filter(e => e.aggregateId === jobId);
+    const aggregate = new JobAggregate();
+    events.forEach(event => aggregate.replay([event]));
+
+    // Step 3: Start the job
+    const jobStartedEvent = JobStartedEvent(jobId, 'Team A', userId);
+    jobEventStore.append(jobStartedEvent);
+
+    // Step 4: Complete the job
+    const completionDetails = { notes: 'Job completed successfully' };
+    const jobCompletedEvent = JobCompletedEvent(jobId, userId, completionDetails);
+    jobEventStore.append(jobCompletedEvent);
+
+    // Step 5: Replay all events to get the final state of the aggregate
+    events = jobEventStore.getEvents().filter(e => e.aggregateId === jobId);
+    const finalAggregate = new JobAggregate();
+    events.forEach(event => finalAggregate.replay([event]));
+
+    // Step 6: Create and check the enriched event
+    const enrichedEvent = jobCompletedEnrichedEvent(finalAggregate);
+
+    // Logs for verification
+    console.log('Final Aggregate State:', finalAggregate);
+    console.log('Enriched Job Completed Event:', enrichedEvent);
+
+    // Assertions
+    if (finalAggregate.status !== 'Completed') {
+      throw new Error('Job status is not "Completed"');
+    }
+    if (enrichedEvent.type !== 'JobHasBeenCompleted') {
+      throw new Error('Enriched event type is not "JobHasBeenCompleted"');
+    }
   });
 });

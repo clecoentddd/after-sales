@@ -5,6 +5,7 @@
 export function ChangeRequestRejectedDueToClosedRequest(changeRequestId, requestId, reason) {
   return {
     type: 'ChangeRequestRejectedDueToClosedRequest',
+    aggregateType: "ChangeRequest",
     data: {
       requestId,
       reason,

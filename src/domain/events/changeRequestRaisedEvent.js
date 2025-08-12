@@ -2,6 +2,7 @@
 
 export const ChangeRequestRaisedEvent = (changeRequestId, requestId, changedByUserId, description, versionId) => ({
   type: 'ChangeRequestRaised',
+  aggregateType: "ChangeRequest",
   data: {
     changeRequestId,   // unique id for this change request
     requestId,         // parent request id

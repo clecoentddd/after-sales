@@ -13,6 +13,7 @@
 export const InvoiceRejectedEvent = (aggregateId, jobId, reason) => ({
   type: 'InvoiceRejected', // Event type identifier
   aggregateId: aggregateId,
+  aggregateType: "Invoice",
   data: {
     jobId,
     reason,

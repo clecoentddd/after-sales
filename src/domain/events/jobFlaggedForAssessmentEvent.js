@@ -17,6 +17,7 @@ export const JobFlaggedForAssessmentEvent = (
   reason
 ) => ({
   type: 'ChangeRequestReceivedPendingAssessment',
+  aggregateType: "Job",
   data: {
     jobId,
     requestId,

@@ -44,8 +44,8 @@ export class JobAggregate {
     switch (ev.type) {
       case 'JobCreated':
         this.jobId = ev.aggregateId; // Changed from `event.aggregateId` to `ev.aggregateId`
-        this.requestId = data.requestId;
-        this.changeRequestId = data.changeRequestId;
+        this.requestId = ev.requestId;
+        this.changeRequestId = ev.changeRequestId;
         this.quotationId = data.quotationId;
         this.jobDetails = data.jobDetails;
         this.status = data.status || 'Pending';
@@ -78,30 +78,55 @@ export class JobAggregate {
   /**
    * Create a JobCreated event from an approved quotation.
    */
-  static createJobFromQuotationApproval(requestId, changeRequestId, quotationId, quotationDetails) {
-    if (!quotationDetails || !quotationDetails.title || !quotationDetails.operations ||
-        !quotationDetails.currency || quotationDetails.estimatedAmount === undefined) {
-      throw new Error('[createJobFromQuotationApproval] Invalid quotation details provided');
-    }
-    const jobId = uuidv4();
-    const jobDetails = {
-      title: `Repair Job for: ${quotationDetails.title}`,
-      description: quotationDetails.operations,
-      priority: 'Normal',
-      assignedTeam: 'Unassigned',
-      currency: quotationDetails.currency,
-      amount: quotationDetails.estimatedAmount
-    };
-    return JobCreatedEvent(jobId, requestId, changeRequestId, quotationId, jobDetails, 'Pending');
+  // In JobAggregate class
+static create(command) {
+  const jobId = uuidv4();
+  const jobDetails = {
+    title: `Repair Job for: ${command.quotationDetails.title}`,
+    description: command.quotationDetails.operations,
+    priority: 'Normal',
+    assignedTeam: 'Unassigned',
+    currency: command.quotationDetails.currency,
+    amount: command.quotationDetails.estimatedAmount,
+  };
+
+  return JobCreatedEvent(
+    jobId,
+    command.requestId,
+    command.changeRequestId,
+    command.quotationId,
+    jobDetails,
+    'Pending'
+  );
+}
+
+
+start(command) {
+  // Check if the job is in the correct state to be started
+  if (this.status !== 'Pending') {
+    throw new Error(
+      `Cannot start job ${command.jobId}. ` +
+      `Current status: ${this.status}. ` +
+      `Expected: 'Pending'`
+    );
   }
 
-  start(command) {
-    if (this.status === 'Started') return null;
-    if (this.status === 'Completed') {
-      throw new Error(`Cannot start job ${command.jobId} because it is already completed.`);
-    }
-    return JobStartedEvent(command.jobId, command.assignedTeam, command.startedByUserId);
+  // Check if required fields are present (defensive programming)
+  if (!this.requestId || !this.changeRequestId) {
+    throw new Error(
+      `Job ${command.jobId} is missing required fields (requestId or changeRequestId).`
+    );
   }
+
+  // Create and return the JobStartedEvent
+  return JobStartedEvent(
+    command.jobId,
+    this.requestId,
+    this.changeRequestId,
+    command.assignedTeam,
+    command.startedByUserId
+  );
+}
 
   complete(command) {
     if (this.status === 'Completed') return null;
@@ -110,6 +135,8 @@ export class JobAggregate {
     }
     return JobCompletedEvent(
       command.jobId,
+      this.requestId,
+      this.changeRequestId,
       command.completedBy,
       command.completionDetails
     );

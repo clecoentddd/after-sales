@@ -1,11 +1,6 @@
 // src/domain/features/11_CreateJobAutomation/eventHandler.js
 
 import { eventBus } from '@core/eventBus';
-import {
-  jobEventStore,
-  quotationEventStore,
-  requestEventStore
-} from '@core/eventStore';
 
 import { createJobCommandHandler } from './commandHandler';
 import { CreateJobFromApprovedQuotationCommand } from './commands';
@@ -19,9 +14,9 @@ export const initializeCreateJobEventHandler = () => {
     console.log(`[CreateJobEventHandler] Received QuotationApproved event:`, event);
 
     const command = new CreateJobFromApprovedQuotationCommand({
-      requestId: event.data.requestId,
-      changeRequestId: event.data.changeRequestId,
       quotationId: event.quotationId,
+      requestId: event.requestId,
+      changeRequestId: event.changeRequestId,
       quotationDetails: event.data.quotationDetails
     });
 

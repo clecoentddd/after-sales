@@ -1,8 +1,7 @@
 // src/domain/features/11_CreateJobAutomation/commandHandler.js
-
 import { jobEventStore } from '@core/eventStore';
 import { eventBus } from '@core/eventBus';
-import { JobAggregate } from '@entities/Job/aggregate'; // Import the JobAggregate
+import { JobAggregate } from '@entities/Job/aggregate';
 
 export const createJobCommandHandler = {
   handle(command) {
@@ -11,19 +10,12 @@ export const createJobCommandHandler = {
       return { success: false, message: 'Unsupported command' };
     }
 
-    console.log(`[CreateJobCommandHandler] Handling command: ${command.type}`, command);
+    // Delegate job creation to the aggregate
+    const jobCreatedEvent = JobAggregate.create(command);
 
-    const jobCreatedEvent = JobAggregate.createJobFromQuotationApproval(
-      command.requestId,
-      command.changeRequestId,
-      command.quotationId,
-      command.quotationDetails
-    );
-
+    // Persist and publish the event
     jobEventStore.append(jobCreatedEvent);
     eventBus.publish(jobCreatedEvent);
-
-    console.log(`[CreateJobCommandHandler] Published JobCreated event:`, jobCreatedEvent);
 
     return { success: true, event: jobCreatedEvent };
   }

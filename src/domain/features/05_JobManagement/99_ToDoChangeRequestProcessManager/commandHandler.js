@@ -16,7 +16,7 @@ export const RejectChangeRequestAssignmentCommandHandler = {
     console.log(`[RejectChangeRequestAssignmentCommandHandler] Rejecting assignment of change request ${changeRequestId} for request ${requestId} by user ${userId}: ${reason}`);
 
     // Create and publish the ChangeRequestAssignmentRejected event
-    const rejectionEvent = ChangeRequestAssignmentRejectedEvent(changeRequestId, requestId, reason);
+    const rejectionEvent = ChangeRequestAssignmentRejectedEvent( requestId, changeRequestId, reason);
     console.log(`[RejectChangeRequestAssignmentCommandHandler] Created ChangeRequestAssignmentRejected event:`, rejectionEvent);
     jobEventStore.append(rejectionEvent);
     eventBus.publish(rejectionEvent);

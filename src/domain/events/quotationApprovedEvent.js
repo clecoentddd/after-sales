@@ -12,9 +12,9 @@ export const QuotationApprovedEvent = ({ quotationId, requestId, changeRequestId
   type: 'QuotationApproved',
   aggregateId: quotationId,
   aggregateType: 'Quotation',
+  requestId,
+  changeRequestId,
   data: {
-    requestId,
-    changeRequestId,
     approvedByUserId,
     status: 'Approved'
   },

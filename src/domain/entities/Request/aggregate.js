@@ -1,5 +1,4 @@
 // src/domain/entities/RequestAggregate.js
-
 import { RequestRaisedEvent } from "../../events/requestRaisedEvent";
 import { RequestClosedEvent } from "../../events/requestClosedEvent";
 import { ChangeRequestRaisedEvent } from "../../events/changeRequestRaisedEvent";
@@ -22,12 +21,11 @@ export class RequestAggregate {
 
   apply(event) {
     console.log('[RequestAggregate] Applying event of type:', event.type);
-
     switch (event.type) {
       case 'RequestRaised':
         this.state = {
           requestId: event.aggregateId,
-          changeRequestId: event.data.changeRequestId,
+          changeRequestId: event.changeRequestId,
           customerId: event.data.customerId,
           requestDetails: event.data.requestDetails,
           status: event.data.status,
@@ -35,13 +33,11 @@ export class RequestAggregate {
         };
         this.changeRequests = [];
         break;
-
       case 'RequestClosed':
         if (this.state) {
           this.state.status = 'Closed';
         }
         break;
-
       case 'ChangeRequestRaised':
         if (!this.changeRequests) this.changeRequests = [];
         this.changeRequests.push({
@@ -54,22 +50,19 @@ export class RequestAggregate {
         });
         this.state.currentVersion++;
         break;
-
       case 'ChangeRequestRejectedDueToClosedRequest':
         const cr = this.changeRequests.find(cr => cr.changeRequestId === event.data.changeRequestId);
         if (cr) cr.status = 'Rejected';
         break;
-
-      // Add other event types as needed
+      default:
+        console.warn('[RequestAggregate] Unknown event type:', event.type);
     }
-
     console.log('[RequestAggregate] State after applying event:', this.state);
     console.log('[RequestAggregate] ChangeRequests after applying event:', this.changeRequests);
   }
 
   static create(command) {
     console.log('[RequestAggregate] Creating RequestRaisedEvent with requestId:', command.requestId);
-
     return RequestRaisedEvent({
       requestId: command.requestId,
       changeRequestId: command.changeRequestId,
@@ -87,19 +80,19 @@ export class RequestAggregate {
     if (this.state.status === 'Closed') {
       throw new Error('Cannot raise change request on closed request');
     }
-
     return ChangeRequestRaisedEvent({
+      requestId: command.requestId,
       changeRequestId: command.changeRequestId,
-      requestId: this.state.requestId,
       changedByUserId: command.changedByUserId,
-      description: command.description
+      description: command.description,
+      versionId: this.state.currentVersion + 1
     });
   }
 
   rejectChangeRequest(command) {
     return ChangeRequestRejectedDueToClosedRequest({
+      requestId: command.requestId,
       changeRequestId: command.changeRequestId,
-      requestId: this.state.requestId,
       reason: command.reason
     });
   }
@@ -108,7 +101,6 @@ export class RequestAggregate {
     if (!this.state) {
       throw new Error('Request state is not initialized.');
     }
-
     console.log(`[ensureChangeRequestAllowed] Current request status: ${this.state.status}`);
     if (this.state.status === 'Closed') {
       console.log('[ensureChangeRequestAllowed] Request is closed. No change request is accepted.');
@@ -124,7 +116,6 @@ export class RequestAggregate {
     if (this.state.status === 'Closed') {
       throw new Error(`Request ${command.requestId} is already closed`);
     }
-
     return RequestClosedEvent(command.requestId, command.closedByUserId);
   }
 }

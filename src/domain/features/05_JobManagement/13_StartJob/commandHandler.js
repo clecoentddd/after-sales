@@ -9,7 +9,7 @@ export const startJobCommandHandler = {
     console.log(`[StartJobCommandHandler] Handling command: ${command.type}`, command);
 
     // Rebuild aggregate state from events related to this job
-    const events = jobEventStore.getEvents().filter(e => e.data.jobId === command.jobId);
+    const events = jobEventStore.getEvents().filter(e => e.aggregateId === command.jobId);
     const jobAggregate = new JobAggregate();
     jobAggregate.replay(events);
 

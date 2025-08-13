@@ -2,9 +2,9 @@ export const JobCreatedEvent = (jobId, requestId, changeRequestId, quotationId, 
   type: 'JobCreated',
   aggregateId: jobId,
   aggregateType: 'Job',
+  requestId,
+  changeRequestId, 
   data: {
-    requestId,
-    changeRequestId, // Ensure changeRequestId is included if relevant
     quotationId,
     jobDetails,
     status, // Include status to track the initial state

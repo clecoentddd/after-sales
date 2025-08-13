@@ -5,15 +5,39 @@ class EventStore {
     this.events = [];
   }
 
-  append(event) {
+append(event) {
+    // Ensure the event has an ID and timestamp
+    const now = new Date();
     const eventWithId = {
       ...event,
       eventId: event.eventId || uuidv4(),
-      timestamp: event.timestamp || new Date().toISOString()
+      timestamp: event.timestamp || now.toISOString(),
+      metadata: {
+        ...event.metadata,
+        timestamp: event.metadata?.timestamp || now.toISOString()
+      }
     };
+
+    // If the last event has the same timestamp, add 1ms
+    if (this.events.length > 0) {
+      const lastEvent = this.events[this.events.length - 1];
+      const lastTimestamp = new Date(lastEvent.metadata?.timestamp || lastEvent.timestamp).getTime();
+      const currentTimestamp = new Date(eventWithId.metadata?.timestamp || eventWithId.timestamp).getTime();
+
+      if (lastTimestamp >= currentTimestamp) {
+        // Add 1ms to ensure unique timestamp
+        const newDate = new Date(currentTimestamp + 1);
+        eventWithId.timestamp = newDate.toISOString();
+        eventWithId.metadata = {
+          ...eventWithId.metadata,
+          timestamp: newDate.toISOString()
+        };
+      }
+    }
+
     this.events.push(eventWithId);
     return eventWithId;
-  }
+}
 
   getEvents() {
     return [...this.events];

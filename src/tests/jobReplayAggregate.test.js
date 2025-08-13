@@ -15,7 +15,7 @@ describe('Job aggregate replay', () => {
 
     // ---- Step 1: Create job from quotation approval ----
     const aggregate = new JobAggregate();
-    const createEvent = JobAggregate.createJobFromQuotationApproval(
+    const createEvent = JobAggregate.create(
       quotationId,
       requestId,
       changeRequestId,

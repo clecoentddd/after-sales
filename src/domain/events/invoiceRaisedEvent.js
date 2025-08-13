@@ -13,10 +13,12 @@
  * @param {string} description - A description for the invoice.
  * @returns {object} The InvoiceRaisedEvent object.
  */
-export const InvoiceRaisedEvent = (invoiceId, jobId, quotationId, amount, currency, description) => ({
+export const InvoiceRaisedEvent = (invoiceId, requestId, changeRequestId, jobId, quotationId, amount, currency, description) => ({
   type: 'InvoiceRaised', // Event type identifier
   aggregateId: invoiceId,
   aggregateType: "Invoice",
+  requestId: requestId,
+  changeRequestId: changeRequestId,
   data: {
     jobId,
     quotationId,

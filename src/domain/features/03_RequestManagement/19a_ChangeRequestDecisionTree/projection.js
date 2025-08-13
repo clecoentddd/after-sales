@@ -1,5 +1,3 @@
-// src/domain/features/ChangeRequestDecisionTree/projection.js
-
 const changeRequestDecisionState = {}; // { [requestId]: { quotationStatus, jobStatus } }
 const listeners = new Set();
 
@@ -43,18 +41,18 @@ export const ChangeRequestDecisionTreeProjection = {
   /**
    * Notify all subscribers of updated state.
    */
- notify() {
-  const allData = this.getAll();
-  console.log(`[DecisionProjection] Notifying ${listeners.size} subscribers with data:`, allData);
-  listeners.forEach(cb => {
-    try {
-      cb(allData);
-      console.log('[DecisionProjection] Subscriber callback executed successfully.');
-    } catch (err) {
-      console.error('[DecisionProjection] Subscriber callback error:', err);
-    }
-  });
-},
+  notify() {
+    const allData = this.getAll();
+    console.log(`[DecisionProjection] Notifying ${listeners.size} subscribers with data:`, allData);
+    listeners.forEach(cb => {
+      try {
+        cb(allData);
+        console.log('[DecisionProjection] Subscriber callback executed successfully.');
+      } catch (err) {
+        console.error('[DecisionProjection] Subscriber callback error:', err);
+      }
+    });
+  },
 
   /**
    * Reset the internal state.
@@ -71,51 +69,71 @@ export const ChangeRequestDecisionTreeProjection = {
    * @param {object} event
    */
   handleEvent(event) {
-    const { type, data } = event;
+    // Get requestId from the appropriate location based on event type
+    let requestId;
 
-    switch (type) {
+    // For Request aggregate events, requestId is the aggregateId
+    if (event.aggregateType === 'Request') {
+      requestId = event.aggregateId;
+    }
+    // For ChangeRequest aggregate events, requestId is the root-level requestId
+    else if (event.aggregateType === 'ChangeRequest') {
+      requestId = event.requestId;
+    }
+    // For all other events, requestId is at the root level
+    else {
+      requestId = event.requestId;
+    }
+
+    if (!requestId) {
+      console.warn(`[DecisionProjection] Event missing requestId:`, event.type);
+      return;
+    }
+
+    console.log(`[DecisionProjection] Handling event ${event.type} for request ${requestId}`);
+
+    switch (event.type) {
       case 'RequestCreated':
-        changeRequestDecisionState[data.requestId] = {
+        changeRequestDecisionState[requestId] = {
           quotationStatus: 'NotStarted',
           jobStatus: 'NotStarted',
         };
-        console.log(`[DecisionProjection] Initialized request ${data.requestId}`);
+        console.log(`[DecisionProjection] Initialized request ${requestId}`);
         break;
 
       case 'QuotationCreated':
-        update(data.requestId, { quotationStatus: 'Draft' });
+        update(requestId, { quotationStatus: 'Draft' });
         break;
 
       case 'QuotationApproved':
-        update(data.requestId, { quotationStatus: 'Approved' });
+        update(requestId, { quotationStatus: 'Approved' });
         break;
 
       case 'JobCreated':
-        update(data.requestId, { jobStatus: 'Created' });
+        update(requestId, { jobStatus: 'Created' });
         break;
 
       case 'JobStarted':
-        update(data.requestId, { jobStatus: 'InProgress' });
+        update(requestId, { jobStatus: 'InProgress' });
         break;
 
       case 'JobOnHold':
-        update(data.requestId, { jobStatus: 'OnHold' });
+        update(requestId, { jobStatus: 'OnHold' });
         break;
 
       case 'JobCompleted':
-        update(data.requestId, { jobStatus: 'Completed' });
+        update(requestId, { jobStatus: 'Completed' });
         break;
 
       case 'ChangeRequestReceivedPendingAssessment':
-        console.log(`[DecisionProjection] Change request received for ${data.requestId}`);
-        update(data.requestId, { jobStatus: 'Pending CR Assessment' });
+        console.log(`[DecisionProjection] Change request received for ${requestId}`);
+        update(requestId, { jobStatus: 'Pending CR Assessment' });
         break;
 
       default:
-        console.warn(`[DecisionProjection] Unhandled event type: ${type}`);
+        console.warn(`[DecisionProjection] Unhandled event type: ${event.type}`);
         break;
     }
-
     this.notify();
 
     function update(requestId, patch) {

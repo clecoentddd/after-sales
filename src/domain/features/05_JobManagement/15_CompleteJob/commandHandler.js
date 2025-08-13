@@ -1,8 +1,7 @@
 import { eventBus } from '@core/eventBus';
-import { JobRepository } from '@entities/Job/repository';
+import { jobEventStore } from '@core/eventStore'; // Import the event store
 import { jobCompletedEnrichedEvent } from '@events/jobCompletedEnrichedEvent';
-
-const jobRepository = new JobRepository();
+import { JobAggregate } from '@entities/Job/aggregate'; 
 
 export const completeJobCommandHandler = {
   async handle(command) {
@@ -10,44 +9,67 @@ export const completeJobCommandHandler = {
 
     switch (command.type) {
       case 'CompleteJob': {
-        // Load aggregate (replay hidden inside repository)
-        const job = await jobRepository.getById(command.jobId);
-        console.log("[completeJobCommandHandler] jobRepository Job is", job);
+        try {
+          // 1. Load all events for this job from the event store
+          const events = jobEventStore.getEvents().filter(e => e.aggregateId === command.jobId);
+          console.log('[CompleteJobCommandHandler] Events to replay:', events);
 
-        // Let aggregate decide whether it can complete
-        const jobCompletedEvent = job.complete(command);
-        if (!jobCompletedEvent) {
+          // 2. Reconstruct the aggregate state by replaying events
+          const jobAggregate = new JobAggregate();
+          jobAggregate.replay(events);
+
+          // 3. Log the aggregate state for debugging
+          console.log('[CompleteJobCommandHandler] Aggregate state after replay:', {
+            jobId: jobAggregate.jobId,
+            requestId: jobAggregate.requestId,
+            changeRequestId: jobAggregate.changeRequestId,
+            status: jobAggregate.status,
+          });
+
+          // 4. Let the aggregate decide whether it can be completed
+          const jobCompletedEvent = jobAggregate.complete(command);
+
+          if (!jobCompletedEvent) {
+            console.warn(`[CompleteJobCommandHandler] Job ${command.jobId} is already completed or cannot be completed.`);
+            return {
+              success: false,
+              message: `Job ${command.jobId} is already completed or cannot be completed.`,
+              code: 'JOB_ALREADY_COMPLETED',
+            };
+          }
+
+          // 5. Apply the event to the aggregate to update its state
+          jobAggregate.apply(jobCompletedEvent);
+
+          // 6. Publish the minimal event-sourcing event
+          jobEventStore.append(jobCompletedEvent);
+          console.log('[CompleteJobCommandHandler] Published JobCompleted event:', jobCompletedEvent);
+
+          eventBus.publish(jobCompletedEvent);
+          
+          // 7. Build and publish the enriched event
+          const enrichedEvent = jobCompletedEnrichedEvent({
+            jobId: jobAggregate.jobId,
+            requestId: jobAggregate.requestId,
+            changeRequestId: jobAggregate.changeRequestId,
+            quotationId: jobAggregate.quotationId,
+            completionDetails: jobAggregate.completionDetails,
+            jobDetails: jobAggregate.jobDetails,
+            completedByUserId: jobAggregate.completedByUserId,
+            completedAt: jobAggregate.completedAt,
+          });
+          eventBus.publish(enrichedEvent);
+          console.log('[CompleteJobCommandHandler] Published enriched JobCompleted event:', enrichedEvent);
+
+          return { success: true, event: jobCompletedEvent };
+        } catch (error) {
+          console.error(`[CompleteJobCommandHandler] Error completing job:`, error.message);
           return {
             success: false,
-            message: `Job ${command.jobId} is already completed.`,
-            code: 'JOB_ALREADY_COMPLETED'
+            message: `Failed to complete job: ${error.message}`,
+            code: 'JOB_COMPLETION_FAILED',
           };
         }
-           // Log the jobCompletedEvent with formatted JSON
-        console.log("[CompleteJobCommandHandler] Job completed event:", JSON.stringify(jobCompletedEvent, null, 2));
-
-        // Apply the event to the aggregate to update its state
-        job.apply(jobCompletedEvent);
-
-        // Publish minimal ES event
-        eventBus.publish(jobCompletedEvent);
-
-        // Build and publish enriched event from aggregate state
-        // Build and publish enriched event with explicit parameters
-
-        const enrichedEvent = jobCompletedEnrichedEvent({
-          jobId: job.jobId,
-          requestId: job.requestId,
-          changeRequestId: job.changeRequestId,
-          quotationId: job.quotationId,
-          completionDetails: job.completionDetails,
-          jobDetails: job.jobDetails,
-          completedByUserId: job.completedByUserId,
-          completedAt: job.completedAt
-        });
-        eventBus.publish(enrichedEvent);
-
-        return { success: true, event: jobCompletedEvent };
       }
 
       default:

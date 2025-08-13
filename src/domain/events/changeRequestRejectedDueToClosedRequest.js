@@ -2,12 +2,13 @@
 
 // src/domain/events/ChangeRequestRejectedEvent.js
 
-export function ChangeRequestRejectedDueToClosedRequest(changeRequestId, requestId, reason) {
+export function ChangeRequestRejectedDueToClosedRequest(requestId, changeRequestId, reason) {
   return {
     type: 'ChangeRequestRejectedDueToClosedRequest',
+    aggregatId: requestId,
     aggregateType: "ChangeRequest",
+    changeRequestId: requestId,
     data: {
-      requestId,
       reason,
       timestamp: new Date().toISOString(),
     }

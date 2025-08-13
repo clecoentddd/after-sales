@@ -2,10 +2,11 @@
 
 // src/domain/events/ChangeRequestRejectedEvent.js
 
-export function ChangeRequestAssignmentRejectedEvent(changeRequestId, requestId, reason) {
+export function ChangeRequestAssignmentRejectedEvent(requestId, changeRequestId, reason) {
   return {
     type: 'ChangeRequestAssigmentRejected',
-    aggregateType: "ChangeRequest",
+    aggregateId: requestId,
+    aggregateType: "Request",
     data: {
       changeRequestId,
       requestId,

@@ -11,15 +11,15 @@ export const initializeQuotationCreatedProjectionHandler = () => {
   eventBus.subscribe('QuotationCreated', (event) => {
     console.log('[QuotationCreatedProjectionHandler] Event received:', event);
 
-    if (!event.aggregateId || !event.data?.requestId || !event.data?.changeRequestId) {
+    if (!event.aggregateId || !event?.requestId || !event?.changeRequestId) {
       console.error('[QuotationCreatedProjectionHandler] Missing required fields, skipping insertion');
       return;
     }
 
     const newQuotation = {
       quotationId: event.aggregateId,
-      requestId: event.data.requestId,
-      changeRequestId: event.data.changeRequestId,
+      requestId: event.requestId,
+      changeRequestId: event.changeRequestId,
       estimatedAmount: event.data.quotationDetails?.estimatedAmount || 0,
       status: event.data.status || 'Draft',
     };

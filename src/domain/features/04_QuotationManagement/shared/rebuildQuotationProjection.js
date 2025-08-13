@@ -18,8 +18,8 @@ export function rebuildQuotationProjection() {
         if (event.type === 'QuotationCreated') {
           const newQuotation = {
             quotationId,
-            requestId: event.data.requestId,
-            changeRequestId: event.data.changeRequestId,
+            requestId: event.requestId,
+            changeRequestId: event.changeRequestId,
             estimatedAmount: event.data.quotationDetails?.estimatedAmount || 0,
             status: event.data.status || 'Draft',
           };

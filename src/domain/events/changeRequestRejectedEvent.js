@@ -5,7 +5,8 @@
 export function ChangeRequestRejectedEvent(changeRequestId, requestId, reason) {
   return {
     type: 'ChangeRequestRejected',
-    aggregateType: "ChangeRequest",
+    aggregateId: requestId,
+    aggregateType: "Request",
     data: {
       changeRequestId,
       requestId,

@@ -2,9 +2,9 @@ export function RequestRaisedEvent({ requestId, changeRequestId, versionId, cust
   return {
     type: 'RequestRaised',
     aggregateId: requestId,
+    changeRequestId, // Could be null for the first version
     aggregateType: "Request",
     data: {
-      changeRequestId, // Could be null for the first version
       versionId,       // Should be a number or string version identifier
       customerId,
       requestDetails,

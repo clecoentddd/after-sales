@@ -15,7 +15,7 @@ export const RejectChangeRequestCommandHandler = {
     console.log(`[CommandHandler] Rejecting change request ${changeRequestId} for request ${requestId} by user ${userId}: ${reason}`);
 
     // Create and publish the ChangeRequestRejected event with requestId
-    const rejectionEvent = ChangeRequestRejectedEvent(changeRequestId, requestId, reason);
+    const rejectionEvent = ChangeRequestRejectedEvent(requestId, changeRequestId, reason);
     eventBus.publish(rejectionEvent);
   }
 };

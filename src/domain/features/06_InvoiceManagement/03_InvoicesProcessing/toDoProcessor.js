@@ -1,11 +1,11 @@
 import { eventBus } from '@core/eventBus';
 import { invoiceEventStore } from '@core/eventStore';
 import { InvoiceRaisedEvent } from '@events/invoiceRaisedEvent';
-import { InvoiceRejectedEvent } from '@events/invoiceRejectedEvent';
 import { createInvoiceToDoItemClosedEvent } from '../03_InvoicesProcessing/createInvoiceToDoItemClosedEvent';
 import { createInvoiceToDoItemFailedEvent } from '../03_InvoicesProcessing/createInvoiceToDoItemFailedEvent';
 import { queryToDosProjection, buildLiveModel } from '../02_ProjectionRaisingInvoicesToDo/liveModel';
 import { v4 as uuidv4 } from 'uuid';
+import {createCloseInvoiceToDoItemCommand} from './createInvoiceToDoItemClosedCommand';
 
 let isInvoiceProcessHandlerInitialized = false;
 
@@ -15,12 +15,10 @@ export const initializeInvoiceProcessHandler = () => {
     console.warn('[InvoiceProcessHandler] Already initialized. Skipping re-subscription.');
     return;
   }
-
   eventBus.subscribe('invoiceToRaiseToDoItemAdded', () => {
     console.log('[InvoiceProcessHandler] New todo item added. Processing incomplete todo items...');
     processIncompleteToDoItems();
   });
-
   isInvoiceProcessHandlerInitialized = true;
   console.log('[InvoiceProcessHandler] Initialized and subscribed to new todo events.');
 };
@@ -61,7 +59,11 @@ const getTodoItemDetails = (aggregateId) => {
   const allEvents = invoiceEventStore.getEvents();
   console.log(`[getTodoItemDetails] All events retrieved:`, allEvents);
 
-  const event = allEvents.find(event => event.aggregateId === aggregateId && event.type === 'invoiceToRaiseToDoItemAdded');
+  const event = allEvents.find(event =>
+    event.aggregateId === aggregateId &&
+    event.type === 'invoiceToRaiseToDoItemAdded'
+  );
+
   console.log(`[getTodoItemDetails] Found event for aggregateId ${aggregateId}:`, event);
 
   if (!event) {
@@ -71,6 +73,8 @@ const getTodoItemDetails = (aggregateId) => {
 
   const todoItemDetails = {
     aggregateId: event.aggregateId,
+    requestId: event.requestId,
+    changeRequestId: event.changeRequestId,
     jobId: event.data.jobId,
     payload: event.data.payload,
     toDoComplete: event.data.toDoComplete
@@ -83,31 +87,28 @@ const getTodoItemDetails = (aggregateId) => {
 const processSingleTodoItem = (todo) => {
   console.log('[processSingleTodoItem] Entering function for todo item:', todo);
 
-  // Log the jobId separately to ensure it's being captured correctly
-  console.log('[processSingleTodoItem] Job ID:', todo.jobId);
-
-  console.log('[InvoiceProcessHandler] Processing todo item:', todo.aggregateId);
-
-  // Check data availability
-  const checkResult = checkDataAvailability(todo.payload);
-  console.log('[processSingleTodoItem] Data availability check result:', checkResult);
+  // Check all required data availability
+  const checkResult = checkDataAvailability(todo);
 
   if (checkResult.result === "ok") {
-    // Log the jobId again to ensure it's available at this point
     console.log('[InvoiceProcessHandler] Creating invoice for todo jobId:', todo.jobId);
 
-    // Ensure jobId is defined before proceeding
-    if (todo.jobId === undefined) {
-      console.error('[InvoiceProcessHandler] jobId is undefined, cannot create invoice.');
-      return;
-    }
+        // Create a command for closing the to-do item
+    const closeInvoiceToDoItemCommand = createCloseInvoiceToDoItemCommand(todo);
+    console.log('[InvoiceProcessHandler] Created close invoice to-do command:', closeInvoiceToDoItemCommand);
 
-    const invoiceToDoItemClosedEvent = createInvoiceToDoItemClosedEvent(todo.aggregateId, checkResult.dataPayload);
+    // Create the closed event using the command
+    const invoiceToDoItemClosedEvent = createInvoiceToDoItemClosedEvent(closeInvoiceToDoItemCommand);
+    console.log('[InvoiceProcessHandler] Created invoice to-do item closed event:', invoiceToDoItemClosedEvent);
+    
     const invoiceId = uuidv4();
     const { quotationId, amount, currency, description } = checkResult.dataPayload;
 
+    // Create invoice with all required IDs
     const invoiceRaisedEvent = InvoiceRaisedEvent(
       invoiceId,
+      todo.requestId,
+      todo.changeRequestId,
       todo.jobId,
       quotationId,
       amount,
@@ -119,6 +120,7 @@ const processSingleTodoItem = (todo) => {
 
     console.log('[processSingleTodoItem] Created invoice raised event:', invoiceRaisedEvent);
 
+    // Append and publish both events
     invoiceEventStore.append(invoiceToDoItemClosedEvent);
     invoiceEventStore.append(invoiceRaisedEvent);
     eventBus.publish(invoiceRaisedEvent);
@@ -127,12 +129,16 @@ const processSingleTodoItem = (todo) => {
   } else {
     console.log(`[InvoiceProcessHandler] Missing data for todo: ${todo.aggregateId}, marking as failed with missing info flag`);
 
-    const invoiceToDoItemFailedEvent = createInvoiceToDoItemFailedEvent(todo.aggregateId, {
-      dataMissing: checkResult.dataMissing
-    });
+    const invoiceToDoItemFailedEvent = createInvoiceToDoItemFailedEvent(
+      todo.aggregateId,
+      todo.requestId,
+      todo.changeRequestId,
+      { dataMissing: checkResult.dataMissing }
+    );
 
     console.log('[processSingleTodoItem] Created invoice failed event:', invoiceToDoItemFailedEvent);
 
+    // Only append and publish once
     invoiceEventStore.append(invoiceToDoItemFailedEvent);
     eventBus.publish(invoiceToDoItemFailedEvent);
 
@@ -140,30 +146,40 @@ const processSingleTodoItem = (todo) => {
   }
 };
 
+const checkDataAvailability = (todo) => {
+  console.log('[checkDataAvailability] Entering function with todo:', todo);
 
-const checkDataAvailability = (data) => {
-  console.log('[checkDataAvailability] Entering function with data:', data);
-
+  // Define all required fields including the new root-level IDs
   const requiredFields = [
-    { name: 'quotationId' },
-    { name: 'jobDetails.amount', display: 'amount' },
-    { name: 'jobDetails.currency', display: 'currency' },
-    { name: 'jobDetails.description', display: 'description' },
-    { name: 'jobDetails.title', display: 'title' }
+    { name: 'requestId', source: 'root' },
+    { name: 'changeRequestId', source: 'root' },
+    { name: 'jobId', source: 'root' },
+    { name: 'quotationId', source: 'payload' },
+    { name: 'jobDetails.amount', display: 'amount', source: 'payload' },
+    { name: 'jobDetails.currency', display: 'currency', source: 'payload' },
+    { name: 'jobDetails.description', display: 'description', source: 'payload' },
+    { name: 'jobDetails.title', display: 'title', source: 'payload' }
   ];
 
   const dataMissing = [];
 
   requiredFields.forEach(field => {
-    const keys = field.name.split('.');
-    let value = data;
+    let value;
 
-    for (const key of keys) {
-      if (value[key] === undefined) {
-        value = undefined;
-        break;
+    if (field.source === 'root') {
+      // Check root level properties
+      value = todo[field.name];
+    } else {
+      // Check nested properties in payload
+      const keys = field.name.split('.');
+      value = todo.payload;
+      for (const key of keys) {
+        if (value[key] === undefined) {
+          value = undefined;
+          break;
+        }
+        value = value[key];
       }
-      value = value[key];
     }
 
     if (value === undefined) {
@@ -176,13 +192,13 @@ const checkDataAvailability = (data) => {
       result: "ok",
       dataMissing: null,
       dataPayload: {
-        jobId: data.jobId,
-        quotationId: data.quotationId,
-        customerId: data.customerId,
-        amount: data.jobDetails.amount,
-        currency: data.jobDetails.currency,
-        description: data.jobDetails.description,
-        title: data.jobDetails.title
+        jobId: todo.jobId,
+        quotationId: todo.payload.quotationId,
+        customerId: todo.payload.customerId,
+        amount: todo.payload.jobDetails.amount,
+        currency: todo.payload.jobDetails.currency,
+        description: todo.payload.jobDetails.description,
+        title: todo.payload.jobDetails.title
       }
     };
 
@@ -192,11 +208,10 @@ const checkDataAvailability = (data) => {
     const result = {
       result: "failed",
       dataMissing: dataMissing,
-      dataPayload: data
+      dataPayload: todo.payload
     };
 
     console.log('[checkDataAvailability] Missing data found:', result);
     return result;
   }
 };
-

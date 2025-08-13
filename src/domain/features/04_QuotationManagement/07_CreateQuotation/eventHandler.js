@@ -9,7 +9,8 @@ export const initializeQuotationRequestRaisedEventHandler = () => {
   console.log('[QuotationEventHandler] Initializing event handler for RequestRaised events...');  
   eventBus.subscribe('RequestRaised', (event) => {
   const requestId = event.aggregateId;
-  const { customerId, requestDetails, changeRequestId } = event.data;
+  const changeRequestId = event.changeRequestId;
+  const { customerId, requestDetails } = event.data;
   
   createQuotationCommandHandler.handle({
     requestId,

@@ -6,21 +6,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { InvoiceRaisedEvent } from '../../events/invoiceRaisedEvent';
 
 export class InvoiceAggregate {
-  /**
-   * Static method to create a new invoice, emitting an InvoiceRaisedEvent.
-   * This is typically triggered by a JobCompletedEvent.
-   * @param {string} jobId - The ID of the job related to this invoice.
-   * @param {string} quotationId - The ID of the quotation related to this invoice.
-   * @param {string} customerId - The ID of the customer.
-   * @param {number} amount - The amount for the invoice.
-   * @param {string} currency - The currency.
-   * @param {string} description - Description for the invoice.
-   * @returns {object} An InvoiceRaisedEvent.
-   */
-  static createInvoice(jobId, quotationId, customerId, amount, currency, description) {
+
+  static createInvoice(jobId, requestId, changeRequestId, quotationId, customerId, amount, currency, description) {
     console.log(`[InvoiceAggregate] Creating invoice for job ${jobId}`);
     return InvoiceRaisedEvent(
       uuidv4(), // Generate a unique ID for the new invoice
+      requestId,
+      changeRequestId,
       jobId,
       quotationId,
       customerId,

@@ -5,9 +5,9 @@ export const jobCompletedEnrichedEvent = (aggregate) => {
     type: 'JobHasBeenCompleted',
     aggregateId: aggregate.jobId,
     aggregateType: 'Job',
+    requestId: aggregate.requestId,
+    changeRequestId: aggregate.changeRequestId,
     data: {
-      requestId: aggregate.requestId,
-      changeRequestId: aggregate.changeRequestId,
       quotationId: aggregate.quotationId,
       completionDetails: aggregate.completionDetails,
       jobDetails: aggregate.jobDetails,

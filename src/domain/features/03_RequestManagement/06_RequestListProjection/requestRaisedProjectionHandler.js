@@ -15,8 +15,8 @@ export const handleRequestRaised = (event) => {
 
   const newRequest = {
     requestId: event.aggregateId,
+    changeRequestId: event.changeRequestId || null,
     customerId: event.data.customerId,
-    changeRequestId: event.data.changeRequestId || null,
     title: event.data.requestDetails?.title || '',
     description: event.data.requestDetails?.description || '',
     status: event.data.status || 'Pending',

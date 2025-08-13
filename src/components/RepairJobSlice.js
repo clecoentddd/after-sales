@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
+import { useRepairJobSlice } from '@features/05_JobManagement/RepairJobListProjection/useRepairJobSlice';
 import { startJobCommandHandler } from '@features/05_JobManagement/13_StartJob/commandHandler';
 import { StartJobCommand } from '@features/05_JobManagement/13_StartJob/commands';
 import { completeJobCommandHandler } from '@features/05_JobManagement/15_CompleteJob/commandHandler';
 import { CompleteJobCommand } from '@features/05_JobManagement/15_CompleteJob/commands';
 
-function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, currentUserId }) {
-  const [selectedTeam, setSelectedTeam] = useState('Team_A'); // Default team
+function RepairJobSlice({ customers, requests, quotations, currentUserId }) {
+  const { jobs, jobEvents } = useRepairJobSlice();
+  const [selectedTeam, setSelectedTeam] = useState('Team_A');
 
   const handleStartJob = (jobId) => {
     console.log('[RepairJobSlice] Attempting to start job:', jobId, 'with team:', selectedTeam);
@@ -16,7 +18,6 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
       return;
     }
     const jobToStart = jobs.find(job => job.jobId === jobId);
-    console.log('[RepairJobSlice] Job to start:', jobToStart);
     if (!jobToStart) {
       console.warn(`Job with ID ${jobId} not found.`);
       return;
@@ -25,17 +26,13 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
       console.warn(`Job ${jobId} is already ${jobToStart.status}.`);
       return;
     }
+
     startJobCommandHandler.handle(
-  StartJobCommand(
-    jobToStart.jobId,
-    jobToStart.requestId,
-    selectedTeam,
-    currentUserId
-  )
-);
+      StartJobCommand(jobToStart.jobId, selectedTeam, currentUserId)
+    );
+
     console.log('[RepairJobSlice] StartJobCommand dispatched:', {
       jobId: jobToStart.jobId,
-      requestId: jobToStart.requestId,
       selectedTeam,
       currentUserId
     });
@@ -44,26 +41,23 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
   const handleCompleteJob = (jobId) => {
     console.log('[RepairJobSlice] Attempting to complete job:', jobId);
     if (!jobId) return;
+
     const jobToComplete = jobs.find(job => job.jobId === jobId);
-    console.log('[RepairJobSlice] Job to complete:', jobToComplete);
     if (!jobToComplete) {
       console.warn(`Job with ID ${jobId} not found.`);
       return;
     }
     if (jobToComplete.status !== 'Started') {
-      console.warn(`Job ${jobId} cannot be completed as its status is ${jobToComplete.status}. Only 'Started' jobs can be completed.`);
+      console.warn(`Job ${jobId} cannot be completed as its status is ${jobToComplete.status}.`);
       return;
     }
 
-   // Define the parameters explicitly
     const completedByUserId = "manager-john-456";
     const completionDetails = {
       notes: `Cleaning & Polishing including for free`
     };
 
-    // Create the command using the explicitly defined parameters
     const command = CompleteJobCommand(jobId, completedByUserId, completionDetails);
-
     completeJobCommandHandler.handle(command);
 
     console.log('[RepairJobSlice] CompleteJobCommand dispatched:', {
@@ -73,25 +67,30 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
     });
   };
 
-  // Detailed logs for debugging
-  console.log('[RepairJobSlice] Render with jobs:', jobs);
-  if (jobs) {
-    jobs.forEach(job => {
-      console.log(
-        `[RepairJobSlice] Job ID: ${job.jobId}, Status: "${job.status}", Title: "${job.details?.title}", Assigned Team: "${job.details?.assignedTeam || 'None'}"`
-      );
-    });
-  } else {
-    console.warn('[RepairJobSlice] jobs is undefined or null');
-  }
-  console.log('[RepairJobSlice] Render with jobEvents:', jobEvents);
+  const getButtonStyle = (status) => {
+    const baseStyle = {
+      padding: '8px 12px',
+      margin: '4px 0',
+      border: 'none',
+      borderRadius: '4px',
+      cursor: 'pointer',
+      fontWeight: 'bold',
+      width: '100%',
+      textAlign: 'left',
+      color: 'white'
+    };
+
+    if (status === 'Pending') {
+      return { ...baseStyle, backgroundColor: '#4ECDC4' };
+    } else if (status === 'Started') {
+      return { ...baseStyle, backgroundColor: '#2ecc71' };
+    }
+    return baseStyle;
+  };
 
   const actionableJobs = (jobs || []).filter(job => {
-    const isActionable = job.status === 'Pending' || job.status === 'Started';
-    console.log(`[RepairJobSlice] Filtering job ${job.jobId}: status=${job.status}, actionable=${isActionable}`);
-    return isActionable && job.jobId; // Ensure jobId exists
+    return (job.status === 'Pending' || job.status === 'Started') && job.jobId;
   });
-  console.log('[RepairJobSlice] Jobs filtered for actions:', actionableJobs);
 
   return (
     <div className="aggregate-block">
@@ -119,17 +118,17 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
                   {job.status === 'Pending' && (
                     <button
                       onClick={() => handleStartJob(job.jobId)}
-                      className="start-button"
+                      style={getButtonStyle(job.status)}
                     >
-                      Start Job {job.details?.title ? job.details.title.slice(0, 80) : 'Untitled'}...
+                      Start Job {job.jobDetails?.title?.slice(0, 80) || 'Untitled'}...
                     </button>
                   )}
                   {job.status === 'Started' && (
                     <button
                       onClick={() => handleCompleteJob(job.jobId)}
-                      className="complete-button"
+                      style={getButtonStyle(job.status)}
                     >
-                      Complete Job {job.details?.title ? job.details.title.slice(0, 80) : 'Untitled'}...
+                      Complete Job {job.jobDetails?.title?.slice(0, 80) || 'Untitled'}...
                     </button>
                   )}
                   <small>Current Status: {job.status}</small>
@@ -145,17 +144,15 @@ function RepairJobSlice({ jobs, jobEvents, customers, requests, quotations, curr
             items={jobs}
             idKey="jobId"
             renderDetails={(job) => {
-              const customer = customers.find(c => c.customerId === job.customerId);
               const request = Array.isArray(requests) ? requests.find(r => r.requestId === job.requestId) : null;
               const quotation = quotations.find(q => q.quotationId === job.quotationId);
-
               return (
                 <>
                   <strong>{job.jobDetails?.title || 'Untitled'}</strong>
                   <small>
-                    From Request: {request ? request.requestDetails?.title?.slice(0, 20) : 'Request Projection is not available (system error)'}... <br />
+                    From Request: {request ? request.requestDetails?.title?.slice(0, 20) : 'N/A'}... <br />
                     From Quotation: {quotation?.quotationId?.slice(0, 20) || 'N/A'}... <br />
-                    Status: {job.status} {job.details?.assignedTeam && `(${job.details.assignedTeam})`}
+                    Status: {job.status} {job.jobDetails?.assignedTeam && `(${job.jobDetails.assignedTeam})`}
                   </small>
                 </>
               );

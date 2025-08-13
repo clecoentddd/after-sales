@@ -5,13 +5,13 @@ import './decisionProjection.css';
 
 function DecisionProjectionUI() {
   const [allStates, setAllStates] = useState([]);
+  const [lastRebuildTime, setLastRebuildTime] = useState(null);
 
   useEffect(() => {
     const unsubscribe = ChangeRequestDecisionTreeProjection.subscribe((data) => {
       console.log('[DecisionProjectionUI] Projection updated:', data);
       setAllStates(data);
     });
-
     return () => {
       unsubscribe();
     };
@@ -19,12 +19,21 @@ function DecisionProjectionUI() {
 
   const handleRefresh = () => {
     console.log('[DecisionProjectionUI] Refresh button clicked - rebuilding projection');
+    const now = new Date();
+    setLastRebuildTime(now);
     rebuildProjection();
   };
 
   const handleEmptyProjection = () => {
     console.log('[DecisionProjectionUI] Empty Projection button clicked - resetting projection');
     ChangeRequestDecisionTreeProjection.reset();
+    setLastRebuildTime(null); // Reset timestamp when emptying projection
+  };
+
+  // Format timestamp as HH:MM:SS
+  const formatTime = (date) => {
+    if (!date) return null;
+    return date.toTimeString().split(' ')[0];
   };
 
   return (
@@ -37,7 +46,7 @@ function DecisionProjectionUI() {
             marginLeft: '1rem',
             padding: '0.25rem 0.5rem',
             cursor: 'pointer',
-            backgroundColor: '#ff6b6b', // A shade of red
+            backgroundColor: '#ff6b6b',
             color: 'white',
             border: 'none',
             borderRadius: '4px'
@@ -52,7 +61,7 @@ function DecisionProjectionUI() {
             marginLeft: '1rem',
             padding: '0.25rem 0.5rem',
             cursor: 'pointer',
-            backgroundColor: '#4ECDC4', // A shade of teal
+            backgroundColor: '#4ECDC4',
             color: 'white',
             border: 'none',
             borderRadius: '4px'
@@ -61,6 +70,16 @@ function DecisionProjectionUI() {
         >
           Rebuild Projection
         </button>
+        {lastRebuildTime && (
+          <span className="rebuild-timestamp" style={{
+            marginLeft: '1rem',
+            fontSize: '0.9rem',
+            color: '#666',
+            fontStyle: 'italic'
+          }}>
+            Last rebuilt: {formatTime(lastRebuildTime)}
+          </span>
+        )}
       </h3>
 
       {allStates.length === 0 ? (

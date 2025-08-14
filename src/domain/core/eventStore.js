@@ -40,7 +40,9 @@ append(event) {
 }
 
   getEvents() {
-    return [...this.events];
+    return this.events
+    .slice() // make a copy so you don’t mutate the original
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   }
 
     // New method: loadEvents

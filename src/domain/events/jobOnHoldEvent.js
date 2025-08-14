@@ -10,10 +10,10 @@
  * @param {string} reason - Reason why the job was put on hold.
  * @returns {object} The JobOnHoldEvent object.
  */
-export const JobOnHoldEvent = (jobId, requestId,changeRequestId,  putOnHoldBy, reason) => ({
+export const JobOnHoldEvent = (jobId, requestId, changeRequestId, putOnHoldBy, reason) => ({
   type: 'JobOnHold',
   aggregateType: "Job",
-  jobId,
+  aggregateId: jobId,
   requestId,
   changeRequestId,
   data: {

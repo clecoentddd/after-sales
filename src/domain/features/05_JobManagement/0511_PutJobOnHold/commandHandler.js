@@ -8,8 +8,16 @@ export const OnHoldJobCommandHandler = {
 
     switch (command.type) {
       case 'PutJobOnHold':
+
+      console.log('[OnHoldJobCommandHandler] All events in the store:');
+        const allEvents = jobEventStore.getEvents();
+        console.log(`OnHoldJobCommandHandler] Total events: ${allEvents.length}`);
+
+        allEvents.forEach((event, index) => {
+          console.log(`Event #${index + 1}: type=${event.type}, aggregateId=${event.aggregateId}, data=`, event.data);
+        });
         console.log(`[OnHoldJobCommandHandler] Fetching events for jobId: ${command.jobId}`);
-        const jobEvents = jobEventStore.getEvents().filter(e => e.data.jobId === command.jobId);
+        const jobEvents = jobEventStore.getEvents().filter(e => e.aggregateId === command.jobId);
         console.log(`[OnHoldJobCommandHandler] Retrieved ${jobEvents.length} event(s) for jobId: ${command.jobId}`);
 
         const aggregate = new JobAggregate();

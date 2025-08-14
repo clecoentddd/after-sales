@@ -32,33 +32,6 @@ import { queryRequestsProjection } from '@features/03_RequestManagement/shared/r
 import { useEffect } from 'react';
 import { useToDoChangeRequestProjection } from '@domain/features/05_JobManagement/0552_ToDoCreatedJobChangeRequestProjection/useToDoChangeRequestProjection';
 
-// app.js
-
-import { eventBus } from '@core/eventBus';
-
-// --- DEBUG WRAPPER ---
-const originalSubscribe = eventBus.subscribe.bind(eventBus);
-eventBus.subscribe = (eventType, handler) => {
-  console.log(`[DEBUG] Subscribing to ${eventType}`);
-  return originalSubscribe(eventType, (event) => {
-    console.log(`[DEBUG] Event received by subscriber for ${eventType}:`, event);
-    handler(event);
-  });
-};
-
-const originalPublish = eventBus.publish.bind(eventBus);
-eventBus.publish = (event) => {
-  console.log('[DEBUG] Publishing event object:', event);
-  return originalPublish(event);
-};
-
-// Optional catch-all
-eventBus.subscribe('*', (event) => {
-  console.log('[DEBUG] CATCH-ALL saw event:', event);
-});
-// --- END DEBUG WRAPPER ---
-
-
 function App() {
   const currentUserId = 'user-alice-123';
   // Customers projection

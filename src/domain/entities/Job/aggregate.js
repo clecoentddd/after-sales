@@ -129,7 +129,6 @@ start(command) {
 }
 
   complete(command) {
-    if (this.status === 'Completed') return null;
     if (this.status !== 'Started') {
       throw new Error(`Cannot complete job ${command.jobId}. Current status: ${this.status}. Expected: 'Started'`);
     }
@@ -143,7 +142,7 @@ start(command) {
   }
 
   putOnHold(command) {
-    if (this.status === 'Completed' || this.status === 'OnHold') return null;
+    if (this.status !== 'Pending') return null;
     return JobOnHoldEvent(
       command.jobId,
       this.requestId,

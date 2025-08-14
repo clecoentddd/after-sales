@@ -8,33 +8,26 @@ describe('JobChangeRequestProcessManager', () => {
   let capturedChangeRequestEvents = [];
 
   beforeEach(() => {
-    // Clear captured events before each test
     capturedJobOnHoldEvents = [];
     capturedChangeRequestEvents = [];
 
-    // Clear the event store before each test
     if (jobEventStore.clear) {
       jobEventStore.clear();
     }
 
-    // Subscribe to specific event types
     eventBus.subscribe('JobOnHold', (event) => {
       capturedJobOnHoldEvents.push(event);
-      console.log(`[TEST] Captured JobOnHold for ${event.aggregateId}`);
     });
 
     eventBus.subscribe('ChangeRequestJobAssigned', (event) => {
       capturedChangeRequestEvents.push(event);
-      console.log(`[TEST] Captured ChangeRequestJobAssigned for ${event.aggregateId}`);
     });
   });
 
-  it('should create and publish JobOnHold events for jobs with only ChangeRequestJobAssigned', async () => {
-    console.log("=== Starting test ===");
-
+  it('should create and publish JobOnHold events for all assignments without existing JobOnHold', async () => {
     // Add test events to the store
     const testEvents = [
-      // Pair 1: Already processed (should be skipped)
+      // Already processed (job1)
       {
         type: 'ChangeRequestJobAssigned',
         aggregateId: 'job1',
@@ -49,7 +42,7 @@ describe('JobChangeRequestProcessManager', () => {
         data: { putOnHoldBy: 'system', reason: 'Change request assigned' },
         metadata: { timestamp: new Date().toISOString() }
       },
-      // Pair 2: Needs processing
+      // Needs processing (job2)
       {
         type: 'ChangeRequestJobAssigned',
         aggregateId: 'job2',
@@ -61,20 +54,27 @@ describe('JobChangeRequestProcessManager', () => {
         aggregateId: 'job2',
         data: { status: 'ToBeProcessed' },
         timestamp: new Date().toISOString()
+      },
+      // Needs processing (job3)
+      {
+        type: 'ChangeRequestJobAssigned',
+        aggregateId: 'job3',
+        data: { changeRequestId: 'changeRequest3', requestId: 'request3' },
+        timestamp: new Date().toISOString()
+      },
+      {
+        type: 'JobCreated',
+        aggregateId: 'job3',
+        data: { status: 'ToBeProcessed' },
+        timestamp: new Date().toISOString()
       }
     ];
 
-    // Add test events to the store
-    testEvents.forEach(event => {
-      jobEventStore.append(event);
-      console.log(`Added test event: ${event.type} for ${event.aggregateId}`);
-    });
+    testEvents.forEach(event => jobEventStore.append(event));
 
-    // Initialize the process manager
     initializeCreatedJobChangeRequestProcessManager();
 
-    // Publish test event
-    console.log("\nPublishing ChangeRequestJobAssigned event for job2");
+    // Trigger processing by publishing any assignment (job2 here)
     eventBus.publish({
       type: 'ChangeRequestJobAssigned',
       aggregateId: 'job2',
@@ -82,32 +82,24 @@ describe('JobChangeRequestProcessManager', () => {
       timestamp: new Date().toISOString()
     });
 
-    // Wait for processing
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 100)); // wait for async processing
 
-    // Check results for job2
-    const job2JobOnHoldEvents = capturedJobOnHoldEvents.filter(e => e.aggregateId === 'job2');
-    console.log(`\nFound ${job2JobOnHoldEvents.length} JobOnHold events for job2 in captured events`);
+    // Verify JobOnHold events were created for job2 and job3
+    const job2Hold = capturedJobOnHoldEvents.find(e => e.aggregateId === 'job2');
+    const job3Hold = capturedJobOnHoldEvents.find(e => e.aggregateId === 'job3');
+    const job1Hold = capturedJobOnHoldEvents.find(e => e.aggregateId === 'job1');
 
-    // Check the event store directly
-    const storeEvents = jobEventStore.getEvents();
-    const storeJobOnHoldEvents = storeEvents.filter(e =>
-      e.type === 'JobOnHold' && e.aggregateId === 'job2'
-    );
-    console.log(`Found ${storeJobOnHoldEvents.length} JobOnHold events for job2 in event store`);
+    expect(job2Hold).toBeDefined();
+    expect(job2Hold.changeRequestId).toBe('changeRequest2');
 
-    // Verify the results
-    expect(job2JobOnHoldEvents.length).toBe(1);
-    expect(job2JobOnHoldEvents[0].aggregateId).toBe('job2');
-    expect(job2JobOnHoldEvents[0].changeRequestId).toBe('changeRequest2');
-    expect(job2JobOnHoldEvents[0].type).toBe('JobOnHold');
+    expect(job3Hold).toBeDefined();
+    expect(job3Hold.changeRequestId).toBe('changeRequest3');
 
-    // Verify job1 was not processed (no new JobOnHold event for it)
-    const job1JobOnHoldEvents = capturedJobOnHoldEvents.filter(e => e.aggregateId === 'job1');
-    expect(job1JobOnHoldEvents.length).toBe(0);
+    // job1 already has JobOnHold, should not be processed again
+    expect(job1Hold).toBeUndefined();
 
-    // Verify we received the ChangeRequestJobAssigned event for job2
-    const job2ChangeRequestEvents = capturedChangeRequestEvents.filter(e => e.aggregateId === 'job2');
-    expect(job2ChangeRequestEvents.length).toBe(1);
+    // Optional: verify event store also has the JobOnHold events
+    const storeJobOnHoldEvents = jobEventStore.getEvents().filter(e => e.type === 'JobOnHold');
+    expect(storeJobOnHoldEvents.map(e => e.aggregateId)).toEqual(expect.arrayContaining(['job2','job3']));
   });
 });

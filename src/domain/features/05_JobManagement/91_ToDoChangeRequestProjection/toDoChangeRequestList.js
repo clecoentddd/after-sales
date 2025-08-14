@@ -35,90 +35,66 @@ export const buildTodoList = () => {
         'ChangeRequestRaised',
         'ChangeRequestJobAssigned',
         'ChangeRequestJobAssignmentFailed',
+        'JobOnHold', // <-- Include JobOnHold events
       ].includes(event.type)
     )
-    .sort(
-      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
-    ); // Sort by timestamp (oldest first)
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); // oldest first
 
   console.log('[DEBUG] All filtered events:', allEvents);
 
-  todoList = []; // Reset the global todoList
-  const changeRequestMap = {}; // Map to track entries by changeRequestId
+  todoList = [];
+  const changeRequestMap = {};
 
   allEvents.forEach((event) => {
-    console.log(
-      '[DEBUG] Processing event:',
-      event.type,
-      event.changeRequestId || event.data?.changeRequestId
-    );
+    const changeRequestId = event.changeRequestId || event.data?.changeRequestId;
 
     if (event.type === 'ChangeRequestRaised') {
       const entry = {
         requestId: event.aggregateId,
         changeRequestId: event.changeRequestId,
         assignmentStatus: 'Waiting',
+        processStatus: 'To Process', // <-- New field
         timestamp: event.timestamp,
         events: [event],
       };
       todoList.push(entry);
       changeRequestMap[event.changeRequestId] = entry;
-      console.log(
-        '[DEBUG] Created entry for ChangeRequestRaised:',
-        entry
-      );
-    }
-    else if (event.type === 'ChangeRequestJobAssigned') {
-      const changeRequestId = event.data?.changeRequestId;
+    } else {
       const entry = changeRequestMap[changeRequestId];
-      if (entry) {
-        entry.assignmentStatus = event.aggregateId; // Set jobId as status
-        entry.events.push(event);
-        console.log(
-          '[DEBUG] Updated entry with jobId:',
-          entry.assignmentStatus
-        );
-      } else {
-        console.warn(
-          '[DEBUG] No entry found for ChangeRequestJobAssigned:',
-          changeRequestId
-        );
+      if (!entry) {
+        console.warn('[DEBUG] No entry found for event:', event.type, changeRequestId);
+        return;
       }
-    }
-    else if (event.type === 'ChangeRequestJobAssignmentFailed') {
-      const changeRequestId = event.data?.changeRequestId;
-      const entry = changeRequestMap[changeRequestId];
-      if (entry) {
-        entry.assignmentStatus = 'Failed';
-        entry.events.push(event);
-        console.log(
-          '[DEBUG] Updated entry with failure status'
-        );
-      } else {
-        console.warn(
-          '[DEBUG] No entry found for ChangeRequestJobAssignmentFailed:',
-          changeRequestId
-        );
-      }
-    }
-  }); // <-- forEach loop closed here
 
-  console.log('[DEBUG] Final todoList:', todoList);
+      entry.events.push(event);
+
+      if (event.type === 'ChangeRequestJobAssigned') {
+        entry.assignmentStatus = event.aggregateId; // jobId as status
+        entry.processStatus = 'To Process'; // still to process until JobOnHold
+      } else if (event.type === 'ChangeRequestJobAssignmentFailed') {
+        entry.assignmentStatus = 'Failed';
+        entry.processStatus = 'To Process';
+      } else if (event.type === 'JobOnHold') {
+        // Mark as processed successfully
+        entry.processStatus = 'Processed Successfully';
+      }
+    }
+  });
 
   // Sort by timestamp (newest first)
-  todoList.sort(
-    (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-  );
+  todoList.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  console.log('[DEBUG] Final todoList:', todoList);
 
   return todoList;
 };
 
-// Update with a new event
+// Update with new events
 export const updateTodoList = (event) => {
   if (
-    event.type === 'ChangeRequestRaised' ||
-    event.type === 'ChangeRequestJobAssigned' ||
-    event.type === 'ChangeRequestJobAssignmentFailed'
+    ['ChangeRequestRaised', 'ChangeRequestJobAssigned', 'ChangeRequestJobAssignmentFailed', 'JobOnHold'].includes(
+      event.type
+    )
   ) {
     buildTodoList();
   }

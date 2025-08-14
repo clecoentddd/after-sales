@@ -36,6 +36,7 @@ function ToDoListPage() {
             <th>Request ID</th>
             <th>Change Request ID</th>
             <th>Assignment Status</th>
+            <th>Process Status</th> {/* <-- New column */}
             <th>Latest Timestamp</th>
             <th>Events</th>
           </tr>
@@ -43,7 +44,7 @@ function ToDoListPage() {
         <tbody>
           {todoList.length === 0 ? (
             <tr>
-              <td colSpan="5">No change requests found.</td>
+              <td colSpan="6">No change requests found.</td>
             </tr>
           ) : (
             todoList.map((row) => (
@@ -52,6 +53,7 @@ function ToDoListPage() {
                   <td>{row.requestId}</td>
                   <td>{row.changeRequestId}</td>
                   <td>{row.assignmentStatus}</td>
+                  <td>{row.processStatus}</td> {/* <-- Display new field */}
                   <td>{new Date(row.timestamp).toLocaleString()}</td>
                   <td>
                     <button
@@ -64,7 +66,7 @@ function ToDoListPage() {
                 </tr>
                 {expandedRows[row.changeRequestId] && (
                   <tr className="event-details">
-                    <td colSpan="5">
+                    <td colSpan="6">
                       <div className="events-list">
                         {row.events.map((event, index) => (
                           <div key={index} className="event-item">
@@ -77,6 +79,9 @@ function ToDoListPage() {
                             )}
                             {event.type === 'ChangeRequestRaised' && (
                               <> Raised: {event.data?.description}</>
+                            )}
+                            {event.type === 'JobOnHold' && (
+                              <> Job put on hold: {event.data?.reason}</>
                             )}
                             <small className="event-timestamp">
                               {new Date(event.timestamp).toLocaleString()}

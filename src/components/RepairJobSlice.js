@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
 import { useRepairJobSlice } from '@features/05_JobManagement/RepairJobListProjection/useRepairJobSlice';
-import { startJobCommandHandler } from '@features/05_JobManagement/13_StartJob/commandHandler';
-import { StartJobCommand } from '@features/05_JobManagement/13_StartJob/commands';
-import { completeJobCommandHandler } from '@features/05_JobManagement/15_CompleteJob/commandHandler';
-import { CompleteJobCommand } from '@features/05_JobManagement/15_CompleteJob/commands';
+import { startJobCommandHandler } from '@features/05_JobManagement/0502_StartJob/commandHandler';
+import { StartJobCommand } from '@features/05_JobManagement/0502_StartJob/commands';
+import { completeJobCommandHandler } from '@features/05_JobManagement/0503_CompleteJob/commandHandler';
+import { CompleteJobCommand } from '@features/05_JobManagement/0503_CompleteJob/commands';
 
 function RepairJobSlice({ customers, requests, quotations, currentUserId }) {
   const { jobs, jobEvents } = useRepairJobSlice();

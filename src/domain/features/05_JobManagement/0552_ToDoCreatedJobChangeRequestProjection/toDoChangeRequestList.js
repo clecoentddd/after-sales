@@ -2,31 +2,6 @@ import { getAllEvents } from '@core/eventStoreUtils';
 
 let todoList = [];
 
-// Helper: Get the latest timestamp for a group of events
-const getLatestTimestamp = (events) => {
-  return events.reduce(
-    (latest, event) =>
-      new Date(event.timestamp) > new Date(latest)
-        ? event.timestamp
-        : latest,
-    events[0]?.timestamp
-  );
-};
-
-// Helper: Determine assignment status for a change request
-const getAssignmentStatus = (events) => {
-  const assignedEvent = events.find(
-    (e) => e.type === 'ChangeRequestJobAssigned'
-  );
-  if (assignedEvent) return assignedEvent.aggregateId; // jobId as status
-
-  const failedEvent = events.find(
-    (e) => e.type === 'ChangeRequestJobAssignmentFailed'
-  );
-  if (failedEvent) return 'Failed';
-
-  return 'Waiting';
-};
 
 export const buildTodoList = () => {
   const allEvents = getAllEvents()

@@ -1,6 +1,6 @@
 // src/domain/tests/05_JobManagement/testJobChangeRequestProcessManager.test.js
 import { eventBus } from '@core/eventBus';
-import { initializeCreatedJobChangeRequestProcessManager } from '../../features/05_JobManagement/92_JobChangeRequestManager/initializeCreatedJobChangeRequestProcessManager';
+import { initializeCreatedJobChangeRequestProcessManager } from '../../features/05_JobManagement/0553_CreatedJobChangeRequestManager/initializeCreatedJobChangeRequestProcessManager';
 import { jobEventStore } from '@core/eventStore';
 
 describe('JobChangeRequestProcessManager', () => {

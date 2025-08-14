@@ -4,7 +4,6 @@ import { RequestAggregate } from '@entities/Request/aggregate';
 import { requestEventStore } from '@core/eventStore';
 import { eventBus } from '@core/eventBus';
 import { v4 as uuidv4 } from 'uuid';
-import { RaiseChangeRequestCommand } from './commands';
 
 export const changeRequestCommandHandler = {
   handle(command) {

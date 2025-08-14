@@ -1,7 +1,7 @@
 import { eventBus } from '@core/eventBus';
 import { quotationEventStore } from '@core/eventStore';
 import { QuotationCreatedEvent } from '@events/quotationCreatedEvent';
-import { initializeCreateJobEventHandler } from '../domain/features/05_JobManagement/11_CreateJobAutomation/eventHandler';
+import { initializeCreateJobEventHandler } from '../domain/features/05_JobManagement/0501_CreateJobAutomation/eventHandler';
 
 import { quotationApprovalCommandHandler } from '../domain/features/04_QuotationManagement/09_ApproveQuotation/commandHandler';
 

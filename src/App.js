@@ -6,7 +6,7 @@ import { queryQuotationsProjection } from './domain/features/04_QuotationManagem
 import { useProjectionOrganizationList } from './domain/features/01_OrganizationManagement/02_OrganizationListProjection/projectionOrganizationList';
 import { useRepairJobSlice } from './domain/features/05_JobManagement/RepairJobListProjection/useRepairJobSlice';
 import { useInvoicingSlice } from './domain/features/06_InvoiceManagement/18_InvoicesListProjection/UseInvoicingSlice';
-import { useChangeRequestSlice } from './domain/features/03_RequestManagement/20_ChangeRequestList/useChangeRequestSlice';
+import { useChangeRequestSlice } from './domain/features/03_RequestManagement/0313_ChangeRequestList/useChangeRequestSlice';
 import OrganizationSlice from './components/OrganizationSlice';
 import CustomerSlice from './components/CustomerSlice';
 import RequestSlice from './components/RequestSlice';
@@ -14,7 +14,7 @@ import QuotationSlice from './components/QuotationSlice';
 import RepairJobSlice from './components/RepairJobSlice';
 import InvoicingSlice from './components/InvoicingSlice';
 import ChangeRequestSlice from './components/ChangeRequestSlice';
-import QuotationSubscriberToChangeRequest from './components/QuotationSubscriberToChangeRequest';
+
 import EventsPage from './EventsPage';
 import LiveModelPage from './LiveModelPage';
 import ToDoListPage from './ToDoChangeRequestProcessPage';
@@ -22,15 +22,15 @@ import { globalQuotationInit } from './domain/features/04_QuotationManagement/sh
 import { globalRequestInit } from '@features/03_RequestManagement/shared/globalRequestInit';
 import { globalInvoiceInit } from '@features/06_InvoiceManagement/shared/globalInvoiceInit';
 
-import { initializeCreateJobEventHandler } from '@features/05_JobManagement/11_CreateJobAutomation/eventHandler';
-import { initializeAssignJobToChangeRequestProcessor } from '@features/05_JobManagement/90_AssignJobToChangeRequest/initializeAssignJobToChangeRequestProcessor';
-import {initializeCreatedJobChangeRequestProcessManager } from '@features/05_JobManagement/92_JobChangeRequestManager/initializeCreatedJobChangeRequestProcessManager';
-import { initializeChangeRequestDecisionTreeHandler } from '@features/03_RequestManagement/19a_ChangeRequestDecisionTree/eventHandler';
-import { initializeCompleteJobEventHandler } from '@features/03_RequestManagement/27_CloseRequest/eventHandler';
+import { initializeCreateJobEventHandler } from '@features/05_JobManagement/0501_CreateJobAutomation/eventHandler';
+import { initializeAssignJobToChangeRequestProcessor } from '@features/05_JobManagement/0551_AssignJobToChangeRequest/initializeAssignJobToChangeRequestProcessor';
+import {initializeCreatedJobChangeRequestProcessManager } from '@features/05_JobManagement/0553_CreatedJobChangeRequestManager/initializeCreatedJobChangeRequestProcessManager';
+import { initializeChangeRequestDecisionTreeHandler } from '@features/03_RequestManagement/0312_ChangeRequestDecisionTree/eventHandler';
+import { initializeCompleteJobEventHandler } from '@features/03_RequestManagement/0303_CloseRequest/eventHandler';
 
 import { queryRequestsProjection } from '@features/03_RequestManagement/shared/requestProjectionDB';
 import { useEffect } from 'react';
-import { useToDoChangeRequestProjection } from '@domain/features/05_JobManagement/91_ToDoChangeRequestProjection/useToDoChangeRequestProjection';
+import { useToDoChangeRequestProjection } from '@domain/features/05_JobManagement/0552_ToDoCreatedJobChangeRequestProjection/useToDoChangeRequestProjection';
 
 // app.js
 

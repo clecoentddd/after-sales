@@ -1,5 +1,5 @@
 import { eventBus } from '@core/eventBus';
-import { insertNewRequest } from '../06_RequestListProjection/requestRaisedProjectionUtils';
+import { insertNewRequest } from './requestRaisedProjectionUtils';
 import { queryRequestsProjection, setRequests } from '../shared/requestProjectionDB';
 
 let isRaisedHandlerInitialized = false;

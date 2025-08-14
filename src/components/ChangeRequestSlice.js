@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { changeRequestCommandHandler } from '../domain/features/03_RequestManagement/19_RaiseChangeRequest/commandHandler';
-import { RaiseChangeRequestCommand } from '../domain/features/03_RequestManagement/19_RaiseChangeRequest/commands';
-import DecisionProjectionUI from '../domain/features/03_RequestManagement/19a_ChangeRequestDecisionTree/ui';
+import { changeRequestCommandHandler } from '../domain/features/03_RequestManagement/0311_RaiseChangeRequest/commandHandler';
+import { RaiseChangeRequestCommand } from '../domain/features/03_RequestManagement/0311_RaiseChangeRequest/commands';
+import DecisionProjectionUI from '../domain/features/03_RequestManagement/0312_ChangeRequestDecisionTree/ui';
 import { queryRequestsProjection } from '../domain/features/03_RequestManagement/shared/requestProjectionDB';
 
 function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId }) {

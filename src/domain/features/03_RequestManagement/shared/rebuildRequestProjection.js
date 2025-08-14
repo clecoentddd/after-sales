@@ -2,7 +2,7 @@
 
 import { requestEventStore } from '@core/eventStore';
 import { clearRequests } from './requestProjectionDB';
-import { handleRequestRaised } from '../06_RequestListProjection/requestRaisedProjectionHandler';
+import { handleRequestRaised } from '../0302_RequestListProjection/requestRaisedProjectionHandler';
 import { handleRequestClosed } from '../28_ProjectionClosedRequest/requestClosedProjectionHandler';
 import { queryRequestsProjection } from './requestProjectionDB';
 

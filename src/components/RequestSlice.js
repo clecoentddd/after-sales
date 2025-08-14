@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
-import { RaiseRequestCommandHandler } from '../domain/features/03_RequestManagement/05_RaiseRequest/commandHandler';
+import { RaiseRequestCommandHandler } from '../domain/features/03_RequestManagement/0301_RaiseRequest/commandHandler';
 import { useCustomerProjection } from '../domain/features/02_CustomerManagement/CustomerListProjection/useCustomerProjection';
 import { useRequestEvents } from '../domain/features/03_RequestManagement/requestManagementStream';
 import { useRequestProjection } from '../domain/features/03_RequestManagement/shared/useRequestProjection';

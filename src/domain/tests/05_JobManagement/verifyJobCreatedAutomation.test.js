@@ -1,5 +1,5 @@
 import { eventBus } from '../../core/eventBus';
-import { initializeCreateJobEventHandler } from '../../features/05_JobManagement/11_CreateJobAutomation/eventHandler.js';
+import { initializeCreateJobEventHandler } from '../../features/05_JobManagement/0501_CreateJobAutomation/eventHandler.js';
 import { jobEventStore } from '@core/eventStore';
 
 // Array to hold events captured during the test

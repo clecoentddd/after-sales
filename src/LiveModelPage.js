@@ -16,13 +16,6 @@ const LiveRequestModel = () => {
     // Log all events for debugging
     console.log('[LiveRequestModel] All events:', JSON.parse(JSON.stringify(allEvents)));
 
-    // Log JobCompleted events specifically
-    const jobCompletedEvents = allEvents.filter(e => e.type === 'JobCompleted');
-    console.log('[LiveRequestModel] JobCompleted events found:', jobCompletedEvents.length);
-    jobCompletedEvents.forEach((event, index) => {
-      console.log(`[LiveRequestModel] JobCompleted event ${index + 1}:`, event);
-    });
-    
     setEvents(allEvents);
 
     // Extract unique request IDs from events
@@ -46,7 +39,7 @@ const LiveRequestModel = () => {
       .filter((e) =>
         e.requestId === selectedRequestId ||
         e.data?.requestId === selectedRequestId ||
-        (e.aggregateType === "Request" && e.aggregateId === selectedRequestId)
+        (e.aggregateId === selectedRequestId)
       )
       .sort(
         (a, b) =>

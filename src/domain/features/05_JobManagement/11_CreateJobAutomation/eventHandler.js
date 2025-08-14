@@ -1,7 +1,6 @@
 // src/domain/features/11_CreateJobAutomation/eventHandler.js
 
 import { eventBus } from '@core/eventBus';
-
 import { createJobCommandHandler } from './commandHandler';
 import { CreateJobFromApprovedQuotationCommand } from './commands';
 

@@ -51,7 +51,7 @@ export class RequestAggregate {
         this.state.currentVersion++;
         break;
       case 'ChangeRequestRejectedDueToClosedRequest':
-        const cr = this.changeRequests.find(cr => cr.changeRequestId === event.data.changeRequestId);
+        const cr = this.changeRequests.find(cr => cr.changeRequestId === event.changeRequestId);
         if (cr) cr.status = 'Rejected';
         break;
       default:
@@ -73,21 +73,21 @@ export class RequestAggregate {
     });
   }
 
-  raiseChangeRequest(command) {
-    if (!this.state) {
-      throw new Error('Request state is not initialized.');
-    }
-    if (this.state.status === 'Closed') {
-      throw new Error('Cannot raise change request on closed request');
-    }
-    return ChangeRequestRaisedEvent({
-      requestId: command.requestId,
-      changeRequestId: command.changeRequestId,
-      changedByUserId: command.changedByUserId,
-      description: command.description,
-      versionId: this.state.currentVersion + 1
-    });
+ raiseChangeRequest(command) {
+  if (!this.state) {
+    throw new Error('Request state is not initialized.');
   }
+  if (this.state.status === 'Closed') {
+    throw new Error('Cannot raise change request on closed request');
+  }
+  return ChangeRequestRaisedEvent(
+    command.requestId,
+    command.changeRequestId,
+    command.changedByUserId,
+    command.description,
+    this.state.currentVersion + 1
+  );
+}
 
   rejectChangeRequest(command) {
     return ChangeRequestRejectedDueToClosedRequest({

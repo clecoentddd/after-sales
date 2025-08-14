@@ -1,16 +1,12 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-
 // Projections
 import { queryCustomersProjection } from './domain/features/02_CustomerManagement/CustomerListProjection/customerProjectionHandler';
 import { queryQuotationsProjection } from './domain/features/04_QuotationManagement/shared/quotationProjectionDB';
-
 import { useProjectionOrganizationList } from './domain/features/01_OrganizationManagement/02_OrganizationListProjection/projectionOrganizationList';
-
 import { useRepairJobSlice } from './domain/features/05_JobManagement/RepairJobListProjection/useRepairJobSlice';
 import { useInvoicingSlice } from './domain/features/06_InvoiceManagement/18_InvoicesListProjection/UseInvoicingSlice';
 import { useChangeRequestSlice } from './domain/features/03_RequestManagement/20_ChangeRequestList/useChangeRequestSlice';
-
 import OrganizationSlice from './components/OrganizationSlice';
 import CustomerSlice from './components/CustomerSlice';
 import RequestSlice from './components/RequestSlice';
@@ -19,66 +15,85 @@ import RepairJobSlice from './components/RepairJobSlice';
 import InvoicingSlice from './components/InvoicingSlice';
 import ChangeRequestSlice from './components/ChangeRequestSlice';
 import QuotationSubscriberToChangeRequest from './components/QuotationSubscriberToChangeRequest';
-// import QuotationApprovalMonitor from './components/QuotationApprovalMonitor';
-
-import EventsPage from './EventsPage';  // import your new EventsPage
-import LiveModelPage from './LiveModelPage'; // Assuming you have a LiveModelPage component
-import ToDoListPage from './ToDoChangeRequestProcessPage'; // Assuming you have a ToDoListPage component
-
+import EventsPage from './EventsPage';
+import LiveModelPage from './LiveModelPage';
+import ToDoListPage from './ToDoChangeRequestProcessPage';
 import { globalQuotationInit } from './domain/features/04_QuotationManagement/shared/globalQuotationInit';
 import { globalRequestInit } from '@features/03_RequestManagement/shared/globalRequestInit';
 import { globalInvoiceInit } from '@features/06_InvoiceManagement/shared/globalInvoiceInit';
 
-
 import { initializeCreateJobEventHandler } from '@features/05_JobManagement/11_CreateJobAutomation/eventHandler';
-
-import { initializeAssignCreatedJobToChangeRequestProcessor } from '@features/05_JobManagement/23a_SetTodoToPutJobOnHold/initializeAssignCreatedJobToChangeRequestProcessor';
-import { initializeAssignStartedJobToChangeRequestProcessor } from '@features/05_JobManagement/29a_SetupJobChangeRequestAssessmentTodoList/initializeAssignStartedJobToChangeRequestProcessor';
-import { initializeAssignCompleteJobToChangeRequestProcessor } from '@features/05_JobManagement/32a_SetUpToDoClosedJobsChangeRquestProcess/initializeAssignCompleteJobToChangeRequestProcessor';
-
+import { initializeAssignJobToChangeRequestProcessor } from '@features/05_JobManagement/90_AssignJobToChangeRequest/initializeAssignJobToChangeRequestProcessor';
+import {initializeCreatedJobChangeRequestProcessManager } from '@features/05_JobManagement/92_JobChangeRequestManager/initializeCreatedJobChangeRequestProcessManager';
 import { initializeChangeRequestDecisionTreeHandler } from '@features/03_RequestManagement/19a_ChangeRequestDecisionTree/eventHandler';
 import { initializeCompleteJobEventHandler } from '@features/03_RequestManagement/27_CloseRequest/eventHandler';
-// to do list for jon change request
-import { initializeToDoCreatedJobToAssessChangeRequest } from './domain/features/05_JobManagement/23b_PutJobOnHold/toDoCreatedJobToAssessChangeRequestProcessor.js.js';
-import { initializeToDoStartedJobToAssessChangeRequest } from './domain/features/05_JobManagement/29b_JobChangeRequestAssessment/toDoStartedJobToAssessChangeRequestProcessor.js';
-import { initializeToDoCompleteJobToAssessChangeRequest } from './domain/features/05_JobManagement/32b_CompleteJobChangeRequestAssessment/toDoCompleteJobToAssessChangeRequestProcessor.js';
 
-
+import { queryRequestsProjection } from '@features/03_RequestManagement/shared/requestProjectionDB';
 import { useEffect } from 'react';
-import { queryRequestsProjection } from '@domain/features/03_RequestManagement/shared/requestProjectionDB';
+import { useToDoChangeRequestProjection } from '@domain/features/05_JobManagement/91_ToDoChangeRequestProjection/useToDoChangeRequestProjection';
+
+// app.js
+
+import { eventBus } from '@core/eventBus';
+
+// --- DEBUG WRAPPER ---
+const originalSubscribe = eventBus.subscribe.bind(eventBus);
+eventBus.subscribe = (eventType, handler) => {
+  console.log(`[DEBUG] Subscribing to ${eventType}`);
+  return originalSubscribe(eventType, (event) => {
+    console.log(`[DEBUG] Event received by subscriber for ${eventType}:`, event);
+    handler(event);
+  });
+};
+
+const originalPublish = eventBus.publish.bind(eventBus);
+eventBus.publish = (event) => {
+  console.log('[DEBUG] Publishing event object:', event);
+  return originalPublish(event);
+};
+
+// Optional catch-all
+eventBus.subscribe('*', (event) => {
+  console.log('[DEBUG] CATCH-ALL saw event:', event);
+});
+// --- END DEBUG WRAPPER ---
+
 
 function App() {
   const currentUserId = 'user-alice-123';
-
-  // customers projection
+  // Customers projection
   const customers = queryCustomersProjection();
+  // Quotations projection
   const quotations = queryQuotationsProjection();
-  const requests = queryRequestsProjection
-
-  const { organizations, orgEvents } = useProjectionOrganizationList();  
-  
+  // Requests projection
+  const requests = queryRequestsProjection();
+  // Organizations projection
+  const { organizations, orgEvents } = useProjectionOrganizationList();
+  // Jobs projection
   const { jobs, jobEvents } = useRepairJobSlice();
+  // Invoices projection
   const { invoices, invoiceEvents } = useInvoicingSlice();
+  // Change requests projection
   const { changeRequests, changeRequestEvents } = useChangeRequestSlice();
+  // To-Do projection
+  useToDoChangeRequestProjection();
 
   // Initialize event handlers only once
   useEffect(() => {
+    console.log('[App] Initializing projections and event handlers...');
     globalQuotationInit();
     globalRequestInit();
     globalInvoiceInit();
     initializeCreateJobEventHandler();
-
     initializeChangeRequestDecisionTreeHandler();
     initializeCompleteJobEventHandler();
-    // initialize todo list
-    initializeAssignCreatedJobToChangeRequestProcessor();
-    initializeAssignStartedJobToChangeRequestProcessor();
-    initializeAssignCompleteJobToChangeRequestProcessor();
-    // to do list
-    initializeToDoCreatedJobToAssessChangeRequest();
-    initializeToDoStartedJobToAssessChangeRequest();
-    initializeToDoCompleteJobToAssessChangeRequest();
-  }, []);
+    initializeAssignJobToChangeRequestProcessor();
+    initializeCreatedJobChangeRequestProcessManager();
+    // ONLY call initializeProjections (which includes initializeAssignJobToChangeRequestProcessor)
+    
+    console.log('[App] Projections and event handlers initialized.');
+
+  }, []); // Empty dependency array ensures this runs only once
 
   return (
     <Router>
@@ -86,27 +101,24 @@ function App() {
         <header>
           <h1>Event Sourcing Demo</h1>
           <nav style={{ marginBottom: 20 }}>
-           <Link to="/" style={{ marginRight: '15px' }}>Home</Link>
+            <Link to="/" style={{ marginRight: '15px' }}>Home</Link>
             <Link to="/events" style={{ marginRight: '15px' }}>Events</Link>
             <Link to="/liveModel" style={{ marginRight: '15px' }}>RequestStatus</Link>
             <Link to="/toDoList" style={{ marginRight: '15px' }}>Change Request ToDoList</Link>
           </nav>
         </header>
-
         <Routes>
           <Route
             path="/"
             element={
               <div className="aggregate-blocks">
-                <OrganizationSlice
-                   organizations={organizations} 
-                   orgEvents={orgEvents} />
-                <CustomerSlice customers={customers} organizations={organizations}/>
+                <OrganizationSlice organizations={organizations} orgEvents={orgEvents} />
+                <CustomerSlice customers={customers} organizations={organizations} />
                 <RequestSlice requests={requests} customers={customers} />
                 <QuotationSlice
-                    customers={customers}
-                    requests={requests}
-                    currentUserId={currentUserId}
+                  customers={customers}
+                  requests={requests}
+                  currentUserId={currentUserId}
                 />
                 <RepairJobSlice
                   jobs={jobs}
@@ -129,7 +141,6 @@ function App() {
                   requests={requests}
                   currentUserId={currentUserId}
                 />
-
               </div>
             }
           />

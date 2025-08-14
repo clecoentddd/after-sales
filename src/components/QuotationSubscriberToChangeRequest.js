@@ -14,7 +14,7 @@ function QuotationSubscriberToChangeRequest({ currentUserId }) {
   useEffect(() => {
     console.log('[QuotationSubscriberToChangeRequest] Subscribing to ChangeRequestRaised events');
 
-    const unsubscribe = eventBus.subscribe('ChangeRequestRaised', (event) => {
+    const unsubscribe = eventBus.subscribe('ChangeRequestRaised_old', (event) => {
       const { requestId, changeRequestId, changedByUserId, description } = event.data;
 
       console.log('[QuotationSubscriberToChangeRequest] Event received:', event);

@@ -1,29 +1,97 @@
-import React from 'react';
-
-import { getTodoList } from '@domain/features/05_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager';
-import './ToDoListPage.css'; // Import the CSS file
+import React, { useState, useEffect } from 'react';
+import { getChangeRequestTodoList, buildTodoList } from '@domain/features/05_JobManagement/91_ToDoChangeRequestProjection/toDoChangeRequestList';
+import './ToDoListPage.css';
 
 function ToDoListPage() {
-  const todoList = getTodoList();
+  const [todoList, setTodoList] = useState([]);
+  const [expandedRows, setExpandedRows] = useState({});
+
+  useEffect(() => {
+    refreshTodoList();
+  }, []);
+
+  const refreshTodoList = () => {
+    buildTodoList();
+    setTodoList(getChangeRequestTodoList());
+  };
+
+  const toggleRowExpansion = (changeRequestId) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [changeRequestId]: !prev[changeRequestId],
+    }));
+  };
+
   return (
     <div className="todo-column">
-      <h2>Change Request To-Do List</h2>
-      <ul className="todo-list">
-        {todoList.length === 0 ? (
-          <li>No items found in the to-do list.</li>
-        ) : (
-          todoList.map((item, index) => (
-            <li key={item.eventId || index} className="todo-item">
-              <div><strong>Status:</strong> {item.track}</div>
-              <div><strong>Job ID:</strong> {item.jobId || 'N/A'}</div>
-              <div><strong>Change Request ID:</strong> {item.changeRequestId || 'N/A'}</div>
-              <div><strong>Request ID:</strong> {item.requestId || 'N/A'}</div>
-              <div><strong>User ID:</strong> {item.changedByUserId || 'N/A'}</div>
-              <div><strong>Description:</strong> {item.description || 'No description'}</div>
-            </li>
-          ))
-        )}
-      </ul>
+      <div className="todo-header">
+        <h2>Change Request To-Do List</h2>
+        <button onClick={refreshTodoList} className="refresh-button">
+          Refresh
+        </button>
+      </div>
+      <table className="todo-table">
+        <thead>
+          <tr>
+            <th>Request ID</th>
+            <th>Change Request ID</th>
+            <th>Assignment Status</th>
+            <th>Latest Timestamp</th>
+            <th>Events</th>
+          </tr>
+        </thead>
+        <tbody>
+          {todoList.length === 0 ? (
+            <tr>
+              <td colSpan="5">No change requests found.</td>
+            </tr>
+          ) : (
+            todoList.map((row) => (
+              <React.Fragment key={row.changeRequestId}>
+                <tr className="todo-row">
+                  <td>{row.requestId}</td>
+                  <td>{row.changeRequestId}</td>
+                  <td>{row.assignmentStatus}</td>
+                  <td>{new Date(row.timestamp).toLocaleString()}</td>
+                  <td>
+                    <button
+                      onClick={() => toggleRowExpansion(row.changeRequestId)}
+                      className="expand-button"
+                    >
+                      {expandedRows[row.changeRequestId] ? '▲' : '▼'}
+                    </button>
+                  </td>
+                </tr>
+                {expandedRows[row.changeRequestId] && (
+                  <tr className="event-details">
+                    <td colSpan="5">
+                      <div className="events-list">
+                        {row.events.map((event, index) => (
+                          <div key={index} className="event-item">
+                            <strong>{event.type}</strong>:
+                            {event.type === 'ChangeRequestJobAssigned' && (
+                              <> Assigned to job <code>{event.aggregateId}</code></>
+                            )}
+                            {event.type === 'ChangeRequestJobAssignmentFailed' && (
+                              <> Failed: {event.data?.reason || 'No reason provided'}</>
+                            )}
+                            {event.type === 'ChangeRequestRaised' && (
+                              <> Raised: {event.data?.description}</>
+                            )}
+                            <small className="event-timestamp">
+                              {new Date(event.timestamp).toLocaleString()}
+                            </small>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

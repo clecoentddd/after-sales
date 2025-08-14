@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
 import { changeRequestCommandHandler } from '../domain/features/03_RequestManagement/19_RaiseChangeRequest/commandHandler';
 import { RaiseChangeRequestCommand } from '../domain/features/03_RequestManagement/19_RaiseChangeRequest/commands';
 import DecisionProjectionUI from '../domain/features/03_RequestManagement/19a_ChangeRequestDecisionTree/ui';
-import { queryRequestsProjection } from '../domain/features/03_RequestManagement/shared/requestProjectionDB'; // Adjust the import path as necessary
+import { queryRequestsProjection } from '../domain/features/03_RequestManagement/shared/requestProjectionDB';
 
 function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId }) {
   const [selectedRequestId, setSelectedRequestId] = useState('');
@@ -15,6 +15,12 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId
   // Use the query function to get the requests data
   const requests = queryRequestsProjection();
 
+  // Log the requests and changeRequests data for debugging
+  useEffect(() => {
+    console.log('[ChangeRequestSlice] Requests data:', requests);
+    console.log('[ChangeRequestSlice] Change requests data:', changeRequests);
+  }, [requests, changeRequests]);
+
   const handleChangeRequestRaised = (e) => {
     e.preventDefault();
     setError('');
@@ -23,6 +29,13 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId
       setError("Please select a request and provide a description for the change.");
       return;
     }
+
+    console.log('[ChangeRequestSlice] Raising change request for:', {
+      selectedRequestId,
+      currentUserId,
+      changeDescription: changeDescription.trim()
+    });
+
     const result = changeRequestCommandHandler.handle(
       new RaiseChangeRequestCommand(
         selectedRequestId,
@@ -30,12 +43,15 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId
         changeDescription.trim()
       )
     );
+
     if (!result.success) {
       setError(result.error);
+      console.error('[ChangeRequestSlice] Error raising change request:', result.error);
     } else {
       setSuccess("Change request raised successfully!");
       setSelectedRequestId('');
       setChangeDescription('');
+      console.log('[ChangeRequestSlice] Change request raised successfully:', result.event);
     }
   };
 
@@ -50,7 +66,12 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId
           <form onSubmit={handleChangeRequestRaised} className="command-form">
             <select
               value={selectedRequestId}
-              onChange={(e) => setSelectedRequestId(e.target.value)}
+              onChange={(e) => {
+                const selectedId = e.target.value;
+                setSelectedRequestId(selectedId);
+                const selectedRequest = requests?.find(request => request.requestId === selectedId);
+                console.log('[ChangeRequestSlice] Selected request:', selectedRequest);
+              }}
               required
             >
               <option value="">Select Request to Change</option>
@@ -58,7 +79,7 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId
                 requests.length > 0 ? (
                   requests.map(request => (
                     <option key={request.requestId} value={request.requestId}>
-                      {request.requestDetails?.title || 'Unknown Title'} (ID: {request.requestId || 'Unknown ID'})
+                      {request.requestDetails?.title || request.title || 'Unknown Title'} (ID: {request.requestId || 'Unknown ID'})
                     </option>
                   ))
                 ) : (
@@ -84,9 +105,13 @@ function ChangeRequestSlice({ changeRequests, changeRequestEvents, currentUserId
             idKey="changeRequestId"
             renderDetails={(changeReq) => {
               const originalRequest = Array.isArray(requests) ? requests.find(req => req.requestId === changeReq.requestId) : null;
+              console.log('[ChangeRequestSlice] Rendering change request details:', {
+                changeReq,
+                originalRequest
+              });
               return (
                 <>
-                  <strong>Change for: {originalRequest?.requestDetails?.title || 'Unknown Title'}</strong>
+                  <strong>Change for: {originalRequest?.requestDetails?.title || originalRequest?.title || 'Unknown Title'}</strong>
                   <small>
                     Request ID: {changeReq.requestId || 'Missing ID'} <br />
                     Description: {changeReq.description || 'No description'} <br />

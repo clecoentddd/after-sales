@@ -13,10 +13,10 @@
 export const JobOnHoldEvent = (jobId, requestId,changeRequestId,  putOnHoldBy, reason) => ({
   type: 'JobOnHold',
   aggregateType: "Job",
+  jobId,
+  requestId,
+  changeRequestId,
   data: {
-    jobId,
-    requestId,
-    changeRequestId,
     putOnHoldBy,
     reason,
     onHoldAt: new Date().toISOString(),

@@ -2,7 +2,7 @@
 import { eventBus } from '@core/eventBus';
 import { jobEventStore } from '@core/eventStore';
 import { PutJobOnHoldCommand } from '../0511_PutJobOnHold/commands';
-import { OnHoldJobCommandHandler } from '../0511_PutJobOnHold/commandHandler';
+import { JobAggregate } from '@entities/Job/aggregate';
 
 let isInitialized = false;
 
@@ -13,37 +13,65 @@ export const initializeCreatedJobChangeRequestProcessManager = () => {
   }
 
   eventBus.subscribe('ChangeRequestJobAssigned', (event) => {
-    console.log('[JobChangeRequestProcessManager] Received ChangeRequestJobAssigned:', event);
+    console.log('[JobChangeRequestProcessManager] Received ChangeRequestJobAssigned event:', event.aggregateId);
 
     const allEvents = jobEventStore.getEvents();
+    console.log('[JobChangeRequestProcessManager] Total events in store:', allEvents.length);
 
-    // Find all assignments without a JobOnHold
-    const assignmentsWithoutHold = allEvents
-      .filter(e => e.type === 'ChangeRequestJobAssigned')
-      .filter(assignEvent =>
-        !allEvents.some(e =>
-          e.type === 'JobOnHold' &&
-          e.aggregateId === assignEvent.aggregateId &&
-          e.changeRequestId === assignEvent.data.changeRequestId
-        )
-      );
+    // Step 1: Candidate job — Pending (not started or completed)
+    const jobCreatedEvent = allEvents.find(e =>
+      e.aggregateId === event.aggregateId && e.type === 'JobCreated'
+    );
+    const jobStartedEvent = allEvents.find(e =>
+      e.aggregateId === event.aggregateId && e.type === 'JobStarted'
+    );
+    const jobCompletedEvent = allEvents.find(e =>
+      e.aggregateId === event.aggregateId && e.type === 'JobCompleted'
+    );
 
-    console.log(`[JobChangeRequestProcessManager] Found ${assignmentsWithoutHold.length} assignments without hold`);
+    if (!jobCreatedEvent || jobStartedEvent || jobCompletedEvent) {
+      console.log(`[JobChangeRequestProcessManager] Job ${event.aggregateId} is either not pending, already started, or completed. Skipping.`);
+      return;
+    }
 
-    assignmentsWithoutHold.forEach(assignEvent => {
-      console.log(`[JobChangeRequestProcessManager] Issuing PutJobOnHoldCommand for job ${assignEvent.aggregateId}`);
+    // Step 2: Rebuild the aggregate state to check latest CRstatus
+    const aggregate = new JobAggregate();
+    const jobEvents = allEvents
+      .filter(e => e.aggregateId === event.aggregateId)
+      .sort((a, b) => new Date(a.metadata?.timestamp || a.timestamp) - new Date(b.metadata?.timestamp || b.timestamp));
 
+    jobEvents.forEach(e => aggregate.apply(e));
+    console.log('[JobChangeRequestProcessManager] Replayed events for aggregate:', jobEvents.length);
+
+    // Step 3: Check latest CRstatus
+    if (aggregate.CRstatus) {
+      console.warn(`[JobChangeRequestProcessManager] Job ${event.aggregateId} already has CRstatus "${aggregate.CRstatus}". Skipping.`);
+      return;
+    }
+
+    try {
+      // Step 4: Create command and put job on hold
       const command = PutJobOnHoldCommand(
-        assignEvent.aggregateId,
+        event.aggregateId,
         'system',
         'Change request assigned',
-        assignEvent.data.changeRequestId
+        event.data.changeRequestId
       );
 
-      OnHoldJobCommandHandler.handle(command);
-    });
+      console.log('[JobChangeRequestProcessManager] Creating PutJobOnHoldCommand:', command);
+
+      const onHoldEvent = aggregate.putOnHold(command);
+
+      if (onHoldEvent) {
+        jobEventStore.append(onHoldEvent);
+        eventBus.publish(onHoldEvent);
+        console.log(`[JobChangeRequestProcessManager] Job ${event.aggregateId} flagged as OnHold.`);
+      }
+    } catch (error) {
+      console.error('[JobChangeRequestProcessManager] Error putting job on hold:', error);
+    }
   });
 
   isInitialized = true;
-  console.log('[JobChangeRequestProcessManager] Subscribed to ChangeRequestJobAssigned.');
+  console.log('[JobChangeRequestProcessManager] Initialized.');
 };

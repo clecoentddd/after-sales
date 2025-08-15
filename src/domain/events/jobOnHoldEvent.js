@@ -20,7 +20,7 @@ export const JobOnHoldEvent = (jobId, requestId, changeRequestId, putOnHoldBy, r
     putOnHoldBy,
     reason,
     onHoldAt: new Date().toISOString(),
-    status: 'OnHold'
+    CRstatus: 'OnHold'
   },
   metadata: {
     timestamp: new Date().toISOString()

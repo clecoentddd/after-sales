@@ -9,7 +9,7 @@
  * @param {string} reason - The reason for putting the job on hold.
  * @returns {object} The PutJobOnHoldCommand object.
  */
-export const PutJobOnHoldCommand = (jobId, heldByUserId, reason, changeRequestId = null) => ({
+export const PutJobOnHoldCommand = (jobId, heldByUserId, reason, changeRequestId) => ({
   type: 'PutJobOnHold',
   jobId,
   heldByUserId,

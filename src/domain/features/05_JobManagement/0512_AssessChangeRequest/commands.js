@@ -1,6 +1,7 @@
-export const FlagJobForAssessmentCommand = (jobId, changeRequestId, changedByUserId, reason) => ({
+export const FlagJobForAssessmentCommand = (jobId, requestId, changeRequestId, changedByUserId, reason) => ({
   type: 'FlagJobForAssessmentCommand',
   jobId,
+  requestId,
   changeRequestId,
   changedByUserId,
   reason

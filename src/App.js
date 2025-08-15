@@ -25,6 +25,9 @@ import { globalInvoiceInit } from '@features/06_InvoiceManagement/shared/globalI
 import { initializeCreateJobEventHandler } from '@features/05_JobManagement/0501_CreateJobAutomation/eventHandler';
 import { initializeAssignJobToChangeRequestProcessor } from '@features/05_JobManagement/0551_AssignJobToChangeRequest/initializeAssignJobToChangeRequestProcessor';
 import {initializeCreatedJobChangeRequestProcessManager } from '@features/05_JobManagement/0553_CreatedJobChangeRequestManager/initializeCreatedJobChangeRequestProcessManager';
+import {initializeStartedJobChangeRequestProcessManager } from '@features/05_JobManagement/0554_StartedJobChangeRequestManager/initializeStartedJobChangeRequestProcessManager';
+
+
 import { initializeChangeRequestDecisionTreeHandler } from '@features/03_RequestManagement/0312_ChangeRequestDecisionTree/eventHandler';
 import { initializeCompleteJobEventHandler } from '@features/03_RequestManagement/0303_CloseRequest/eventHandler';
 
@@ -62,6 +65,7 @@ function App() {
     initializeCompleteJobEventHandler();
     initializeAssignJobToChangeRequestProcessor();
     initializeCreatedJobChangeRequestProcessManager();
+    initializeStartedJobChangeRequestProcessManager();
     // ONLY call initializeProjections (which includes initializeAssignJobToChangeRequestProcessor)
     
     console.log('[App] Projections and event handlers initialized.');

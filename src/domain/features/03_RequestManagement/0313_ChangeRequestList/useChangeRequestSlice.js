@@ -6,8 +6,6 @@ export function useChangeRequestSlice() {
   const [changeRequests, setChangeRequests] = useState([]);
   const [changeRequestEvents, setChangeRequestEvents] = useState([]);
 
-  console.log('[DEBUG] eventBus in useChangeRequestSlice:', eventBus);
-
   // Load initial ChangeRequestRaised events and reconstruct state
   useEffect(() => {
     const events = requestEventStore.getEvents();

@@ -26,7 +26,9 @@ export const changeRequestCommandHandler = {
       console.log(`[ChangeRequestCommandHandler] Change request event created:`, event);
       requestEventStore.append(event);
       eventBus.publish(event);
+      
       return { success: true, event };
+
     } catch (error) {
       console.warn(`[ChangeRequestCommandHandler] Command rejected: ${error.message}`);
       const rejectionEvent = requestAggregate.rejectChangeRequest({

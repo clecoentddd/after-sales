@@ -37,6 +37,7 @@ describe('JobAggregate command rules', () => {
     expect(startEvent).toHaveProperty('type', 'JobStarted');
 
     const onHoldEvent = aggregate.putOnHold({ jobId, heldByUserId, reason: 'reason' });
+    console.log ("On hold event is", onHoldEvent);
     expect(onHoldEvent).toHaveProperty('type', 'JobOnHold');
   });
 

@@ -2,7 +2,7 @@
 import { initializeToDoCreatedJobToAssessChangeRequest } from '../domain/features/05_JobManagement/0511_PutJobOnHold/toDoCreatedJobToAssessChangeRequestProcessor.js';
 import { eventBus } from '../domain/core/eventBus';
 import { jobEventStore } from '../domain/core/eventStore';
-import { CreatedJobAssignedToChangeRequestEvent } from '../domain/events/CreatedJobAssignedToChangeRequestEvent';
+import { CreatedJobAssignedToChangeRequestEvent } from '../domain/events/createdJobAssignedToChangeRequestEvent.js';
 import { JobCreatedEvent } from '../domain/events/jobCreatedEvent';
 import { TODO_STATUS, todoList, updateTodoList } from '../domain/features/05_JobManagement/99_ToDoChangeRequestProcessManager/todoListManager.js';
 import { reconstructJobState } from '../domain/entities/Job/repository';

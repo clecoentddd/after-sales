@@ -1,12 +1,8 @@
-// src/domain/features/99_changeRequestToJobReactionProcessor/CreatedJobAssignedToChangeRequestEvent.js
-export const CreatedJobAssignedToChangeRequestEvent = (jobId, changeRequestId, changedByUserId, description) => ({
+export const CreatedJobAssignedToChangeRequestEvent = (jobId, requestId, changeRequestId) => ({
   type: 'CreatedJobAssignedToChangeRequest',
-  aggregateType: "Job",
-  data: {
-    jobId,
-    changeRequestId,
-    changedByUserId,
-    description,
-    timestamp: new Date().toISOString()
-  }
+  aggregateType: 'Projection',
+  aggregateId: jobId,   // tie to the CR
+  requestId: requestId,
+  changeRequestId: changeRequestId,
+  metadata: { timestamp: new Date().toISOString() },
 });

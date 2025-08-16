@@ -2,7 +2,7 @@
 import { eventBus } from '@core/eventBus';
 import { jobEventStore } from '@core/eventStore';
 import { ChangeRequestJobAssignmentFailed } from '@events/changeRequestAssignementFailedEvent';
-import { ChangeRequestJobAssigned } from '@domain/events/changeRequestJobAssignedEvent';
+import { ChangeRequestJobAssignedEvent } from '@events/changeRequestJobAssignedEvent';
 
 let isInitialized = false;
 
@@ -47,10 +47,10 @@ export const initializeAssignJobToChangeRequestProcessor = () => {
 
     const jobCreated = jobCreatedEvents[0];
     const jobId = jobCreated.aggregateId;
-    const successEvent = ChangeRequestJobAssigned(jobId, requestId, changeRequestId);
-    console.log('[initializeAssignJobToChangeRequestProcessor] Job found. Producing ChangeRequestJobAssigned:', successEvent);
+    const successEvent = ChangeRequestJobAssignedEvent (jobId, requestId, changeRequestId);
+    console.log('[initializeAssignJobToChangeRequestProcessor] Job found. Producing ChangeRequestJobAssignedEvent:', successEvent);
     jobEventStore.append(successEvent);
-    console.log ("[initializeAssignJobToChangeRequestProcessor] Publishing ChangeRequestJobAssigned");
+    console.log ("[initializeAssignJobToChangeRequestProcessor] Publishing ChangeRequestJobAssignedEvent");
     console.log('[DEBUG] EventBus in publisher module:', eventBus);
     eventBus.publish(successEvent);
 

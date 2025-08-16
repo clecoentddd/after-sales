@@ -5,5 +5,4 @@ export const ChangeRequestJobAssignmentFailed = (requestId, changeRequestId, rea
   changeRequestId,
   data: { reason },
   timestamp: new Date().toISOString(),
-  eventId: crypto.randomUUID(),
 });

@@ -7,18 +7,35 @@ export const RejectChangeRequestForCompletedJobCommandHandler = {
   handle: (command) => {
     const { aggregateId, requestId, changeRequestId, reason, rejectedBy } = command;
 
+    console.log(`[RejectCRHandler] Handling RejectChangeRequestForCompletedJobCommand`, command);
+
     // Step 1: Rebuild aggregate from events
     const allEvents = jobEventStore.getEvents()
       .filter(e => e.aggregateId === aggregateId)
-      .sort((a, b) => new Date(a.metadata?.timestamp || a.timestamp) - new Date(b.metadata?.timestamp || b.timestamp));
+      .sort(
+        (a, b) =>
+          new Date(a.metadata?.timestamp || a.timestamp) -
+          new Date(b.metadata?.timestamp || b.timestamp)
+      );
+
+    console.log(`[RejectCRHandler] Found ${allEvents.length} past events for job ${aggregateId}`);
 
     const aggregate = new JobAggregate();
-    allEvents.forEach(e => aggregate.apply(e));
+    allEvents.forEach(e => {
+      console.log(`[RejectCRHandler] Applying event:`, e.type, e);
+      aggregate.apply(e);
+    });
+
+    console.log(`[RejectCRHandler] Aggregate state after replay:`, {
+      status: aggregate.status,
+      completedAt: aggregate.completedAt,
+      CRstatus: aggregate.CRstatus,
+    });
 
     // Step 2: Confirm job is completed
     if (!aggregate.completedAt) {
-      console.log(`[RejectChangeRequestForCompletedJobCommandHandler] Job ${aggregateId} is not completed. Skipping rejection.`);
-      return;
+      console.warn(`[RejectCRHandler] Job ${aggregateId} is not completed. Skipping rejection.`);
+      return null;
     }
 
     // Step 3: Ask the aggregate to reject the change request
@@ -26,14 +43,21 @@ export const RejectChangeRequestForCompletedJobCommandHandler = {
       requestId,
       changeRequestId,
       reason,
-      rejectedBy
+      rejectedBy,
     });
+
+    console.log(`[RejectCRHandler] Aggregate produced rejectionEvent:`, rejectionEvent);
 
     // Step 4: Append & publish the event if returned
     if (rejectionEvent) {
       jobEventStore.append(rejectionEvent);
       eventBus.publish(rejectionEvent);
-      console.log(`[RejectChangeRequestForCompletedJobCommandHandler] Rejected change request ${changeRequestId} for completed job ${aggregateId}`);
+      console.log(`[RejectCRHandler] Rejected change request ${changeRequestId} for completed job ${aggregateId}`);
+      return rejectionEvent; // ✅ return it so the test can assert
     }
-  }
+
+    console.warn(`[RejectCRHandler] No event produced for command`, command);
+    return null;
+  },
 };
+

@@ -12,25 +12,35 @@ function DecisionProjectionUI() {
       console.log('[DecisionProjectionUI] Projection updated:', data);
       setAllStates(data);
     });
-    return () => {
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
   const handleRefresh = () => {
-    console.log('[DecisionProjectionUI] Refresh button clicked - rebuilding projection');
-    const now = new Date();
-    setLastRebuildTime(now);
-    rebuildProjection();
-  };
+  console.log('[DecisionProjectionUI] Refresh button clicked - rebuilding projection');
 
-  const handleEmptyProjection = () => {
-    console.log('[DecisionProjectionUI] Empty Projection button clicked - resetting projection');
-    ChangeRequestDecisionTreeProjection.reset();
-    setLastRebuildTime(null); // Reset timestamp when emptying projection
-  };
+  // Rebuild the projection and get latest data
+  const updatedData = rebuildProjection();
 
-  // Format timestamp as HH:MM:SS
+  // Update React state to force re-render
+  setAllStates(updatedData);
+
+  // Update rebuild timestamp
+  setLastRebuildTime(new Date());
+};
+
+ const handleEmptyProjection = () => {
+  console.log('[DecisionProjectionUI] Empty Projection button clicked - resetting projection');
+  
+  // Clear the projection
+  ChangeRequestDecisionTreeProjection.reset();
+
+  // Trigger a manual refresh from the projection to ensure UI reads latest data
+  const latestData = ChangeRequestDecisionTreeProjection.getAll();
+  setAllStates(latestData); // This will be an empty array after reset
+
+  setLastRebuildTime(null); // Reset timestamp
+};
+
   const formatTime = (date) => {
     if (!date) return null;
     return date.toTimeString().split(' ')[0];
@@ -39,7 +49,7 @@ function DecisionProjectionUI() {
   return (
     <div className="projection-block">
       <h3>
-        Request Status Projection (Quotation + Job)
+        Request Status Projection (Quotation + Job + CR)
         <button
           onClick={handleEmptyProjection}
           style={{
@@ -91,14 +101,16 @@ function DecisionProjectionUI() {
               <th>Request ID</th>
               <th>Quotation Status</th>
               <th>Job Status</th>
+              <th>CR Status</th> {/* New column */}
             </tr>
           </thead>
           <tbody>
-            {allStates.map(({ requestId, quotationStatus, jobStatus }) => (
+            {allStates.map(({ requestId, quotationStatus, jobStatus, CRstatus }) => (
               <tr key={requestId}>
                 <td className="mono">{requestId}</td>
                 <td>{quotationStatus || '—'}</td>
                 <td>{jobStatus || '—'}</td>
+                <td>{CRstatus || '—'}</td> {/* Display CRstatus */}
               </tr>
             ))}
           </tbody>

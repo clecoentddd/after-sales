@@ -78,6 +78,12 @@ apply(ev) {
        this.onHoldReason = data.reason || this.onHoldReason;
        this.changeRequestId = data.changeRequestId;
       break;
+    case 'JobCompletedChangeRequestRejectedEvent':
+      this.CRstatus = data.CRstatus;
+      this.onHoldReason = data.reason || this.onHoldReason;
+      this.changeRequestId = data.changeRequestId;
+      break;
+
     default:
       // Ignore unknown events
       break;
@@ -201,8 +207,8 @@ flagForAssessment(command) {
       this.jobId,
       requestId,
       changeRequestId,
-      reason,
-      rejectedBy
+      "Cannot apply a change request to a job that is already complete",
+      "Automated Response from System"
     );
   }
 }

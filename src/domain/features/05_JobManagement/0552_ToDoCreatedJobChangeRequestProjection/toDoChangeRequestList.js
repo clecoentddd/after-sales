@@ -10,7 +10,9 @@ export const buildTodoList = () => {
         'ChangeRequestRaised',
         'ChangeRequestJobAssigned',
         'ChangeRequestJobAssignmentFailed',
-        'JobOnHold', // <-- Include JobOnHold events
+        'JobOnHold',
+        'JobChangeRequestRejected',
+        'ChangeRequestReceivedPendingAssessment',
       ].includes(event.type)
     )
     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); // oldest first
@@ -27,6 +29,7 @@ export const buildTodoList = () => {
       const entry = {
         requestId: event.aggregateId,
         changeRequestId: event.changeRequestId,
+        jobId: 'Not defined yet',
         assignmentStatus: 'Waiting',
         processStatus: 'To Process', // <-- New field
         timestamp: event.timestamp,
@@ -44,14 +47,21 @@ export const buildTodoList = () => {
       entry.events.push(event);
 
       if (event.type === 'ChangeRequestJobAssigned') {
-        entry.assignmentStatus = event.aggregateId; // jobId as status
+        entry.jobId =event.aggregateId;
+        entry.assignmentStatus = 'Job Assigned to CR'; // jobId as status
         entry.processStatus = 'To Process'; // still to process until JobOnHold
       } else if (event.type === 'ChangeRequestJobAssignmentFailed') {
-        entry.assignmentStatus = 'Failed';
+        entry.assignmentStatus = 'Failed to find a job with correct requestId';
         entry.processStatus = 'To Process';
       } else if (event.type === 'JobOnHold') {
         // Mark as processed successfully
-        entry.processStatus = 'Processed Successfully';
+        entry.processStatus = 'Processed Successfully (OnHold)';
+      } else if (event.type === 'ChangeRequestReceivedPendingAssessment') {
+        // Mark as processed successfully
+        entry.processStatus = 'Processed Successfully (To be assessed)';
+      } else if (event.type === 'JobChangeRequestRejected') {
+        // Mark as processed successfully
+        entry.processStatus = 'Processed Successfully (Rejected)';
       }
     }
   });
@@ -67,7 +77,13 @@ export const buildTodoList = () => {
 // Update with new events
 export const updateTodoList = (event) => {
   if (
-    ['ChangeRequestRaised', 'ChangeRequestJobAssigned', 'ChangeRequestJobAssignmentFailed', 'JobOnHold'].includes(
+    ['ChangeRequestRaised', 
+      'ChangeRequestJobAssigned', 
+      'ChangeRequestJobAssignmentFailed', 
+      'JobOnHold',
+      'JobChangeRequestRejected',
+      'ChangeRequestReceivedPendingAssessment'
+    ].includes(
       event.type
     )
   ) {

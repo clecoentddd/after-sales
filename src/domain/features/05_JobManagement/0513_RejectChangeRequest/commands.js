@@ -3,9 +3,4 @@ export const RejectChangeRequestForCompletedJobCommand = (jobId, requestId, chan
   aggregateId: jobId,
   requestId,
   changeRequestId,
-  rejectedBy,
-  reason,
-  metadata: {
-    timestamp: new Date().toISOString()
-  }
 });

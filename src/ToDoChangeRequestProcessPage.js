@@ -35,8 +35,9 @@ function ToDoListPage() {
           <tr>
             <th>Request ID</th>
             <th>Change Request ID</th>
+            <th>Job ID</th>
             <th>Assignment Status</th>
-            <th>Process Status</th> {/* <-- New column */}
+            <th>Process Status</th> 
             <th>Latest Timestamp</th>
             <th>Events</th>
           </tr>
@@ -52,6 +53,7 @@ function ToDoListPage() {
                 <tr className="todo-row">
                   <td>{row.requestId}</td>
                   <td>{row.changeRequestId}</td>
+                  <td>{row.jobId}</td>
                   <td>{row.assignmentStatus}</td>
                   <td>{row.processStatus}</td> {/* <-- Display new field */}
                   <td>{new Date(row.timestamp).toLocaleString()}</td>

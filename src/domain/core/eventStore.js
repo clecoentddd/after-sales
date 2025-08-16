@@ -45,6 +45,16 @@ append(event) {
     .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   }
 
+  getEventsByAggregateId(aggregateId) {
+    return this.events
+      .filter(e => e.aggregateId === aggregateId)
+      .sort(
+        (a, b) =>
+          new Date(a.metadata?.timestamp || a.timestamp) -
+          new Date(b.metadata?.timestamp || b.timestamp)
+      );
+  }
+
     // New method: loadEvents
   loadEvents(aggregateId) {
     // Filter the internal events array to return only events belonging to the specified aggregateId

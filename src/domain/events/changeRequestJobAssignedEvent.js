@@ -1,5 +1,5 @@
 // Event constructors
-export const ChangeRequestJobAssigned = (jobId, requestId, changeRequestId) => ({
+export const ChangeRequestJobAssignedEvent = (jobId, requestId, changeRequestId) => ({
   type: 'ChangeRequestJobAssigned',
   aggregateType: "Job",
   aggregateId: jobId,
@@ -8,5 +8,4 @@ export const ChangeRequestJobAssigned = (jobId, requestId, changeRequestId) => (
       changeRequestId: changeRequestId,
   },
   timestamp: new Date().toISOString(),
-  eventId: crypto.randomUUID(),
 });

@@ -1,8 +1,8 @@
 // src/domain/features/05_JobManagement/92_JobChangeRequestManager/initializeCompletedJobChangeRequestProcessManager.js
 import { eventBus } from '@core/eventBus';
 import { jobEventStore } from '@core/eventStore';
-import { RejectChangeRequestForCompletedJobCommand } from '../0513_RejectChangeRequestForCompletedJob/commands';
-import { RejectChangeRequestForCompletedJobCommandHandler } from '../0513_RejectChangeRequestForCompletedJob/commandHandler';
+import { RejectChangeRequestForCompletedJobCommand } from '../0513_RejectChangeRequest/commands';
+import { RejectChangeRequestForCompletedJobCommandHandler } from '../0513_RejectChangeRequest/commandHandler';
 
 let isInitialized = false;
 
@@ -31,14 +31,14 @@ export const initializeCompletedJobChangeRequestProcessManager = () => {
       // Step 2: Reject the change request
       const command = RejectChangeRequestForCompletedJobCommand(
         event.aggregateId,
+        event.data.requestId,
         event.data.changeRequestId,
-        'system',
-        'Cannot accept change request for a completed job'
       );
 
       console.log('[CompletedJobChangeRequestManager] Creating RejectChangeRequestForCompletedJobCommand:', command);
 
       RejectChangeRequestForCompletedJobCommandHandler.handle(command);
+
       console.log(`[CompletedJobChangeRequestManager] Change request ${event.data.changeRequestId} rejected for completed job ${event.aggregateId}.`);
     } catch (error) {
       console.error('[CompletedJobChangeRequestManager] Error rejecting change request:', error);

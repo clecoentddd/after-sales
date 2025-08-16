@@ -3,13 +3,22 @@ import { getEventsFromStores } from '@core/eventStoreUtils';
 import {requestEventStore, jobEventStore, quotationEventStore} from '@core/eventStore';
 
 export function rebuildProjection() {
-  ChangeRequestDecisionTreeProjection.reset();
+  console.log('[rebuildProjection] Starting projection rebuild');
 
-  const allEvents = getEventsFromStores([requestEventStore, jobEventStore, quotationEventStore]);
+  const allEvents = getEventsFromStores([
+    requestEventStore,
+    jobEventStore,
+    quotationEventStore
+  ]);
 
-  allEvents.forEach(event => {
-    ChangeRequestDecisionTreeProjection.handleEvent(event);
-  });
+  console.log(`[rebuildProjection] Loaded ${allEvents.length} events from stores`);
 
-  console.log('[rebuildProjection] Projection rebuilt from events');
+  // Use rebuild to reset + process events + notify subscribers
+  ChangeRequestDecisionTreeProjection.rebuild(allEvents);
+
+  // Immediately read back the data for logging / debugging
+  const currentData = ChangeRequestDecisionTreeProjection.getAll();
+  console.log('[rebuildProjection] Projection state after rebuild:', currentData);
+
+  return currentData; // <--- return data if needed
 }

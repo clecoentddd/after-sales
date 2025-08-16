@@ -1,147 +1,135 @@
-const changeRequestDecisionState = {}; // { [requestId]: { quotationStatus, jobStatus } }
+const changeRequestDecisionState = {}; // { [requestId]: { quotationStatus, jobStatus, CRstatus } }
 const listeners = new Set();
 
 export const ChangeRequestDecisionTreeProjection = {
-  /**
-   * Returns the current decision state for a request.
-   * @param {string} requestId
-   * @returns {{ quotationStatus: string, jobStatus: string } | undefined}
-   */
   getState(requestId) {
     return changeRequestDecisionState[requestId];
   },
 
-  /**
-   * Returns all request decision states as an array.
-   * @returns {Array<{ requestId: string, quotationStatus: string, jobStatus: string }>}
-   */
   getAll() {
     return Object.entries(changeRequestDecisionState).map(([requestId, state]) => ({
       requestId,
       quotationStatus: state.quotationStatus,
       jobStatus: state.jobStatus,
+      CRstatus: state.CRstatus || null,
     }));
   },
 
-  /**
-   * Subscribe to changes in the projection.
-   * Callback is called with current array of all states whenever updated.
-   * Returns an unsubscribe function.
-   * @param {(data: Array) => void} callback
-   */
   subscribe(callback) {
     listeners.add(callback);
-    // Immediately send current data on subscribe
+    console.log('[DecisionProjection] New subscriber added, sending initial state:', this.getAll());
     callback(this.getAll());
     return () => {
       listeners.delete(callback);
+      console.log('[DecisionProjection] Subscriber removed');
     };
   },
 
-  /**
-   * Notify all subscribers of updated state.
-   */
   notify() {
     const allData = this.getAll();
-    console.log(`[DecisionProjection] Notifying ${listeners.size} subscribers with data:`, allData);
+    console.log('[DecisionProjection] Notifying subscribers, current state:', allData);
     listeners.forEach(cb => {
       try {
         cb(allData);
-        console.log('[DecisionProjection] Subscriber callback executed successfully.');
       } catch (err) {
         console.error('[DecisionProjection] Subscriber callback error:', err);
       }
     });
   },
 
-  /**
-   * Reset the internal state.
-   */
   reset() {
+    console.log('[DecisionProjection] Resetting projection, clearing all data');
     for (const key in changeRequestDecisionState) {
       delete changeRequestDecisionState[key];
     }
     this.notify();
   },
 
-  /**
-   * Handles updates to the projection based on events.
-   * @param {object} event
-   */
+  rebuild(events) {
+    console.log('[DecisionProjection] Rebuilding projection from events, total events:', events.length);
+    this.reset();
+    events.forEach(event => this.handleEvent(event));
+    console.log('[DecisionProjection] Rebuild complete, final state:', this.getAll());
+  },
+
   handleEvent(event) {
-    // Get requestId from the appropriate location based on event type
+    console.log("[DecisionProjection] Handling event:", event);
     let requestId;
 
-    // For Request aggregate events, requestId is the aggregateId
-    if (event.aggregateType === 'Request') {
+    // Normalize requestId across different event types
+    if (event.aggregateType === 'Request' || event.aggregateType === 'ChangeRequest') {
       requestId = event.aggregateId;
-    }
-    // For ChangeRequest aggregate events, requestId is the root-level requestId
-    else if (event.aggregateType === 'ChangeRequest') {
-      requestId = event.requestId;
-    }
-    // For all other events, requestId is at the root level
-    else {
-      requestId = event.requestId;
+    } else {
+      requestId = event.requestId || (event.data && event.data.requestId);
     }
 
     if (!requestId) {
-      console.warn(`[DecisionProjection] Event missing requestId:`, event.type);
-      return;
+      console.warn(`[DecisionProjection] Event missing requestId: ${event.type}`, event);
+      return; // skip event without requestId
     }
 
-    console.log(`[DecisionProjection] Handling event ${event.type} for request ${requestId}`);
+    if (!changeRequestDecisionState[requestId]) {
+      changeRequestDecisionState[requestId] = {
+        quotationStatus: null,
+        jobStatus: null,
+        CRstatus: null,
+      };
+      console.log(`[DecisionProjection] Created new state for requestId: ${requestId}`);
+    }
 
     switch (event.type) {
       case 'RequestCreated':
-        changeRequestDecisionState[requestId] = {
+        Object.assign(changeRequestDecisionState[requestId], {
           quotationStatus: 'NotStarted',
           jobStatus: 'NotStarted',
-        };
-        console.log(`[DecisionProjection] Initialized request ${requestId}`);
+        });
+        console.log(`[DecisionProjection] Updated RequestCreated for ${requestId}`);
         break;
 
       case 'QuotationCreated':
-        update(requestId, { quotationStatus: 'Draft' });
+        changeRequestDecisionState[requestId].quotationStatus = 'Draft';
+        console.log(`[DecisionProjection] Updated QuotationCreated for ${requestId}`);
         break;
 
       case 'QuotationApproved':
-        update(requestId, { quotationStatus: 'Approved' });
+        changeRequestDecisionState[requestId].quotationStatus = 'Approved';
+        console.log(`[DecisionProjection] Updated QuotationApproved for ${requestId}`);
         break;
 
       case 'JobCreated':
-        update(requestId, { jobStatus: 'Created' });
+        changeRequestDecisionState[requestId].jobStatus = 'Created';
+        console.log(`[DecisionProjection] Updated JobCreated for ${requestId}`);
         break;
 
       case 'JobStarted':
-        update(requestId, { jobStatus: 'InProgress' });
+        changeRequestDecisionState[requestId].jobStatus = 'InProgress';
+        console.log(`[DecisionProjection] Updated JobStarted for ${requestId}`);
         break;
-
-      case 'JobOnHold':
-        update(requestId, { jobStatus: 'OnHold' });
-        break;
-
+        
       case 'JobCompleted':
-        update(requestId, { jobStatus: 'Completed' });
+        changeRequestDecisionState[requestId].jobStatus = 'Completed';
+        console.log(`[DecisionProjection] Updated JobCompleted for ${requestId}`);
         break;
 
+      case 'ChangeRequestRaised':
+        changeRequestDecisionState[requestId].CRstatus = 'Raised';
+        console.log(`[DecisionProjection] Updated ChangeRequestRaised for ${requestId}`);
+        break;
       case 'ChangeRequestReceivedPendingAssessment':
-        console.log(`[DecisionProjection] Change request received for ${requestId}`);
-        update(requestId, { jobStatus: 'Pending CR Assessment' });
+        changeRequestDecisionState[requestId].CRStatus = 'CR Assigned';
+        console.log(`[DecisionProjection] Updated ChangeRequestReceivedPendingAssessment for ${requestId}`);
         break;
 
       default:
-        console.warn(`[DecisionProjection] Unhandled event type: ${event.type}`);
+        console.log(`[DecisionProjection] Event type not handled: ${event.type}`);
         break;
     }
-    this.notify();
 
-    function update(requestId, patch) {
-      if (!changeRequestDecisionState[requestId]) {
-        changeRequestDecisionState[requestId] = {};
-      }
-      Object.assign(changeRequestDecisionState[requestId], patch);
-      console.log(`[DecisionProjection] Updated ${requestId}:`, changeRequestDecisionState[requestId]);
+    if (event.data && event.data.CRstatus) {
+      changeRequestDecisionState[requestId].CRstatus = event.data.CRstatus;
+      console.log(`[DecisionProjection] Updated CRstatus for ${requestId}:`, event.data.CRstatus);
     }
-  }
+
+    this.notify();
+  },
 };

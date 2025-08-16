@@ -6,10 +6,38 @@ import { startJobCommandHandler } from '@features/05_JobManagement/0502_StartJob
 import { StartJobCommand } from '@features/05_JobManagement/0502_StartJob/commands';
 import { completeJobCommandHandler } from '@features/05_JobManagement/0503_CompleteJob/commandHandler';
 import { CompleteJobCommand } from '@features/05_JobManagement/0503_CompleteJob/commands';
+import { RepairJobProjection } from '@features/05_JobManagement/RepairJobListProjection/rebuildProjection';
+import { useJobEvents } from '@features/05_JobManagement/repairJobManagementStream';
 
 function RepairJobSlice({ customers, requests, quotations, currentUserId }) {
   const { jobs, jobEvents } = useRepairJobSlice();
   const [selectedTeam, setSelectedTeam] = useState('Team_A');
+  const [isRebuilding, setIsRebuilding] = useState(false);
+  const { jobEvents: jobLogEvents } = useJobEvents();
+
+  const handleRebuild = async () => {
+    console.log('[RepairJobSlice] Rebuild button clicked');
+    setIsRebuilding(true);
+
+    try {
+      // Optional: clear any local jobs state to show empty state
+      // setJobs([]);
+
+      // Optional delay to show empty state briefly
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Rebuild projection internally (UI does not pass events)
+      const rebuiltJobs = await RepairJobProjection.rebuild();
+      console.log('[RepairJobSlice] Projection rebuilt successfully', rebuiltJobs);
+
+      // If you track local state, update it here
+      // setJobs(rebuiltJobs);
+    } catch (error) {
+      console.error('[RepairJobSlice] Error rebuilding projection:', error);
+    } finally {
+      setIsRebuilding(false);
+    }
+  };
 
   const handleStartJob = (jobId) => {
     console.log('[RepairJobSlice] Attempting to start job:', jobId, 'with team:', selectedTeam);
@@ -67,6 +95,10 @@ function RepairJobSlice({ customers, requests, quotations, currentUserId }) {
     });
   };
 
+  React.useEffect(() => {
+  console.log('[RepairJobSlice] jobLogEvents updated:', jobLogEvents);
+}, [jobLogEvents]);
+
   const getButtonStyle = (status) => {
     const baseStyle = {
       padding: '8px 12px',
@@ -94,7 +126,25 @@ function RepairJobSlice({ customers, requests, quotations, currentUserId }) {
 
   return (
     <div className="aggregate-block">
-      <h2>Repair Job Management</h2>
+      <h2 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        Repair Job Management
+        <button
+          onClick={handleRebuild}
+          title="Rebuild Projection"
+          disabled={isRebuilding}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: isRebuilding ? 'not-allowed' : 'pointer',
+            fontSize: '1.5rem',
+            padding: 0,
+            marginLeft: '1rem',
+            color: isRebuilding ? '#aaa' : '#333'
+          }}
+        >
+          🔄
+        </button>
+      </h2>
       <div className="aggregate-columns">
         <div className="aggregate-column first-column">
           <h3>Assign a team to start a job</h3>
@@ -160,7 +210,7 @@ function RepairJobSlice({ customers, requests, quotations, currentUserId }) {
           />
         </div>
         <div className="aggregate-column third-column">
-          <EventLogDisplay events={jobEvents} />
+          <EventLogDisplay events={jobLogEvents} />
         </div>
       </div>
     </div>

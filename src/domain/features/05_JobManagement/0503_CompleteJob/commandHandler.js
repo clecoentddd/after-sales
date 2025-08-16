@@ -43,6 +43,8 @@ export const completeJobCommandHandler = {
 
           // 6. Publish the minimal event-sourcing event
           jobEventStore.append(jobCompletedEvent);
+          eventBus.publish(jobCompletedEvent);
+          
           console.log('[CompleteJobCommandHandler] Published JobCompleted event:', jobCompletedEvent);
 
           eventBus.publish(jobCompletedEvent);

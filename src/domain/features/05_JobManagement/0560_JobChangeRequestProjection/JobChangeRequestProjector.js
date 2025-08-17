@@ -13,7 +13,7 @@ export const initializeJobChangeRequestProjector = () => {
       jobId: event.aggregateId,
       changeRequestId: event.changeRequestId,
       type: 'Request',
-      todo: false,
+      todo: 'Done',
     });
   });
 
@@ -31,7 +31,7 @@ export const initializeJobChangeRequestProjector = () => {
       jobId: requestRow.jobId,
       changeRequestId: event.changeRequestId,
       type: 'ChangeRequest',
-      todo: true,
+      todo: 'ToDo',
     };
 
     // Insert into projection with todo=true

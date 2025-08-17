@@ -1,28 +1,50 @@
 import { eventBus } from '@core/eventBus';
 import { jobChangeRequestProjection } from './JobChangeRequestProjection';
+import { PutJobOnHoldCommand } from '../0511_PutJobOnHold/commands';
+import { OnHoldJobCommandHandler } from '../0511_PutJobOnHold/commandHandler';
 
 export const initializeProcessManager = () => {
   const processPendingTodos = async () => {
-    const pendingRows = jobChangeRequestProjection.getAll().filter(r => r.todo);
+    // Get todos that are still pending or failed
+    const pendingRows = jobChangeRequestProjection.getAll()
+      .filter(r => r.todo === 'ToDo' || r.todo === 'Failed');
 
-    pendingRows.forEach(row => {
+    for (const row of pendingRows) {
       console.log('[ProcessManager] Processing row:', row);
 
-      // Simulate putting the job on hold
-      console.log(`[ProcessManager] Putting job ${row.jobId} on hold`);
+      try {
+        // Step 1: Build command
+        const command = PutJobOnHoldCommand(
+          row.jobId,
+          'system',                    // automated user
+          'Change request assigned',    // reason
+          row.changeRequestId
+        );
 
-      // Mark row as processed
-      jobChangeRequestProjection.updateTodo(row.requestId, row.changeRequestId, false);
+        // Step 2: Send command to Command Handler
+        const handler = new OnHoldJobCommandHandler();
+        const onHoldEvent = await handler.execute(command);
 
-      console.log('[ProcessManager] Done processing row:', row);
-    });
+        // Step 3: Update todo status
+        if (onHoldEvent) {
+          jobChangeRequestProjection.updateTodo(row.requestId, row.changeRequestId, 'Done');
+          console.log(`[ProcessManager] Job ${row.jobId} flagged as OnHold.`);
+        } else {
+          jobChangeRequestProjection.updateTodo(row.requestId, row.changeRequestId, 'Failed');
+          console.warn(`[ProcessManager] Job ${row.jobId} could not be put on hold.`);
+        }
+
+      } catch (error) {
+        // Command handler threw an error; mark todo as failed
+        jobChangeRequestProjection.updateTodo(row.requestId, row.changeRequestId, 'Failed');
+        console.error('[ProcessManager] Error processing row:', row, error);
+      }
+    }
   };
 
-  // Subscribe to events; any relevant event triggers processing all pending todos
+  // Subscribe to relevant events; triggers processing all pending todos
   eventBus.subscribe('CreatedJobAssignedToChangeRequest', async (event) => {
     console.log('[ProcessManager] Received event:', event);
     await processPendingTodos();
   });
-
-  // You can add more event types here if needed
 };

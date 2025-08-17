@@ -1,28 +1,47 @@
-
-import { eventBus } from '@core/eventBus';
-import { CreatedJobAssignedToChangeRequestEvent } from '../../../events/createdJobAssignedToChangeRequestEvent';
-
 const rows = [];
 
 export const jobChangeRequestProjection = {
-  clear: () => rows.splice(0, rows.length),
   insert: (row) => {
-  const exists = rows.some(r => r.changeRequestId === row.changeRequestId);
-  if (exists) {
-    console.log('[Projection] Row already exists, ignoring:', row.changeRequestId);
-    return;
-  }
-  console.log('[Projection] Inserting row:', row);
-  rows.push(row);
-},
-  update: (changeRequestId, jobId) => {
-    const row = rows.find(r => r.changeRequestId === changeRequestId);
-    if (row) {
-      row.jobId = jobId;
-      console.log('[Projection] Updated row:', row);
-    } else {
-      console.warn('[Projection] No row found for changeRequestId:', changeRequestId);
-    }
+    console.log('[Projection] Inserting row:', row);
+    rows.push(row);
+    return row;
   },
-  getAll: () => [...rows],
+
+  update: (predicate, updates) => {
+    console.log('[Projection] Updating rows with:', updates);
+    rows.forEach((r, index) => {
+      if (predicate(r)) {
+        console.log(`[Projection] Updating row at index ${index}:`, r);
+        Object.assign(r, updates);
+        console.log(`[Projection] Updated row at index ${index}:`, r);
+      }
+    });
+  },
+
+  getAll: () => {
+    console.log('[Projection] Getting all rows:', rows);
+    return [...rows];
+  },
+
+  clear: () => {
+    console.log('[Projection] Clearing all rows');
+    rows.length = 0;
+  },
+
+  findByRequestId: (requestId) => {
+    const row = rows.find(r => r.requestId === requestId);
+    console.log('[Projection] findByRequestId:', requestId, '=>', row);
+    return row;
+  },
+
+   updateTodo: (requestId, changeRequestId, todo) => {
+    console.log(`[Projection] Updating todo for requestId=${requestId}, changeRequestId=${changeRequestId} => ${todo}`);
+    rows.forEach((r, index) => {
+      if (r.requestId === requestId && r.changeRequestId === changeRequestId) {
+        console.log(`[Projection] Before update at index ${index}:`, r);
+        r.todo = todo;
+        console.log(`[Projection] After update at index ${index}:`, r);
+      }
+    });
+  },
 };

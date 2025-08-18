@@ -1,7 +1,7 @@
 import { eventBus } from '@core/eventBus';
 import { jobChangeRequestProjection } from '../JobChangeRequestProjection';
 import { initializeJobChangeRequestProjector } from '../JobChangeRequestProjector';
-import { initializeProcessManager } from '../ProcessManager';
+import { initializeProcessManager } from '../../0561_AssignCRtoJob/ProcessManager';
 import { JobCreatedEvent } from '../../../../events/jobCreatedEvent';
 import { ChangeRequestRaisedEvent } from '../../../../events/changeRequestRaisedEvent';
 
@@ -13,7 +13,7 @@ describe('JobChangeRequest todo workflow', () => {
     initializeProcessManager();
   });
 
-  it('should mark todo=true on insert and then todo=false after Process Manager processes the event', (done) => {
+  it('should mark todo=ToDo on insert and then todo=Done after Process Manager processes the event', (done) => {
     const receivedEvents = [];
 
     // Capture synthetic events for verification
@@ -38,9 +38,9 @@ describe('JobChangeRequest todo workflow', () => {
 
       // Check projection entries
       expect(allRows).toEqual([
-        { requestId: 'req1', jobId: 'job1', changeRequestId: 'cr0', type: 'Request', todo: false},
-        { requestId: 'req1', jobId: 'job1', changeRequestId: 'cr1', type: 'ChangeRequest', todo: false },
-        { requestId: 'req1', jobId: 'job1', changeRequestId: 'cr2', type: 'ChangeRequest', todo: false },
+        { requestId: 'req1', jobId: 'job1', changeRequestId: 'cr0', type: 'Request', todo: 'Done'},
+        { requestId: 'req1', jobId: 'job1', changeRequestId: 'cr1', type: 'ChangeRequest', todo: 'Done' },
+        { requestId: 'req1', jobId: 'job1', changeRequestId: 'cr2', type: 'ChangeRequest', todo: 'Done' },
       ]);
 
       // Check synthetic events

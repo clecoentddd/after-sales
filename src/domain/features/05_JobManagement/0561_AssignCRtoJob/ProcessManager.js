@@ -1,5 +1,5 @@
 import { eventBus } from '@core/eventBus';
-import { jobChangeRequestProjection } from './JobChangeRequestProjection';
+import { jobChangeRequestProjection } from '../0560_JobChangeRequestMappingProjection/JobChangeRequestProjection';
 import { PutJobOnHoldCommand } from '../0511_PutJobOnHold/commands';
 import { OnHoldJobCommandHandler } from '../0511_PutJobOnHold/commandHandler';
 
@@ -43,7 +43,7 @@ export const initializeProcessManager = () => {
   };
 
   // Subscribe to relevant events; triggers processing all pending todos
-  eventBus.subscribe('CreatedJobAssignedToChangeRequest', async (event) => {
+  eventBus.subscribe('JobAssignedToChangeRequest', async (event) => {
     console.log('[ProcessManager] Received event:', event);
     await processPendingTodos();
   });

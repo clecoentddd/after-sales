@@ -38,9 +38,9 @@ describe('JobChangeRequestProjection', () => {
     expect(allRows).toEqual(
   expect.arrayContaining([
     // Only actual rows in the projection
-    expect.objectContaining({ changeRequestId: 'cr1', requestId: 'req1', jobId: 'job1', type: 'Request', todo: false }),
-    expect.objectContaining({ changeRequestId: 'cr1', requestId: 'req1', jobId: 'job1', type: 'ChangeRequest', todo: true }),
-    expect.objectContaining({ changeRequestId: 'cr2', requestId: 'req1', jobId: 'job1', type: 'ChangeRequest', todo: true }),
+    expect.objectContaining({ changeRequestId: 'cr1', requestId: 'req1', jobId: 'job1', type: 'Request', todo: 'Done' }),
+    expect.objectContaining({ changeRequestId: 'cr1', requestId: 'req1', jobId: 'job1', type: 'ChangeRequest', todo: 'ToDO' }),
+    expect.objectContaining({ changeRequestId: 'cr2', requestId: 'req1', jobId: 'job1', type: 'ChangeRequest', todo: 'ToDo' }),
   ])
 );
   });

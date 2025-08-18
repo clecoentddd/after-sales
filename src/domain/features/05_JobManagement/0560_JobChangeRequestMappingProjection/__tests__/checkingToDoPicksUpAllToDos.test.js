@@ -4,7 +4,7 @@ import { initializeJobChangeRequestProjector } from '../JobChangeRequestProjecto
 import { JobCreatedEvent } from '../../../../events/jobCreatedEvent';
 import { RequestRaisedEvent } from '../../../../events/requestRaisedEvent';
 import { ChangeRequestRaisedEvent } from '../../../../events/changeRequestRaisedEvent';
-import { initializeProcessManager } from '../ProcessManager';
+import { initializeProcessManager } from '../../0561_AssignCRtoJob/ProcessManager';
 
 describe('JobChangeRequestProjection', () => {
 
@@ -16,9 +16,9 @@ describe('JobChangeRequestProjection', () => {
 
   it('should initialize projection and handle new job and change request for a different request correctly', () => {
     // Initialize projection with req1
-    jobChangeRequestProjection.insert({ requestId: 'req1', changeRequestId: 'cr0', type: 'Request', todo: false });
-    jobChangeRequestProjection.insert({ requestId: 'req1', changeRequestId: 'cr1', type: 'ChangeRequest', todo: true, jobId: 'job1' });
-    jobChangeRequestProjection.insert({ requestId: 'req1', changeRequestId: 'cr2', type: 'ChangeRequest', todo: true, jobId: 'job1' });
+    jobChangeRequestProjection.insert({ requestId: 'req1', changeRequestId: 'cr0', type: 'Request', todo: 'Done' });
+    jobChangeRequestProjection.insert({ requestId: 'req1', changeRequestId: 'cr1', type: 'ChangeRequest', todo: 'Done', jobId: 'job1' });
+    jobChangeRequestProjection.insert({ requestId: 'req1', changeRequestId: 'cr2', type: 'ChangeRequest', todo: 'Done', jobId: 'job1' });
 
     // Add new request and job for req2
     eventBus.publish(RequestRaisedEvent({
@@ -39,11 +39,11 @@ describe('JobChangeRequestProjection', () => {
 
     expect(allRows).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ changeRequestId: 'cr0', requestId: 'req1', todo: false, type: 'Request' }),
-        expect.objectContaining({ changeRequestId: 'cr1', requestId: 'req1', jobId: 'job1', todo: false, type: 'ChangeRequest' }),
-        expect.objectContaining({ changeRequestId: 'cr2', requestId: 'req1', jobId: 'job1', todo: false, type: 'ChangeRequest' }),
-        expect.objectContaining({ changeRequestId: 'cr0', requestId: 'req2', jobId: 'job2', todo: false, type: 'Request' }),
-        expect.objectContaining({ changeRequestId: 'cr1', requestId: 'req2', jobId: 'job2', todo: false, type: 'ChangeRequest' }),
+        expect.objectContaining({ changeRequestId: 'cr0', requestId: 'req1', todo: 'Done', type: 'Request' }),
+        expect.objectContaining({ changeRequestId: 'cr1', requestId: 'req1', jobId: 'job1', todo: 'Done', type: 'ChangeRequest' }),
+        expect.objectContaining({ changeRequestId: 'cr2', requestId: 'req1', jobId: 'job1', todo: 'Done', type: 'ChangeRequest' }),
+        expect.objectContaining({ changeRequestId: 'cr0', requestId: 'req2', jobId: 'job2', todo: 'Done', type: 'Request' }),
+        expect.objectContaining({ changeRequestId: 'cr1', requestId: 'req2', jobId: 'job2', todo: 'Done', type: 'ChangeRequest' }),
       ])
     );
   });

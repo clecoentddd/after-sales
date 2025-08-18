@@ -2,7 +2,7 @@ import { requestEventStore } from '@core/eventStore';
 import { jobEventStore } from '@core/eventStore';
 import { eventBus } from '@core/eventBus';
 import { initializeJobChangeRequestProjector } from '../JobChangeRequestProjector';
-import { initializeProcessManager } from '../ProcessManager';
+import { initializeProcessManager } from '../../0561_AssignCRtoJob/ProcessManager';
 import { RequestRaisedEvent } from '@events/requestRaisedEvent';
 import { JobCreatedEvent } from '@events/jobCreatedEvent';
 import {  JobStartedEvent } from '@events/jobStartedEvent';

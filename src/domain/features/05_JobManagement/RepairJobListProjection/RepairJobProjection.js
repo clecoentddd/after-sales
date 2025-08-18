@@ -6,6 +6,7 @@ const listeners = new Set();
 
 const RepairJobProjection = {
   getAll() {
+    console.log("GetAll repair jobs : ", repairJobState);
     return Object.values(repairJobState);
   },
 

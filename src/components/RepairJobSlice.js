@@ -7,37 +7,28 @@ import { StartJobCommand } from '@features/05_JobManagement/0502_StartJob/comman
 import { completeJobCommandHandler } from '@features/05_JobManagement/0503_CompleteJob/commandHandler';
 import { CompleteJobCommand } from '@features/05_JobManagement/0503_CompleteJob/commands';
 import { RepairJobProjection } from '@features/05_JobManagement/RepairJobListProjection/rebuildProjection';
+
 import { useJobEvents } from '@features/05_JobManagement/repairJobManagementStream';
 
 function RepairJobSlice({ customers, requests, quotations, currentUserId }) {
-  const { jobs, jobEvents } = useRepairJobSlice();
+  const { jobs, rebuildProjection } = useRepairJobSlice();
   const [selectedTeam, setSelectedTeam] = useState('Team_A');
   const [isRebuilding, setIsRebuilding] = useState(false);
   const { jobEvents: jobLogEvents } = useJobEvents();
 
-  const handleRebuild = async () => {
-    console.log('[RepairJobSlice] Rebuild button clicked');
-    setIsRebuilding(true);
-
-    try {
-      // Optional: clear any local jobs state to show empty state
-      // setJobs([]);
-
-      // Optional delay to show empty state briefly
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Rebuild projection internally (UI does not pass events)
-      const rebuiltJobs = await RepairJobProjection.rebuild();
-      console.log('[RepairJobSlice] Projection rebuilt successfully', rebuiltJobs);
-
-      // If you track local state, update it here
-      // setJobs(rebuiltJobs);
-    } catch (error) {
-      console.error('[RepairJobSlice] Error rebuilding projection:', error);
-    } finally {
-      setIsRebuilding(false);
-    }
-  };
+const handleRebuild = async () => {
+  console.log('[RepairJobSlice] Rebuild button clicked');
+  setIsRebuilding(true);
+  try {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await rebuildProjection(); // Use the function from the hook
+    console.log('[RepairJobSlice] Projection rebuilt successfully');
+  } catch (error) {
+    console.error('[RepairJobSlice] Error rebuilding projection:', error);
+  } finally {
+    setIsRebuilding(false);
+  }
+};
 
   const handleStartJob = (jobId) => {
     console.log('[RepairJobSlice] Attempting to start job:', jobId, 'with team:', selectedTeam);

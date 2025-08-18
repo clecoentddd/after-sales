@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { RepairJobProjection } from './RepairJobProjection';
-import { jobEventStore } from '@core/eventStore';
 import { eventBus } from '@core/eventBus';
 
 export function useRepairJobSlice() {
@@ -8,8 +7,9 @@ export function useRepairJobSlice() {
 
   // Rebuild projection from existing events
   const rebuildProjection = async () => {
+    console.log("userRepairJobSlice... GetAll ???");
     await RepairJobProjection.rebuild(); // uses jobEventStore.getEvents internally
-    setRepairJobs(Object.values(RepairJobProjection.getAll?.() || {})); 
+    setRepairJobs(Object.values(RepairJobProjection.getAll())); 
   };
 
   // Subscribe to eventBus for live updates

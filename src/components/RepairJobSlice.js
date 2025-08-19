@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import ReadModelDisplay from './ReadModelDisplay';
 import EventLogDisplay from './EventLogDisplay';
 import { useRepairJobSlice } from '@features/05_JobManagement/RepairJobListProjection/useRepairJobSlice';
-import { startJobCommandHandler } from '@features/05_JobManagement/0502_StartJob/commandHandler';
-import { StartJobCommand } from '@features/05_JobManagement/0502_StartJob/commands';
-import { completeJobCommandHandler } from '@features/05_JobManagement/0503_CompleteJob/commandHandler';
-import { CompleteJobCommand } from '@features/05_JobManagement/0503_CompleteJob/commands';
-import { RepairJobProjection } from '@features/05_JobManagement/RepairJobListProjection/rebuildProjection';
-
+import { startJobCommandHandler } from '@features/05_JobManagement/0503_StartJob/commandHandler';
+import { StartJobCommand } from '@features/05_JobManagement/0503_StartJob/commands';
+import { completeJobCommandHandler } from '@features/05_JobManagement/0505_CompleteJob/commandHandler';
+import { CompleteJobCommand } from '@features/05_JobManagement/0505_CompleteJob/commands';
 import { useJobEvents } from '@features/05_JobManagement/repairJobManagementStream';
 
 function RepairJobSlice({ customers, requests, quotations, currentUserId }) {
@@ -16,40 +14,55 @@ function RepairJobSlice({ customers, requests, quotations, currentUserId }) {
   const [isRebuilding, setIsRebuilding] = useState(false);
   const { jobEvents: jobLogEvents } = useJobEvents();
 
-const handleRebuild = async () => {
-  console.log('[RepairJobSlice] Rebuild button clicked');
-  setIsRebuilding(true);
-  try {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    await rebuildProjection(); // Use the function from the hook
-    console.log('[RepairJobSlice] Projection rebuilt successfully');
-  } catch (error) {
-    console.error('[RepairJobSlice] Error rebuilding projection:', error);
-  } finally {
-    setIsRebuilding(false);
-  }
-};
+  // Log the current jobs array on every render
+  console.log('[RepairJobSlice] Render - Current jobs:', jobs);
+
+  const handleRebuild = async () => {
+    console.log('[RepairJobSlice] Rebuild button clicked. Current jobs before rebuild:', jobs);
+    setIsRebuilding(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await rebuildProjection();
+      console.log('[RepairJobSlice] Projection rebuilt successfully');
+    } catch (error) {
+      console.error('[RepairJobSlice] Error rebuilding projection:', error);
+    } finally {
+      setIsRebuilding(false);
+    }
+  };
 
   const handleStartJob = (jobId) => {
     console.log('[RepairJobSlice] Attempting to start job:', jobId, 'with team:', selectedTeam);
+    console.log('[RepairJobSlice] Current jobs array:', jobs);
+
     if (!jobId || !selectedTeam) {
-      console.warn("Please select a team before starting the job.");
+      console.warn("[RepairJobSlice] Please select a team before starting the job.");
       return;
     }
+
     const jobToStart = jobs.find(job => job.jobId === jobId);
+    console.log('[RepairJobSlice] Found job to start:', jobToStart);
+
     if (!jobToStart) {
-      console.warn(`Job with ID ${jobId} not found.`);
+      console.warn(`[RepairJobSlice] Job with ID ${jobId} not found in current jobs:`, jobs);
       return;
     }
+
     if (jobToStart.status !== 'Pending') {
-      console.warn(`Job ${jobId} is already ${jobToStart.status}.`);
+      console.warn(`[RepairJobSlice] Job ${jobId} is already ${jobToStart.status}.`);
       return;
     }
+
+    console.log('[RepairJobSlice] Starting job with details:', {
+      jobId: jobToStart.jobId,
+      title: jobToStart.jobDetails?.title,
+      status: jobToStart.status,
+      requestId: jobToStart.requestId
+    });
 
     startJobCommandHandler.handle(
       StartJobCommand(jobToStart.jobId, selectedTeam, currentUserId)
     );
-
     console.log('[RepairJobSlice] StartJobCommand dispatched:', {
       jobId: jobToStart.jobId,
       selectedTeam,
@@ -59,15 +72,24 @@ const handleRebuild = async () => {
 
   const handleCompleteJob = (jobId) => {
     console.log('[RepairJobSlice] Attempting to complete job:', jobId);
-    if (!jobId) return;
+    console.log('[RepairJobSlice] Current jobs array:', jobs);
 
-    const jobToComplete = jobs.find(job => job.jobId === jobId);
-    if (!jobToComplete) {
-      console.warn(`Job with ID ${jobId} not found.`);
+    if (!jobId) {
+      console.warn('[RepairJobSlice] No jobId provided');
       return;
     }
+
+    const jobToComplete = jobs.find(job => job.jobId === jobId);
+    console.log('[RepairJobSlice] Found job to complete:', jobToComplete);
+    console.log('[RepairJobSlice] All started jobs:', jobs.filter(job => job.status === 'Started'));
+
+    if (!jobToComplete) {
+      console.warn(`[RepairJobSlice] Job with ID ${jobId} not found in current jobs:`, jobs);
+      return;
+    }
+
     if (jobToComplete.status !== 'Started') {
-      console.warn(`Job ${jobId} cannot be completed as its status is ${jobToComplete.status}.`);
+      console.warn(`[RepairJobSlice] Job ${jobId} cannot be completed as its status is ${jobToComplete.status}.`);
       return;
     }
 
@@ -76,19 +98,26 @@ const handleRebuild = async () => {
       notes: `Cleaning & Polishing including for free`
     };
 
-    const command = CompleteJobCommand(jobId, completedByUserId, completionDetails);
-    completeJobCommandHandler.handle(command);
+    console.log('[RepairJobSlice] Completing job with details:', {
+      jobId: jobToComplete.jobId,
+      title: jobToComplete.jobDetails?.title,
+      status: jobToComplete.status,
+      requestId: jobToComplete.requestId
+    });
 
-    console.log('[RepairJobSlice] CompleteJobCommand dispatched:', {
+    const command = CompleteJobCommand(jobId, completedByUserId, completionDetails);
+    console.log('[RepairJobSlice] Created CompleteJobCommand:', {
       jobId: command.jobId,
       completionDetails: command.completionDetails,
       completedByUserId: command.completedByUserId,
     });
+
+    completeJobCommandHandler.handle(command);
   };
 
   React.useEffect(() => {
-  console.log('[RepairJobSlice] jobLogEvents updated:', jobLogEvents);
-}, [jobLogEvents]);
+    console.log('[RepairJobSlice] jobLogEvents updated:', jobLogEvents);
+  }, [jobLogEvents]);
 
   const getButtonStyle = (status) => {
     const baseStyle = {
@@ -102,7 +131,6 @@ const handleRebuild = async () => {
       textAlign: 'left',
       color: 'white'
     };
-
     if (status === 'Pending') {
       return { ...baseStyle, backgroundColor: '#4ECDC4' };
     } else if (status === 'Started') {
@@ -111,9 +139,23 @@ const handleRebuild = async () => {
     return baseStyle;
   };
 
+  // Debug the actionable jobs filtering
   const actionableJobs = (jobs || []).filter(job => {
-    return (job.status === 'Pending' || job.status === 'Started') && job.jobId;
+    const isActionable = (job.status === 'Pending' || job.status === 'Started') && job.jobId;
+    console.log(`[RepairJobSlice] Filtering job ${job.jobId}: status=${job.status}, actionable=${isActionable}`);
+    return isActionable;
   });
+
+  // Log when no actionable jobs are found
+  if (actionableJobs.length === 0) {
+    console.log('[RepairJobSlice] No actionable jobs found. Full jobs array:', jobs);
+  } else {
+    console.log('[RepairJobSlice] Found actionable jobs:', actionableJobs.map(j => ({
+      jobId: j.jobId,
+      status: j.status,
+      title: j.jobDetails?.title?.slice(0, 30)
+    })));
+  }
 
   return (
     <div className="aggregate-block">
@@ -154,43 +196,58 @@ const handleRebuild = async () => {
           </div>
           <ul className="action-list">
             {actionableJobs.length > 0 ? (
-              actionableJobs.map(job => (
-                <li key={job.jobId}>
-                  {job.status === 'Pending' && (
-                    <button
-                      onClick={() => handleStartJob(job.jobId)}
-                      style={getButtonStyle(job.status)}
-                    >
-                      Start Job {job.jobDetails?.title?.slice(0, 80) || 'Untitled'}...
-                    </button>
-                  )}
-                  {job.status === 'Started' && (
-                    <button
-                      onClick={() => handleCompleteJob(job.jobId)}
-                      style={getButtonStyle(job.status)}
-                    >
-                      Complete Job {job.jobDetails?.title?.slice(0, 80) || 'Untitled'}...
-                    </button>
-                  )}
-                  <small>Current Status: {job.status}</small>
-                </li>
-              ))
+              actionableJobs.map(job => {
+                console.log(`[RepairJobSlice] Rendering actionable job ${job.jobId} with status ${job.status}`);
+                return (
+                  <li key={job.jobId}>
+                    {job.status === 'Pending' && (
+                      <button
+                        onClick={() => handleStartJob(job.jobId)}
+                        style={getButtonStyle(job.status)}
+                      >
+                        Start Job {job.jobDetails?.title?.slice(0, 80) || 'Untitled'}...
+                      </button>
+                    )}
+                    {job.status === 'Started' && (
+                      <button
+                        onClick={() => {
+                          console.log(`[RepairJobSlice] Complete button clicked for job ${job.jobId}`);
+                          handleCompleteJob(job.jobId)
+                        }}
+                        style={getButtonStyle(job.status)}
+                      >
+                        Complete Job {job.jobDetails?.title?.slice(0, 80) || 'Untitled'}...
+                      </button>
+                    )}
+                    <small>Current Status: {job.status}</small>
+                    <br />
+                    <small>Job ID: {job.jobId}</small>
+                  </li>
+                );
+              })
             ) : (
               <p>No jobs pending or started for actions.</p>
             )}
           </ul>
         </div>
         <div className="aggregate-column second-column">
+          {console.log('[RepairJobSlice] Passing to ReadModelDisplay:', jobs.map(j => ({
+            jobId: j.jobId,
+            status: j.status,
+            title: j.jobDetails?.title?.slice(0, 30)
+          })))}
           <ReadModelDisplay
             items={jobs}
             idKey="jobId"
             renderDetails={(job) => {
+              console.log(`[RepairJobSlice] ReadModelDisplay rendering job ${job.jobId} with status ${job.status}`);
               const request = Array.isArray(requests) ? requests.find(r => r.requestId === job.requestId) : null;
               const quotation = quotations.find(q => q.quotationId === job.quotationId);
               return (
                 <>
                   <strong>{job.jobDetails?.title || 'Untitled'}</strong>
                   <small>
+                    Job ID: {job.jobId}<br />
                     From Request: {request ? request.requestDetails?.title?.slice(0, 20) : 'N/A'}... <br />
                     From Quotation: {quotation?.quotationId?.slice(0, 20) || 'N/A'}... <br />
                     Status: {job.status} {job.jobDetails?.assignedTeam && `(${job.jobDetails.assignedTeam})`}

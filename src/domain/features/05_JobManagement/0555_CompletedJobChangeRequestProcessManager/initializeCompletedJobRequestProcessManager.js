@@ -1,6 +1,6 @@
 // src/domain/features/05_JobManagement/92_JobChangeRequestManager/initializeCompletedJobChangeRequestProcessManager.js
 import { eventBus } from '@core/eventBus';
-import { jobEventStore } from '@core/eventStore';
+import { JobCompletedProjection } from '../0506_CompletedJobProjection/JobCompletedProjection';
 import { RejectChangeRequestForCompletedJobCommand } from '../0513_RejectChangeRequest/commands';
 import { RejectChangeRequestForCompletedJobCommandHandler } from '../0513_RejectChangeRequest/commandHandler';
 
@@ -15,31 +15,39 @@ export const initializeCompletedJobChangeRequestProcessManager = () => {
   eventBus.subscribe('ChangeRequestJobAssigned', (event) => {
     console.log('[CompletedJobChangeRequestManager] Received ChangeRequestJobAssigned:', event.aggregateId);
 
-    const allEvents = jobEventStore.getEvents();
+    const requestId = event.data?.requestId;
+    const changeRequestId = event.data?.changeRequestId;
 
-    // Step 1: Check if job is completed
-    const jobCompletedEvent = allEvents.find(e =>
-      e.aggregateId === event.aggregateId && e.type === 'JobCompleted'
-    );
+    if (!requestId || !changeRequestId) {
+      console.warn('[CompletedJobChangeRequestManager] Event missing requestId or changeRequestId. Skipping.');
+      return;
+    }
 
-    if (!jobCompletedEvent) {
-      console.log(`[CompletedJobChangeRequestManager] Job ${event.aggregateId} is not completed. Skipping rejection.`);
+    // Step 1: Query projection to get jobId for the requestId
+    const jobId = JobCompletedProjection.queryCompletedJobsList(requestId);
+
+    if (!jobId) {
+      console.log(`[CompletedJobChangeRequestManager] No completed job found for requestId ${requestId}. Skipping rejection.`);
       return;
     }
 
     try {
       // Step 2: Reject the change request
       const command = RejectChangeRequestForCompletedJobCommand(
-        event.aggregateId,
-        event.data.requestId,
-        event.data.changeRequestId,
+        jobId,
+        requestId,
+        changeRequestId
       );
 
-      console.log('[CompletedJobChangeRequestManager] Creating RejectChangeRequestForCompletedJobCommand:', command);
+      console.log('[CompletedJobChangeRequestManager] Created RejectChangeRequestForCompletedJobCommand:', command);
 
-      RejectChangeRequestForCompletedJobCommandHandler.handle(command);
+      const result = RejectChangeRequestForCompletedJobCommandHandler.handle(command);
 
-      console.log(`[CompletedJobChangeRequestManager] Change request ${event.data.changeRequestId} rejected for completed job ${event.aggregateId}.`);
+      if (!result.success) {
+        console.error(`[CompletedJobChangeRequestManager] Failed to reject change request ${changeRequestId} for completed job ${jobId}:`, result.error);
+      } else {
+        console.log(`[CompletedJobChangeRequestManager] Change request ${changeRequestId} rejected for completed job ${jobId}.`);
+      }
     } catch (error) {
       console.error('[CompletedJobChangeRequestManager] Error rejecting change request:', error);
     }

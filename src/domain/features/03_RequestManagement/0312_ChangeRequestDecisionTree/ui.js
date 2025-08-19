@@ -16,30 +16,18 @@ function DecisionProjectionUI() {
   }, []);
 
   const handleRefresh = () => {
-  console.log('[DecisionProjectionUI] Refresh button clicked - rebuilding projection');
+    console.log('[DecisionProjectionUI] Refresh button clicked - rebuilding projection');
+    const updatedData = rebuildProjection();
+    setAllStates(updatedData);
+    setLastRebuildTime(new Date());
+  };
 
-  // Rebuild the projection and get latest data
-  const updatedData = rebuildProjection();
-
-  // Update React state to force re-render
-  setAllStates(updatedData);
-
-  // Update rebuild timestamp
-  setLastRebuildTime(new Date());
-};
-
- const handleEmptyProjection = () => {
-  console.log('[DecisionProjectionUI] Empty Projection button clicked - resetting projection');
-  
-  // Clear the projection
-  ChangeRequestDecisionTreeProjection.reset();
-
-  // Trigger a manual refresh from the projection to ensure UI reads latest data
-  const latestData = ChangeRequestDecisionTreeProjection.getAll();
-  setAllStates(latestData); // This will be an empty array after reset
-
-  setLastRebuildTime(null); // Reset timestamp
-};
+  const handleEmptyProjection = () => {
+    console.log('[DecisionProjectionUI] Empty Projection button clicked - resetting projection');
+    ChangeRequestDecisionTreeProjection.reset();
+    setAllStates(ChangeRequestDecisionTreeProjection.getAll());
+    setLastRebuildTime(null);
+  };
 
   const formatTime = (date) => {
     if (!date) return null;
@@ -81,12 +69,15 @@ function DecisionProjectionUI() {
           Rebuild Projection
         </button>
         {lastRebuildTime && (
-          <span className="rebuild-timestamp" style={{
-            marginLeft: '1rem',
-            fontSize: '0.9rem',
-            color: '#666',
-            fontStyle: 'italic'
-          }}>
+          <span
+            className="rebuild-timestamp"
+            style={{
+              marginLeft: '1rem',
+              fontSize: '0.9rem',
+              color: '#666',
+              fontStyle: 'italic'
+            }}
+          >
             Last rebuilt: {formatTime(lastRebuildTime)}
           </span>
         )}
@@ -101,7 +92,7 @@ function DecisionProjectionUI() {
               <th>Request ID</th>
               <th>Quotation Status</th>
               <th>Job Status</th>
-              <th>CR Status</th> {/* New column */}
+              <th>CR Status</th>
             </tr>
           </thead>
           <tbody>
@@ -110,7 +101,7 @@ function DecisionProjectionUI() {
                 <td className="mono">{requestId}</td>
                 <td>{quotationStatus || '—'}</td>
                 <td>{jobStatus || '—'}</td>
-                <td>{CRstatus || '—'}</td> {/* Display CRstatus */}
+                <td>{CRstatus || '—'}</td>
               </tr>
             ))}
           </tbody>

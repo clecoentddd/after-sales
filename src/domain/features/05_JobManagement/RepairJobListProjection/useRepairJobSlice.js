@@ -1,38 +1,70 @@
 import { useEffect, useState } from 'react';
-import { RepairJobProjection } from './RepairJobProjection';
-import { eventBus } from '@core/eventBus';
+import { JobCreatedProjection } from '../0502_JobCreatedProjection/JobCreatedProjection';
+import { JobStartedProjection } from '../0504_StartedJobProjection/JobStartedProjection';
+import { JobCompletedProjection } from '../0506_CompletedJobProjection/JobCompletedProjection';
 
 export function useRepairJobSlice() {
-  const [repairJobs, setRepairJobs] = useState([]);
+  const [createdJobs, setCreatedJobs] = useState([]);
+  const [startedJobs, setStartedJobs] = useState([]);
+  const [completedJobs, setCompletedJobs] = useState([]);
 
-  // Rebuild projection from existing events
   const rebuildProjection = async () => {
-    console.log("userRepairJobSlice... GetAll ???");
-    await RepairJobProjection.rebuild(); // uses jobEventStore.getEvents internally
-    setRepairJobs(Object.values(RepairJobProjection.getAll())); 
+    console.log('[useRepairJobSlice] Starting rebuild of all projections...');
+    await Promise.all([
+      JobCreatedProjection.rebuild(),
+      JobStartedProjection.rebuild(),
+      JobCompletedProjection.rebuild()
+    ]);
+    console.log('[useRepairJobSlice] Projections rebuilt.');
+
+    const created = JobCreatedProjection.getAll();
+    const started = JobStartedProjection.getAll();
+    const completed = JobCompletedProjection.getAll();
+
+    console.log('[useRepairJobSlice] getAll results -> created:', created);
+    console.log('[useRepairJobSlice] getAll results -> started:', started);
+    console.log('[useRepairJobSlice] getAll results -> completed:', completed);
+
+    setCreatedJobs(created);
+    setStartedJobs(started);
+    setCompletedJobs(completed);
   };
 
-  // Subscribe to eventBus for live updates
   useEffect(() => {
-    const handleEvent = (event) => {
-      RepairJobProjection.handleEvent(event);
-      setRepairJobs(Object.values(RepairJobProjection.getAll?.() || {}));
-    };
+    console.log('[useRepairJobSlice] Subscribing to projections...');
 
-    // subscribe to job-related events
-    const unsubJobCreated = eventBus.subscribe('JobCreated', handleEvent);
-    const unsubJobStarted = eventBus.subscribe('JobStarted', handleEvent);
-    const unsubJobCompleted = eventBus.subscribe('JobCompleted', handleEvent);
+    const unsubCreated = JobCreatedProjection.subscribe(data => {
+      console.log('[useRepairJobSlice] JobCreatedProjection subscriber fired', data);
+      setCreatedJobs(data);
+    });
 
-    // rebuild on mount
+    const unsubStarted = JobStartedProjection.subscribe(data => {
+      console.log('[useRepairJobSlice] JobStartedProjection subscriber fired', data);
+      setStartedJobs(data);
+    });
+
+    const unsubCompleted = JobCompletedProjection.subscribe(data => {
+      console.log('[useRepairJobSlice] JobCompletedProjection subscriber fired', data);
+      setCompletedJobs(data);
+    });
+
+    // Rebuild after subscribing so subscribers get replayed events
     rebuildProjection();
 
     return () => {
-      unsubJobCreated();
-      unsubJobStarted();
-      unsubJobCompleted();
+      console.log('[useRepairJobSlice] Unsubscribing from projections...');
+      unsubCreated?.();
+      unsubStarted?.();
+      unsubCompleted?.();
     };
   }, []);
 
-  return { jobs: repairJobs, rebuildProjection };
+  // Combine all jobs for convenience
+  const jobs = [...createdJobs, ...startedJobs, ...completedJobs];
+  console.log('[useRepairJobSlice] Combined jobs state:', jobs);
+
+  return {
+    jobs,
+    rebuildProjection,
+  };
 }

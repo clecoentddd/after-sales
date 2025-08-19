@@ -22,6 +22,19 @@ function ToDoListPage() {
     }));
   };
 
+  const renderValue = (val) => {
+    if (val === null || val === undefined) return '';
+    if (typeof val === 'object') return <pre>{JSON.stringify(val, null, 2)}</pre>;
+    return val;
+  };
+
+  const renderJobId = (job) => {
+  if (Array.isArray(job) && job.length > 0) {
+    return job[0].jobId;
+  }
+  return typeof job === 'string' ? job : '';
+};
+
   return (
     <div className="todo-column">
       <div className="todo-header">
@@ -37,7 +50,7 @@ function ToDoListPage() {
             <th>Change Request ID</th>
             <th>Job ID</th>
             <th>Assignment Status</th>
-            <th>Process Status</th> 
+            <th>Process Status</th>
             <th>Latest Timestamp</th>
             <th>Events</th>
           </tr>
@@ -45,18 +58,18 @@ function ToDoListPage() {
         <tbody>
           {todoList.length === 0 ? (
             <tr>
-              <td colSpan="6">No change requests found.</td>
+              <td colSpan="7">No change requests found.</td>
             </tr>
           ) : (
             todoList.map((row) => (
               <React.Fragment key={row.changeRequestId}>
                 <tr className="todo-row">
-                  <td>{row.requestId}</td>
-                  <td>{row.changeRequestId}</td>
-                  <td>{row.jobId}</td>
-                  <td>{row.assignmentStatus}</td>
-                  <td>{row.processStatus}</td> {/* <-- Display new field */}
-                  <td>{new Date(row.timestamp).toLocaleString()}</td>
+                  <td>{renderValue(row.requestId)}</td>
+                  <td>{renderValue(row.changeRequestId)}</td>
+                  <td>{renderJobId(row.jobId)}</td>
+                  <td>{renderValue(row.assignmentStatus)}</td>
+                  <td>{renderValue(row.processStatus)}</td>
+                  <td>{row.timestamp ? new Date(row.timestamp).toLocaleString() : ''}</td>
                   <td>
                     <button
                       onClick={() => toggleRowExpansion(row.changeRequestId)}
@@ -66,27 +79,24 @@ function ToDoListPage() {
                     </button>
                   </td>
                 </tr>
+
                 {expandedRows[row.changeRequestId] && (
                   <tr className="event-details">
-                    <td colSpan="6">
+                    <td colSpan="7">
                       <div className="events-list">
-                        {row.events.map((event, index) => (
+                        {Array.isArray(row.events) && row.events.map((event, index) => (
                           <div key={index} className="event-item">
-                            <strong>{event.type}</strong>:
-                            {event.type === 'ChangeRequestJobAssigned' && (
-                              <> Assigned to job <code>{event.aggregateId}</code></>
-                            )}
-                            {event.type === 'ChangeRequestJobAssignmentFailed' && (
-                              <> Failed: {event.data?.reason || 'No reason provided'}</>
-                            )}
-                            {event.type === 'ChangeRequestRaised' && (
-                              <> Raised: {event.data?.description}</>
-                            )}
-                            {event.type === 'JobOnHold' && (
-                              <> Job put on hold: {event.data?.reason}</>
-                            )}
+                            <strong>{renderValue(event.type)}</strong>:
+                            {Object.entries(event).map(([key, value]) => {
+                              if (key === 'type' || key === 'timestamp') return null; // already displayed
+                              return (
+                                <div key={key}>
+                                  <strong>{key}:</strong> {renderValue(value)}
+                                </div>
+                              );
+                            })}
                             <small className="event-timestamp">
-                              {new Date(event.timestamp).toLocaleString()}
+                              {event.timestamp ? new Date(event.timestamp).toLocaleString() : ''}
                             </small>
                           </div>
                         ))}

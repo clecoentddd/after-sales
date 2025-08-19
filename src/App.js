@@ -15,9 +15,6 @@ import RepairJobSlice from './components/RepairJobSlice';
 import InvoicingSlice from './components/InvoicingSlice';
 import ChangeRequestSlice from './components/ChangeRequestSlice';
 
-import EventsPage from './EventsPage';
-import LiveModelPage from './LiveModelPage';
-import ToDoListPage from './ToDoChangeRequestProcessPage';
 import { globalQuotationInit } from './domain/features/04_QuotationManagement/shared/globalQuotationInit';
 import { globalRequestInit } from '@features/03_RequestManagement/shared/globalRequestInit';
 import { globalInvoiceInit } from '@features/06_InvoiceManagement/shared/globalInvoiceInit';
@@ -35,6 +32,12 @@ import { initializeCompleteJobEventHandler } from '@features/03_RequestManagemen
 import { queryRequestsProjection } from '@features/03_RequestManagement/shared/requestProjectionDB';
 import { useEffect } from 'react';
 import { useToDoChangeRequestProjection } from '@domain/features/05_JobManagement/0552_ToDoCreatedJobChangeRequestProjection/useToDoChangeRequestProjection';
+
+
+import EventsPage from './EventsPage';
+import LiveModelPage from './LiveModelPage';
+import ToDoListPage from './ToDoChangeRequestProcessPage';
+import JobStatusListPage from "@domain/features/05_JobManagement/pages/JobStatusListPage";
 
 function App() {
   const currentUserId = 'user-alice-123';
@@ -84,6 +87,7 @@ function App() {
             <Link to="/events" style={{ marginRight: '15px' }}>Events</Link>
             <Link to="/liveModel" style={{ marginRight: '15px' }}>RequestStatus</Link>
             <Link to="/toDoList" style={{ marginRight: '15px' }}>Change Request ToDoList</Link>
+            <Link to="/job-status" style={{ marginRight: '15px' }}>Job Status</Link>
           </nav>
         </header>
         <Routes>
@@ -126,6 +130,7 @@ function App() {
           <Route path="/events" element={<EventsPage />} />
           <Route path="/liveModel" element={<LiveModelPage />} />
           <Route path="/toDoList" element={<ToDoListPage />} />
+          <Route path="/job-status" element={<JobStatusListPage />} />
         </Routes>
       </div>
     </Router>

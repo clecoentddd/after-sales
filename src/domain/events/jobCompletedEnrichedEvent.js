@@ -1,4 +1,4 @@
-// src/domain/features/0503_CompleteJob/events/jobCompletedEnrichedEvent.js
+// src/domain/features/0505_CompleteJob/events/jobCompletedEnrichedEvent.js
 
 export const jobCompletedEnrichedEvent = (aggregate) => {
   return {

@@ -1,77 +1,52 @@
 // src/domain/features/05_JobManagement/92_JobChangeRequestManager/initializeCreatedJobChangeRequestProcessManager.js
 import { eventBus } from '@core/eventBus';
-import { jobEventStore } from '@core/eventStore';
+import { JobCreatedProjection } from '../0502_JobCreatedProjection/JobCreatedProjection';
 import { PutJobOnHoldCommand } from '../0511_PutJobOnHold/commands';
-import { JobAggregate } from '@entities/Job/aggregate';
+import { OnHoldJobCommandHandler } from '../0511_PutJobOnHold/commandHandler';
 
 let isInitialized = false;
 
 export const initializeCreatedJobChangeRequestProcessManager = () => {
   if (isInitialized) {
-    console.log('[JobChangeRequestProcessManager] Already initialized. Skipping.');
+    console.log('[ProcessManager] Already initialized. Skipping.');
     return;
   }
 
-  eventBus.subscribe('ChangeRequestJobAssigned', (event) => {
-    console.log('[JobChangeRequestProcessManager] Received ChangeRequestJobAssigned event:', event.aggregateId);
+  eventBus.subscribe('ChangeRequestJobAssigned', async (event) => {
+    console.log('[ProcessManager] Received ChangeRequestJobAssigned event:', event.aggregateId);
 
-    const allEvents = jobEventStore.getEvents();
-    console.log('[JobChangeRequestProcessManager] Total events in store:', allEvents.length);
-
-    // Step 1: Candidate job — Pending (not started or completed)
-    const jobCreatedEvent = allEvents.find(e =>
-      e.aggregateId === event.aggregateId && e.type === 'JobCreated'
-    );
-    const jobStartedEvent = allEvents.find(e =>
-      e.aggregateId === event.aggregateId && e.type === 'JobStarted'
-    );
-    const jobCompletedEvent = allEvents.find(e =>
-      e.aggregateId === event.aggregateId && e.type === 'JobCompleted'
-    );
-
-    if (!jobCreatedEvent || jobStartedEvent || jobCompletedEvent) {
-      console.log(`[JobChangeRequestProcessManager] Job ${event.aggregateId} is either not pending, already started, or completed. Skipping.`);
+    const requestId = event.data.requestId;
+    if (!requestId) {
+      console.warn('[ProcessManager] Event missing requestId, skipping.');
       return;
     }
 
-    // Step 2: Rebuild the aggregate state to check latest CRstatus
-    const aggregate = new JobAggregate();
-    const jobEvents = allEvents
-      .filter(e => e.aggregateId === event.aggregateId)
-      .sort((a, b) => new Date(a.metadata?.timestamp || a.timestamp) - new Date(b.metadata?.timestamp || b.timestamp));
+    // Query projection for the jobId
+    const jobId = JobCreatedProjection.queryCreatedJobsList(requestId);
 
-    jobEvents.forEach(e => aggregate.apply(e));
-    console.log('[JobChangeRequestProcessManager] Replayed events for aggregate:', jobEvents.length);
-
-    // Step 3: Check latest CRstatus
-    if (aggregate.CRstatus) {
-      console.warn(`[JobChangeRequestProcessManager] Job ${event.aggregateId} already has CRstatus "${aggregate.CRstatus}". Skipping.`);
+    if (!jobId) {
+      console.warn(`[ProcessManager] No job found for requestId ${requestId}. Skipping.`);
       return;
     }
 
-    try {
-      // Step 4: Create command and put job on hold
-      const command = PutJobOnHoldCommand(
-        event.aggregateId,
-        'system',
-        'Change request assigned',
-        event.data.changeRequestId
-      );
+    // Build the command
+    const command = PutJobOnHoldCommand(
+      jobId,
+      'system',
+      'Change request assigned',
+      event.data.changeRequestId
+    );
 
-      console.log('[JobChangeRequestProcessManager] Creating PutJobOnHoldCommand:', command);
+    // Send command to aggregate via command handler
+    const result = OnHoldJobCommandHandler.handle(command);
 
-      const onHoldEvent = aggregate.putOnHold(command);
-
-      if (onHoldEvent) {
-        jobEventStore.append(onHoldEvent);
-        eventBus.publish(onHoldEvent);
-        console.log(`[JobChangeRequestProcessManager] Job ${event.aggregateId} flagged as OnHold.`);
-      }
-    } catch (error) {
-      console.error('[JobChangeRequestProcessManager] Error putting job on hold:', error);
+    if (!result.success) {
+      console.error(`[ProcessManager] Failed to put job ${jobId} on hold:`, result.error);
+    } else {
+      console.log(`[ProcessManager] Job ${jobId} successfully processed for change request.`);
     }
   });
 
   isInitialized = true;
-  console.log('[JobChangeRequestProcessManager] Initialized.');
+  console.log('[ProcessManager] Initialized.');
 };

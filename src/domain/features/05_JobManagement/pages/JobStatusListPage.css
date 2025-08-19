@@ -1,0 +1,124 @@
+.job-status-page {
+  padding: 2rem;
+  font-family: system-ui, sans-serif;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.job-status-page h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #111827;
+}
+
+/* Toolbar buttons */
+.job-toolbar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.job-toolbar button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  color: #fff;
+}
+
+.job-toolbar button:hover {
+  transform: translateY(-1px);
+}
+
+.job-toolbar .btn-created {
+  background: #3b82f6; /* blue */
+}
+.job-toolbar .btn-created:hover {
+  background: #2563eb;
+}
+
+.job-toolbar .btn-started {
+  background: #10b981; /* green */
+}
+.job-toolbar .btn-started:hover {
+  background: #059669;
+}
+
+.job-toolbar .btn-completed {
+  background: #8b5cf6; /* purple */
+}
+.job-toolbar .btn-completed:hover {
+  background: #7c3aed;
+}
+
+.job-toolbar .btn-all {
+  background: #374151; /* gray */
+}
+.job-toolbar .btn-all:hover {
+  background: #1f2937;
+}
+
+/* Grid for projections */
+.job-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Each block */
+.job-block {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  padding: 1rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.job-block:hover {
+  box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+
+.job-block h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+/* Job list */
+.job-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.job-list li {
+  padding: 0.6rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  font-size: 0.85rem;
+  transition: background 0.2s ease;
+}
+
+.job-list li:hover {
+  background: #f3f4f6;
+}
+
+.job-id {
+  display: block;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #374151;
+  margin-bottom: 0.2rem;
+}
+
+.job-meta {
+  font-size: 0.75rem;
+  color: #6b7280;
+}

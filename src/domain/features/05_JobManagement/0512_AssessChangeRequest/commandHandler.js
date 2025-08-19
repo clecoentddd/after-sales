@@ -8,9 +8,16 @@ export const FlagJobForAssessmentCommandHandler = {
 
     switch (command.type) {
       case 'FlagJobForAssessmentCommand':
-        console.log(`[FlagJobForAssessmentCommandHandler] Fetching events for jobId: ${command.jobId}`);
-        const jobEvents = jobEventStore.getEvents().filter(e => e.aggregate === command.jobId);
+        // Step 1: Fetch all events from the event store
+        console.log(`[FlagJobForAssessmentCommandHandler] Fetching all events from event store...`);
+        const allEvents = jobEventStore.getEvents();
+        console.log(`[FlagJobForAssessmentCommandHandler] Total events in store: ${allEvents.length}`);
+
+        // Step 2: Filter events for the specific jobId
+        console.log(`[FlagJobForAssessmentCommandHandler] Filtering events for jobId: ${command.jobId}`);
+        const jobEvents = allEvents.filter(e => e.aggregateId === command.jobId);
         console.log(`[FlagJobForAssessmentCommandHandler] Retrieved ${jobEvents.length} event(s) for jobId: ${command.jobId}`);
+
 
         const aggregate = new JobAggregate();
         aggregate.replay(jobEvents);

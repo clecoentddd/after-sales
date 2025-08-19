@@ -98,7 +98,7 @@ apply(ev) {
 static create(command) {
   const jobId = uuidv4();
   const jobDetails = {
-    title: `Repair Job for: ${command.quotationDetails.title}`,
+    title: `Job for: ${command.quotationDetails.title}`,
     description: command.quotationDetails.operations,
     priority: 'Normal',
     assignedTeam: 'Unassigned',

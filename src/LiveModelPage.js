@@ -12,13 +12,9 @@ const LiveRequestModel = () => {
   useEffect(() => {
     console.log('[LiveRequestModel] Fetching all events...');
     const allEvents = getAllEvents();
-
-    // Log all events for debugging
     console.log('[LiveRequestModel] All events:', JSON.parse(JSON.stringify(allEvents)));
-
     setEvents(allEvents);
 
-    // Extract unique request IDs from events
     const uniqueIds = Array.from(
       new Set(
         allEvents
@@ -36,15 +32,11 @@ const LiveRequestModel = () => {
     }
 
     const relevantEvents = events
-      .filter((e) =>
-        e.requestId === selectedRequestId ||
-        e.data?.requestId === selectedRequestId ||
-        (e.aggregateId === selectedRequestId)
-      )
-      .sort(
-        (a, b) =>
-          new Date(a.metadata?.timestamp || a.timestamp).getTime() -
-          new Date(b.metadata?.timestamp || b.timestamp).getTime()
+      .filter(
+        (e) =>
+          e.requestId === selectedRequestId ||
+          e.data?.requestId === selectedRequestId ||
+          e.aggregateId === selectedRequestId
       );
 
     setFilteredEvents(relevantEvents);
@@ -52,11 +44,28 @@ const LiveRequestModel = () => {
   }, [selectedRequestId, events]);
 
   const toggleEventExpansion = (index) => {
-    setExpandedEvents(prev => ({
+    setExpandedEvents((prev) => ({
       ...prev,
-      [index]: !prev[index]
+      [index]: !prev[index],
     }));
   };
+
+  // ---- Group events by changeRequestId and sort by timestamp ----
+  const groupsMap = {};
+  filteredEvents.forEach((event) => {
+    const crId = event.changeRequestId || event.data?.changeRequestId || 'NO_CR';
+    if (!groupsMap[crId]) groupsMap[crId] = [];
+    groupsMap[crId].push(event);
+  });
+
+  const groups = Object.entries(groupsMap).map(([crId, events]) => ({
+    crId,
+    events: events.sort(
+      (a, b) =>
+        new Date(b.metadata?.timestamp || b.timestamp).getTime() -
+        new Date(a.metadata?.timestamp || a.timestamp).getTime() // oldest at bottom
+    ),
+  }));
 
   return (
     <div className="live-request-container">
@@ -82,62 +91,45 @@ const LiveRequestModel = () => {
           )}
         </div>
 
-        <div className="timeline-container">
-          <h3 className="timeline-title">
-            {selectedRequestId ? `Events for: ${selectedRequestId}` : 'Select a request ID'}
-          </h3>
-
-          {filteredEvents.length === 0 && selectedRequestId && (
-            <div className="empty-state">No events found for this request</div>
-          )}
-
-          <div className="timeline">
-            {filteredEvents.map((event, index) => (
-              <div key={`${event.type}-${index}`} className="timeline-event-card">
-                <div
-                  className="event-header"
-                  onClick={() => toggleEventExpansion(index)}
-                >
-                  <div className="event-type">{event.type}</div>
-                  <div className="event-timestamp">
-                    {new Date(event.metadata?.timestamp || event.timestamp).toLocaleString()}
-                  </div>
-                  <div className={`expand-icon ${expandedEvents[index] ? 'expanded' : ''}`}>
-                    {expandedEvents[index] ? '▼' : '▶'}
-                  </div>
-                </div>
-
-                {expandedEvents[index] && (
-                  <div className="event-details">
-                    <div className="event-metadata">
-                      {event.aggregateId && (
-                        <div className="metadata-item">
-                          <span className="metadata-label">ID:</span>
-                          <span className="metadata-value">{event.aggregateId}</span>
-                        </div>
-                      )}
-                      {event.requestId && event.requestId !== event.aggregateId && (
-                        <div className="metadata-item">
-                          <span className="metadata-label">Request:</span>
-                          <span className="metadata-value">{event.requestId}</span>
-                        </div>
-                      )}
-                      {event.changeRequestId && (
-                        <div className="metadata-item">
-                          <span className="metadata-label">Change Request:</span>
-                          <span className="metadata-value">{event.changeRequestId}</span>
-                        </div>
-                      )}
+        <div className="timeline">
+          {groups.map((group, gIndex) => (
+            <div key={group.crId} className="cr-group">
+              <div className="cr-events">
+                {group.events.map((event, eIndex) => (
+                  <div
+                    key={`${event.type}-${gIndex}-${eIndex}`}
+                    className="timeline-event-card"
+                  >
+                    <div
+                      className="event-header"
+                      onClick={() => toggleEventExpansion(`${gIndex}-${eIndex}`)}
+                    >
+                      <div className="event-type">{event.type}</div>
+                      <div className="event-timestamp">
+                        {new Date(event.metadata?.timestamp || event.timestamp).toLocaleString()}
+                      </div>
+                      <div
+                        className={`expand-icon ${
+                          expandedEvents[`${gIndex}-${eIndex}`] ? 'expanded' : ''
+                        }`}
+                      >
+                        {expandedEvents[`${gIndex}-${eIndex}`] ? '▼' : '▶'}
+                      </div>
                     </div>
 
-                    <pre className="event-data">
-                      {JSON.stringify(event.data, null, 2)}
-                    </pre>
+                    {expandedEvents[`${gIndex}-${eIndex}`] && (
+                      <div className="event-details">
+                        <pre className="event-data">{JSON.stringify(event.data, null, 2)}</pre>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
+              <div className="cr-gutter">
+                <div className="cr-label">CR {group.crId}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

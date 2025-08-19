@@ -1,9 +1,17 @@
 import { jobEventStore } from '@core/eventStore';
 import { eventBus } from '@core/eventBus';
 
+// Create a temporary cache to store job details from JobCreated events
+const jobDetailsCache = {};
+
 function createProjection() {
   const state = {};
   const listeners = new Set();
+
+  // Helper function to get job details from cache or event data
+  function getJobDetails(jobId) {
+    return jobDetailsCache[jobId] || {};
+  }
 
   const projection = {
     getAll() {
@@ -30,35 +38,53 @@ function createProjection() {
     reset({ silent = false } = {}) {
       console.log('[JobStartedProjection] Resetting state');
       for (const key in state) delete state[key];
-
       if (!silent) {
-        // only notify if caller *wants* subscribers to see empty state
+        // Only notify if caller wants subscribers to see empty state
         listeners.forEach(cb => cb([]));
       }
     },
 
-    handleEvent(event) {
+    handleEvent(event, { notify = true } = {}) {
       const jobId = event.aggregateId;
       if (!jobId) return;
-
-      console.log('[JobStartedProjection] Handling event:', event);
+      console.log('[JobStartedProjection] Handling event:', event.type, jobId);
 
       switch (event.type) {
+        case 'JobCreated':
+          // Cache job details from JobCreated events
+          jobDetailsCache[jobId] = {
+            jobDetails: event.data.jobDetails,
+            quotationId: event.data.quotationId,
+            // Cache any other relevant details
+          };
+          console.log(`[JobStartedProjection] JobCreated -> cached details for jobId: ${jobId}`);
+
+          // Remove from state if it exists (since JobCreated means it's not started yet)
+          if (state[jobId]) {
+            delete state[jobId];
+            console.log(`[JobStartedProjection] JobCreated -> removed jobId: ${jobId}`);
+          }
+          break;
+
         case 'JobStarted':
+          // Get job details from cache and include them in the state
+          const jobDetails = getJobDetails(jobId);
           state[jobId] = {
             jobId,
             requestId: event.requestId,
             changeRequestId: event.changeRequestId,
-            ...event.data
+            ...event.data,
+            // Include job details from cache
+            jobDetails: jobDetails.jobDetails || event.data.jobDetails || {},
+            quotationId: jobDetails.quotationId || event.data.quotationId
           };
-          console.log(`[JobStartedProjection] JobStarted -> added/updated jobId: ${jobId}`);
+          console.log(`[JobStartedProjection] JobStarted -> added/updated jobId: ${jobId} with title:`, state[jobId].jobDetails?.title);
           break;
 
-        case 'JobCreated':
         case 'JobCompleted':
           if (state[jobId]) {
             delete state[jobId];
-            console.log(`[JobStartedProjection] ${event.type} -> removed jobId: ${jobId}`);
+            console.log(`[JobStartedProjection] JobCompleted -> removed jobId: ${jobId}`);
           }
           break;
 
@@ -66,28 +92,41 @@ function createProjection() {
           console.warn('[JobStartedProjection] Unknown event type:', event.type);
       }
 
-      projection.notify();
+      if (notify) {
+        projection.notify();
+      }
     },
 
     async rebuild() {
-  console.log('[JobStartedProjection] Rebuilding projection from event store...');
+      console.log('[JobStartedProjection] Rebuilding projection from event store...');
 
-  // 1️⃣ Clear state but don't notify yet
-  projection.reset({ silent: true });
+      // 1️⃣ Clear state but don't notify yet
+      projection.reset({ silent: true });
 
-  // 2️⃣ Wait 0.5s to show empty state
-  setTimeout(async () => {
-    const events = await jobEventStore.getEvents();
+      // 2️⃣ Clear cache
+      for (const key in jobDetailsCache) delete jobDetailsCache[key];
 
-    // Replay events without notifying each time
-    events.forEach(e => projection.handleEvent(e, { notify: false }));
+      // 3️⃣ Wait 0.5s to show empty state
+      setTimeout(async () => {
+        const events = await jobEventStore.getEvents();
 
-    // Notify once after all events
-    projection.notify();
+        // First pass: cache all JobCreated events
+        events.forEach(e => {
+          if (e.type === 'JobCreated') {
+            projection.handleEvent(e, { notify: false });
+          }
+        });
 
-    console.log('[JobStartedProjection] Rebuild complete.');
-  }, 500);
-},
+        // Second pass: process all events
+        events.forEach(e => {
+          projection.handleEvent(e, { notify: false });
+        });
+
+        // Notify once after all events
+        projection.notify();
+        console.log('[JobStartedProjection] Rebuild complete.');
+      }, 500);
+    },
 
     queryStartedJobsList(requestId) {
       const job = Object.values(state).find(j => j.requestId === requestId);
@@ -96,7 +135,7 @@ function createProjection() {
     }
   };
 
-  // auto-subscribe to relevant events
+  // Auto-subscribe to relevant events
   eventBus.subscribe('JobCreated', event => projection.handleEvent(event));
   eventBus.subscribe('JobStarted', event => projection.handleEvent(event));
   eventBus.subscribe('JobCompleted', event => projection.handleEvent(event));

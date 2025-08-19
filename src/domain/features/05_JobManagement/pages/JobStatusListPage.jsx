@@ -4,7 +4,7 @@ import "./JobStatusListPage.css";
 import { JobCreatedProjection } from "../0502_JobCreatedProjection/JobCreatedProjection";
 import { JobStartedProjection } from "../0504_StartedJobProjection/JobStartedProjection";
 import { JobCompletedProjection } from "../0506_CompletedJobProjection/JobCompletedProjection";
-import { useProjection } from "../hooks/useProjection";
+import { useProjection } from "../hooks/useHooks";
 
 export default function JobStatusListPage() {
   const created = useProjection(JobCreatedProjection);

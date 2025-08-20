@@ -10,45 +10,56 @@ export function useRepairJobSlice() {
 
   const rebuildProjection = async () => {
     console.log('[useRepairJobSlice] Starting rebuild of all projections...');
-    await Promise.all([
-      JobCreatedProjection.rebuild(),
-      JobStartedProjection.rebuild(),
-      JobCompletedProjection.rebuild()
-    ]);
-    console.log('[useRepairJobSlice] Projections rebuilt.');
+    try {
+      // Reset state before rebuilding to show loading state
+      setCreatedJobs([]);
+      setStartedJobs([]);
+      setCompletedJobs([]);
 
-    const created = JobCreatedProjection.getAll();
-    const started = JobStartedProjection.getAll();
-    const completed = JobCompletedProjection.getAll();
+      await Promise.all([
+        JobCreatedProjection.rebuild(),
+        JobStartedProjection.rebuild(),
+        JobCompletedProjection.rebuild()
+      ]);
 
-    console.log('[useRepairJobSlice] getAll results -> created:', created);
-    console.log('[useRepairJobSlice] getAll results -> started:', started);
-    console.log('[useRepairJobSlice] getAll results -> completed:', completed);
+      // Get fresh data after rebuild
+      const created = JobCreatedProjection.getAll();
+      const started = JobStartedProjection.getAll();
+      const completed = JobCompletedProjection.getAll();
 
-    setCreatedJobs(created);
-    setStartedJobs(started);
-    setCompletedJobs(completed);
+      console.log('[useRepairJobSlice] Rebuild results:',
+        { created: created.length, started: started.length, completed: completed.length });
+
+      setCreatedJobs(created);
+      setStartedJobs(started);
+      setCompletedJobs(completed);
+
+      console.log('[useRepairJobSlice] Projections rebuilt successfully.');
+    } catch (error) {
+      console.error('[useRepairJobSlice] Error rebuilding projections:', error);
+      // Optionally rethrow or handle the error
+    }
   };
 
   useEffect(() => {
     console.log('[useRepairJobSlice] Subscribing to projections...');
 
     const unsubCreated = JobCreatedProjection.subscribe(data => {
-      console.log('[useRepairJobSlice] JobCreatedProjection subscriber fired', data);
+      console.log('[useRepairJobSlice] JobCreatedProjection updated:', data.length, 'jobs');
       setCreatedJobs(data);
     });
 
     const unsubStarted = JobStartedProjection.subscribe(data => {
-      console.log('[useRepairJobSlice] JobStartedProjection subscriber fired', data);
+      console.log('[useRepairJobSlice] JobStartedProjection updated:', data.length, 'jobs');
       setStartedJobs(data);
     });
 
     const unsubCompleted = JobCompletedProjection.subscribe(data => {
-      console.log('[useRepairJobSlice] JobCompletedProjection subscriber fired', data);
+      console.log('[useRepairJobSlice] JobCompletedProjection updated:', data.length, 'jobs');
       setCompletedJobs(data);
     });
 
-    // Rebuild after subscribing so subscribers get replayed events
+    // Initial rebuild
     rebuildProjection();
 
     return () => {
@@ -61,10 +72,13 @@ export function useRepairJobSlice() {
 
   // Combine all jobs for convenience
   const jobs = [...createdJobs, ...startedJobs, ...completedJobs];
-  console.log('[useRepairJobSlice] Combined jobs state:', jobs);
+  console.log('[useRepairJobSlice] Current combined jobs state:', jobs.length, 'total jobs');
 
   return {
     jobs,
+    createdJobs,
+    startedJobs,
+    completedJobs,  // Expose individual job lists if needed
     rebuildProjection,
   };
 }

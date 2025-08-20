@@ -1,19 +1,23 @@
-// src/domain/features/05_JobManagement/hooks/useProjection.js
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
 
 export function useProjection(projection) {
   const [jobs, setJobs] = useState([]);
 
-  const rebuildProjection = async () => {
-    await projection.rebuild();
-    setJobs(projection.getAll());
-  };
-
   useEffect(() => {
-    const unsub = projection.subscribe(setJobs);
-    rebuildProjection();
-    return () => unsub();
+    // Get current state from projection
+    setJobs(projection.getAll());
+
+    // Subscribe to future updates
+    const unsubscribe = projection.subscribe((data) => {
+      setJobs(data);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, [projection]);
 
-  return { jobs, rebuildProjection };
+  return {
+    jobs
+  };
 }

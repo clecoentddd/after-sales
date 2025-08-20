@@ -27,7 +27,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.1s ease;
-  color: #fff;
+  color: #a6b9ed;
 }
 
 .job-toolbar button:hover {

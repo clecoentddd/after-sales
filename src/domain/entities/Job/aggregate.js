@@ -6,6 +6,35 @@ import { JobOnHoldEvent } from '@events/jobOnHoldEvent';
 import { JobFlaggedForAssessmentEvent } from '@events/jobFlaggedForAssessmentEvent';
 import {JobCompletedChangeRequestRejectedEvent} from '@events/jobCompletedChangeRequestRejectedEvent';
 
+
+// Map status to event factory functions
+const statusToEventMap = {
+  Pending: (job, command) =>
+    JobOnHoldEvent(
+      job.jobId,
+      job.requestId,
+      command.changeRequestId,
+      command.heldByUserId,
+      command.reason || 'Change request assessment pending'
+    ),
+  Started: (job, command) =>
+    JobFlaggedForAssessmentEvent(
+      job.jobId,
+      job.requestId,
+      command.changeRequestId,
+      command.flaggedByUserId,
+      command.reason || 'Change request flagged for assessment'
+    ),
+  Completed: (job, command) =>
+    JobCompletedChangeRequestRejectedEvent(
+      job.jobId,
+      job.requestId,
+      command.changeRequestId,
+      'Change request rejected: Job already completed',
+      'Automated Response from System'
+    ),
+};
+
 export class JobAggregate {
 constructor() {
   this.jobId = null;
@@ -41,6 +70,7 @@ constructor() {
    * Apply a single event to mutate internal state.
    */
 // In your JobAggregate class
+// In your JobAggregate class
 apply(ev) {
   const data = ev.data || {};
   switch (ev.type) {
@@ -52,43 +82,52 @@ apply(ev) {
       this.jobDetails = data.jobDetails;
       this.status = data.status || 'Pending';
       break;
+
     case 'JobStarted':
       this.status = data.status || 'Started';
       this.assignedTeam = data.assignedTeam;
       this.startedByUserId = data.startedByUserId;
       this.startedAt = data.startedAt;
       break;
+
     case 'JobCompleted':
       this.status = 'Completed';
       this.completedByUserId = data.completedByUserId;
       this.completionDetails = data.completionDetails;
       this.completedAt = data.completedAt;
       break;
+
     case 'JobOnHold':
-      // Don't change the overall status anymore
-      // this.status = 'OnHold';  // REMOVED
       this.onHoldReason = data.reason || this.onHoldReason;
-      // Track CRstatus separately if needed
       if (data.CRstatus) {
         this.CRstatus = data.CRstatus;
       }
       break;
+
     case 'ChangeRequestReceivedPendingAssessment':
-       this.CRstatus = data.CRstatus; // Should be 'ChangeRequestReceivedPendingAssessment'
-       this.onHoldReason = data.reason || this.onHoldReason;
-       this.changeRequestId = data.changeRequestId;
-      break;
-    case 'JobCompletedChangeRequestRejectedEvent':
       this.CRstatus = data.CRstatus;
       this.onHoldReason = data.reason || this.onHoldReason;
       this.changeRequestId = data.changeRequestId;
       break;
 
+    case 'JobFlaggedForAssessment':
+      this.CRstatus = 'ChangeRequestReceivedPendingAssessment';
+      this.onHoldReason = data.reason || this.onHoldReason;
+      this.changeRequestId = data.changeRequestId;
+      break;
+
+    case 'JobChangeRequestRejected':  // Fixed event type name
+      this.CRstatus = data.CRstatus;  // This will be 'Rejected' from your event
+      this.onHoldReason = data.reason || this.onHoldReason;
+      this.changeRequestId = data.changeRequestId;
+      break;
+
     default:
-      // Ignore unknown events
+      console.warn(`[JobAggregate] Unknown event type: ${ev.type}`);
       break;
   }
 }
+
 
 
   /**
@@ -210,5 +249,16 @@ flagForAssessment(command) {
       "Cannot apply a change request to a job that is already complete",
       "Automated Response from System"
     );
+  }
+
+    /**
+   * Assess a change request based on the current job status.
+   */
+  AssessChangeRequest(command) {
+    const eventFactory = statusToEventMap[this.status];
+    if (!eventFactory) {
+      throw new Error(`Cannot assess change request for job in status: ${this.status}`);
+    }
+    return eventFactory(this, command);
   }
 }

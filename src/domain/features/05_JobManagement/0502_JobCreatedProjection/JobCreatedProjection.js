@@ -4,29 +4,25 @@ import { rebuildProjections } from '../services/projectionRebuilder';
 
 function createProjection() {
   const listeners = new Set();
-
   const projection = {
     getAll() {
       return jobStorage.getAll().filter(job => job.status === 'Pending');
     },
-
     subscribe(callback) {
       listeners.add(callback);
       callback([...this.getAll()]);
       return () => listeners.delete(callback);
     },
-
     notify() {
       listeners.forEach(cb => cb([...this.getAll()]));
     },
-
     handleEvent(event) {
       const jobId = event.aggregateId;
       if (!jobId) return;
 
       if (event.type === 'JobCreated') {
         jobStorage.upsert({
-          jobId,
+          jobId: jobId,
           status: 'Pending',
           requestId: event.requestId,
           changeRequestId: event.changeRequestId,
@@ -36,6 +32,7 @@ function createProjection() {
         this.notify();
       }
       else if (event.type === 'JobStarted' || event.type === 'JobCompleted') {
+        console.log(`[JobCreatedProjection] Handling ${event.type} event for job:`, jobId);
         const job = jobStorage.getById(jobId);
         if (job && job.status === 'Pending') {
           jobStorage.updateStatus(
@@ -47,13 +44,13 @@ function createProjection() {
         }
       }
     },
-
     async rebuild() {
       await rebuildProjections([this]);
     },
-
     queryCreatedJobsList(requestId) {
-      return this.getAll().find(j => j.requestId === requestId)?.jobId || null;
+      const job = this.getAll().find(j => j.requestId === requestId);
+      console.log('[JobCreatedProjection] queryCreatedJobsList for requestId:', requestId, 'result:', job);
+      return job ? { jobId: job.jobId, CRstatus: job.CRstatus } : null;
     }
   };
 

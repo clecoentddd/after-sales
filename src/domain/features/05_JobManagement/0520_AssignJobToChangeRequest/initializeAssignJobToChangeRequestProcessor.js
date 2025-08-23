@@ -27,9 +27,9 @@ export const initializeAssignJobToChangeRequestProcessor = () => {
       return;
     }
 
-    const jobId = AllJobsProjection.queryAllJobsByRequestId(requestId);
+    const job = AllJobsProjection.queryAllJobsByRequestId(requestId);
 
-    if (!jobId) {
+    if (!job) {
       const failureEvent = ChangeRequestJobAssignmentFailed(
         requestId,
         changeRequestId,
@@ -44,8 +44,8 @@ export const initializeAssignJobToChangeRequestProcessor = () => {
       return;
     }
 
-    console.log("[initializeAssignJobToChangeRequestProcessor] (2) changeRequestId to assign job to : ",changeRequestId );
-    const successEvent = ChangeRequestJobAssignedEvent(jobId, requestId, changeRequestId);
+    console.log("[initializeAssignJobToChangeRequestProcessor] (2) changeRequestId to assign job to : ", job );
+    const successEvent = ChangeRequestJobAssignedEvent(job.jobId, requestId, changeRequestId);
     console.log('[initializeAssignJobToChangeRequestProcessor] Job found → emitting success event', successEvent);
     jobEventStore.append(successEvent);
     eventBus.publish(successEvent);

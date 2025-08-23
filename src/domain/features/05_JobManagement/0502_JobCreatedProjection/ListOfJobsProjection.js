@@ -66,9 +66,9 @@ function createProjection() {
     queryAllJobsByRequestId(requestId) {
       const jobs = Object.values(state).filter(j => j.requestId === requestId);
       console.log('[AllJobsProjection] queryAllJobsByRequestId -> requestId:', requestId, 'result:', jobs);
-      return jobs;
-    }
-  };
+      return jobs.length > 0 ? jobs[0] : null;
+      }
+    };
 
   // auto-subscribe only to JobCreated
   eventBus.subscribe('JobCreated', event => {

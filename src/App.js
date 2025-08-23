@@ -20,19 +20,15 @@ import { globalRequestInit } from '@features/03_RequestManagement/shared/globalR
 import { globalInvoiceInit } from '@features/06_InvoiceManagement/shared/globalInvoiceInit';
 
 import { initializeCreateJobEventHandler } from '@features/05_JobManagement/0501_CreateJobAutomation/eventHandler';
-import { initializeAssignJobToChangeRequestProcessor } from '@features/05_JobManagement/0551_AssignJobToChangeRequest/initializeAssignJobToChangeRequestProcessor';
-import {initializeCreatedJobChangeRequestProcessManager } from '@features/05_JobManagement/0553_CreatedJobChangeRequestManager/initializeCreatedJobChangeRequestProcessManager';
-import {initializeStartedJobChangeRequestProcessManager } from '@features/05_JobManagement/0554_StartedJobChangeRequestManager/initializeStartedJobChangeRequestProcessManager';
-import { initializeCompletedJobChangeRequestProcessManager} from '@features/05_JobManagement/0555_CompletedJobChangeRequestProcessManager/initializeCompletedJobRequestProcessManager';
-
+import { initializeAssignJobToChangeRequestProcessor } from '@features/05_JobManagement/0520_AssignJobToChangeRequest/initializeAssignJobToChangeRequestProcessor';
 
 import { initializeChangeRequestDecisionTreeHandler } from '@features/03_RequestManagement/0312_ChangeRequestDecisionTree/eventHandler';
 import { initializeCompleteJobEventHandler } from '@features/03_RequestManagement/0303_CloseRequest/eventHandler';
 
 import { queryRequestsProjection } from '@features/03_RequestManagement/shared/requestProjectionDB';
 import { useEffect } from 'react';
-import { useToDoChangeRequestProjection } from '@domain/features/05_JobManagement/0552_ToDoCreatedJobChangeRequestProjection/useToDoChangeRequestProjection';
 
+import { useChangeRequestAssessementJobManagement } from '@features/05_JobManagement/hooks/useChangeRequestAssessmentHook';
 
 import EventsPage from './EventsPage';
 import LiveModelPage from './LiveModelPage';
@@ -56,8 +52,8 @@ function App() {
   // Change requests projection
   const { changeRequests, changeRequestEvents } = useChangeRequestSlice();
   // To-Do projection
-  useToDoChangeRequestProjection();
-
+  useChangeRequestAssessementJobManagement();
+  
   // Initialize event handlers only once
   useEffect(() => {
     console.log('[App] Initializing projections and event handlers...');
@@ -68,9 +64,7 @@ function App() {
     initializeChangeRequestDecisionTreeHandler();
     initializeCompleteJobEventHandler();
     initializeAssignJobToChangeRequestProcessor();
-    initializeCreatedJobChangeRequestProcessManager();
-    initializeStartedJobChangeRequestProcessManager();
-    initializeCompletedJobChangeRequestProcessManager();
+
     // ONLY call initializeProjections (which includes initializeAssignJobToChangeRequestProcessor)
     
     console.log('[App] Projections and event handlers initialized.');
